@@ -11,6 +11,22 @@
 ### Project Overview
 Building a web application at `app.snapcase.ai` that allows customers to design and order custom phone cases, extending the kiosk experience to the web through Printful's print-on-demand infrastructure.
 
+### 🚨 Current Blockers
+- **Account Setup Required**: Printful, Stripe, and Vercel accounts need to be created
+- **Domain Configuration**: app.snapcase.ai subdomain needs DNS setup
+- **EDM Access**: Printful EDM access may be delayed (fallback ready)
+
+### 🎯 Next 3 Actions
+1. **Account Setup** (Ethan): Create Printful, Stripe, Vercel accounts
+2. **Domain Setup** (Ethan): Configure app.snapcase.ai DNS
+3. **Project Enhancement** (AI): Enhance Next.js project structure
+
+### 📝 Documentation Status
+- **Last Updated**: December 2024
+- **Next Review**: Daily (as part of sprint discipline)
+- **Current Status**: ✅ Up to date with latest changes
+- **Pending Updates**: None
+
 ## 📊 Milestone Progress
 
 ### ✅ Completed Milestones
@@ -20,7 +36,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - [x] README.md with comprehensive documentation
 - [x] PROGRESS.md for tracking development
 - [x] Basic project structure established
-- [ ] Next.js 14 project scaffolded
+- [x] Next.js 14 project scaffolded (✅ Already exists)
 - [ ] Vercel deployment configured
 - [ ] Custom domain (app.snapcase.ai) setup
 
@@ -38,6 +54,57 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - [ ] Device picker component
 - [ ] Safe area overlay system
 - [ ] DPI validation and warnings
+
+## 👥 Accountability Matrix
+
+### **Ethan's Tasks (Product Owner)**
+- [ ] **Printful Account**: Create account, request EDM access, get API tokens
+- [ ] **Stripe Account**: Create account, configure webhooks, get API keys
+- [ ] **Vercel Account**: Create account, connect GitHub, configure environment
+- [ ] **Domain Setup**: Configure app.snapcase.ai DNS (CNAME to Vercel)
+- [ ] **Content**: Provide final copy, logo, pricing, legal policies
+
+### **AI Assistant Tasks (Technical Lead)**
+- [ ] **Next.js Enhancement**: Improve project structure, add missing dependencies
+- [ ] **Design System Implementation**: Implement design system matching SnapCase.ai homepage
+- [ ] **API Routes**: Implement all API endpoints (EDM, checkout, orders, webhooks)
+- [ ] **UI Components**: Build device picker, checkout flow, order tracking
+- [ ] **Design Editor**: Implement EDM integration + Fabric.js fallback
+- [ ] **Testing**: Set up testing framework and implement test suite
+
+## 📝 Definition of Done (Sprint Requirements)
+
+### **Every Sprint Must Include:**
+- [ ] **Code Complete**: All planned features implemented and tested
+- [ ] **Documentation Updated**: PROGRESS.md reflects current status
+- [ ] **Progress Logged**: Completed tasks marked with ✅ and timestamps
+- [ ] **Blockers Documented**: Any new blockers added to current blockers section
+- [ ] **Next Actions Updated**: Next 3 actions reflect current priorities
+- [ ] **Technical Docs Updated**: API docs, architecture docs updated if changed
+- [ ] **Testing Complete**: All tests passing, new tests added for new features
+- [ ] **Deployment Ready**: Code deployed to staging/preview environment
+
+### **Documentation Discipline:**
+- **Daily**: Update PROGRESS.md with completed tasks and blockers
+- **Sprint End**: Full documentation review and update
+- **Before Merge**: Ensure all relevant docs are current
+- **After Deployment**: Update deployment status and any configuration changes
+
+### 📋 Documentation Checklist (Every Sprint)
+- [ ] **PROGRESS.md Updated**: Current status, completed tasks, new blockers
+- [ ] **Technical Docs Current**: Architecture, API, deployment docs updated if changed
+- [ ] **Progress Logged**: All completed tasks marked with ✅ and timestamps
+- [ ] **Next Actions Updated**: Next 3 actions reflect current priorities
+- [ ] **Blockers Documented**: Any new blockers added to current blockers section
+- [ ] **Testing Docs Updated**: Test strategy and results documented
+- [ ] **Deployment Status**: Current deployment status and any changes noted
+
+### 🚨 Documentation is NOT Optional
+**Every sprint MUST include documentation updates. No exceptions.**
+- Documentation is part of the Definition of Done
+- Incomplete documentation = incomplete sprint
+- Use the Sprint Update Template for consistency
+- AI agents depend on current documentation for context
 
 ### 📋 Upcoming Milestones
 
@@ -246,6 +313,12 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - [Business Context](./Docs/BusinessContext.Md)
 - [Technical Prototype](./Docs/SnapCase_App_Prototype.MD)
 - [UX/CX Guidelines](./Docs/UXCX_Guidelines.MD)
+- [Design System](./Docs/DESIGN_SYSTEM.md)
+- [Visual Consistency Guide](./Docs/VISUAL_CONSISTENCY_GUIDE.md)
+- [Design Implementation Guide](./Docs/DESIGN_IMPLEMENTATION_GUIDE.md)
+- [Account Setup Guide](./Docs/ACCOUNT_SETUP_GUIDE.md)
+- [Sprint Update Template](./Docs/SPRINT_UPDATE_TEMPLATE.md)
+- [Documentation Reminder](./Docs/DOCUMENTATION_REMINDER.md)
 
 ### External Resources
 - [Printful API Documentation](https://developers.printful.com/)
@@ -255,6 +328,8 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Tools & Services
 - **Development**: Cursor AI, GitHub, Vercel
+- **Marketing Site**: Squarespace (snapcase.ai)
+- **App Hosting**: Vercel (app.snapcase.ai)
 - **Payments**: Stripe
 - **Fulfillment**: Printful
 - **Analytics**: TBD
