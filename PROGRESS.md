@@ -4,28 +4,47 @@
 **Owner**: Ethan Trifari  
 **Engineering Lead**: AI Assistant (Cursor)  
 **Repository**: https://github.com/ethtri/SnapCase_App  
-**Last Updated**: December 2024
+**Last Updated**: October 24, 2025
 
 ## 🎯 Current Status: MVP Development Phase
 
 ### Project Overview
 Building a web application at `app.snapcase.ai` that allows customers to design and order custom phone cases, extending the kiosk experience to the web through Printful's print-on-demand infrastructure.
 
-### 🚨 Current Blockers
-- **Account Setup Required**: Printful, Stripe, and Vercel accounts need to be created
-- **Domain Configuration**: app.snapcase.ai subdomain needs DNS setup
-- **EDM Access**: Printful EDM access may be delayed (fallback ready)
+### dYs" Current Blockers
+- **Printful EDM Access**: Awaiting approval to use the embedded designer in production.
+- **Domain Configuration**: app.snapcase.ai DNS still needs to point to Vercel.
+- **Secrets in Vercel**: Production `PRINTFUL_TOKEN` / `STRIPE_SECRET_KEY` not yet stored in Vercel project settings.
 
-### 🎯 Next 3 Actions
-1. **Account Setup** (Ethan): Create Printful, Stripe, Vercel accounts
-2. **Domain Setup** (Ethan): Configure app.snapcase.ai DNS
-3. **Project Enhancement** (AI): Enhance Next.js project structure
+### dYZ_ Next 3 Actions
+1. **API Skeleton** (AI): Implement `/api/checkout`, `/api/order/create`, and Stripe/Printful webhook handlers using mock Printful responses.
+2. **Fallback Editor Deepening** (AI): Complete device picker, safe-area overlay, and DPI guard for the Fabric.js editor flow.
+3. **Order Tracking Store** (AI): Wire Vercel KV with the `OrderRecord` schema and idempotent webhook processing loop.
+
+### Pre-EDM Work Plan
+- Mock Printful API responses for checkout and order creation so the API layer can ship ahead of EDM access.
+- Continue Fabric.js fallback work: device picker, safe-area overlay, DPI validation, and local draft persistence.
+- Implement Vercel KV order tracking plus Stripe/Printful webhook idempotency using sandbox payloads.
+- Expand automated checks (e.g., `npm run verify:mcp`, Jest/Playwright stubs) to keep regressions visible.
+
+### Latest Updates
+  - 2025-10-24: Upgraded Stripe webhook endpoint to verify signatures and log key events while we stage downstream automation.
+  - 2025-10-24: Documented MCP usage patterns so future agents know when to lean on GitHub, Vercel, and Stripe servers.
+  - 2025-10-24: Wired `/api/checkout` to Stripe (with mock fallback), gated express shipping via feature flag, and added global security headers/CSP in Next.js.
+  - 2025-10-24: Standardized the checkout route on `/api/checkout`, promoted EDM integration requirements into the PRD, and published the EDM storyboard companion doc for coding agents.
+- 2025-10-23: Documented MCP credential workflow and added `npm run verify:mcp` to validate GitHub/Vercel/Stripe MCP servers.
+- 2025-10-22: Fabric.js fallback editor foundation implemented (image upload, safe-area overlay, export pipeline).
+- 2025-10-22: Added Zod validation and request size limits to /api/edm/nonce; added query filters with validation to /api/catalog/phones.
+- 2025-10-22: Verified `snapcase-app` as the sole Vercel project, removed duplicate slugs, and confirmed `main` branch auto-deploys after cleanup.
+- 2025-10-21: Vercel preview deployment succeeded after converting Next.js config to next.config.mjs and swapping to Inter/Roboto Mono fonts to unblock builds.
+- 2025-10-21: Added .env.example, editor scaffolding (/design, /checkout, /thank-you), and refreshed landing copy to align with MVP milestones.
+- 2025-10-21: Implemented /api/catalog/phones + /api/edm/nonce with mock fallbacks and hooked the design editor to consume them, persisting state into checkout stub.
 
 ### 📝 Documentation Status
-- **Last Updated**: December 2024
+- **Last Updated**: October 24, 2025
 - **Next Review**: Daily (as part of sprint discipline)
-- **Current Status**: ✅ Up to date with latest changes
-- **Pending Updates**: None
+- **Current Status**: Up to date with latest changes
+- **Pending Updates**: Monitor MCP automation adoption and update guides as new servers come online.
 
 ## 📊 Milestone Progress
 
@@ -37,7 +56,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - [x] PROGRESS.md for tracking development
 - [x] Basic project structure established
 - [x] Next.js 14 project scaffolded (✅ Already exists)
-- [ ] Vercel deployment configured
+- [x] Vercel deployment configured (preview build successful on Vercel)
 - [ ] Custom domain (app.snapcase.ai) setup
 
 #### Documentation & Planning
@@ -274,22 +293,22 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 ## 🎯 Next Actions
 
 ### Immediate (This Week)
-1. Set up Next.js 14 project with TypeScript
-2. Configure Vercel deployment
-3. Implement basic design editor
-4. Set up Stripe integration
+1. Harden API routes with Zod validation, schema-driven inputs, and request size limits
+2. Build Fabric.js fallback editor foundation (canvas setup + safe-area overlay plan)
+3. Prepare Stripe integration scaffolding (checkout API stub + webhook handler outline)
 
 ### Short Term (Next 2 Weeks)
-1. Complete Printful integration
-2. Implement order tracking
-3. Conduct accessibility audit
-4. Performance optimization
+1. Wire live Printful credentials once available and replace mock EDM responses
+2. Implement order tracking data flow + /order/[id] stub
+3. Conduct accessibility + responsive review for design/checkout pages
+4. Begin rate limiting & security header implementation
+5. Automate deployment/status checks via MCP (GitHub/Vercel/Stripe)
 
 ### Medium Term (Next Month)
-1. User testing and feedback collection
-2. Analytics implementation
-3. Advanced features development
-4. Marketing integration
+1. Full Fabric editor features (DPI guard, exports, template presets)
+2. Analytics + error monitoring instrumentation
+3. Advanced checkout polish (shipping options, copy)
+4. Marketing integrations & launch content
 
 ## 📞 Communication & Updates
 
@@ -316,6 +335,8 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - [Design System](./Docs/DESIGN_SYSTEM.md)
 - [Visual Consistency Guide](./Docs/VISUAL_CONSISTENCY_GUIDE.md)
 - [Design Implementation Guide](./Docs/DESIGN_IMPLEMENTATION_GUIDE.md)
+- [EDM Storyboard](./Docs/Storyboard_EDM.md)
+- [MCP Credentials](./Docs/MCP_Credentials.md)
 - [Account Setup Guide](./Docs/ACCOUNT_SETUP_GUIDE.md)
 - [Sprint Update Template](./Docs/SPRINT_UPDATE_TEMPLATE.md)
 - [Documentation Reminder](./Docs/DOCUMENTATION_REMINDER.md)
@@ -340,3 +361,6 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 **Last Updated**: December 2024  
 **Next Review**: Weekly  
 **Document Owner**: Ethan Trifari
+
+
+

@@ -312,18 +312,18 @@ const securityHeaders = [
   },
   {
     key: 'Referrer-Policy',
-    value: 'origin-when-cross-origin'
+    value: 'strict-origin-when-cross-origin'
   },
   {
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://files.cdn.printful.com",
+      "script-src 'self' https://js.stripe.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' https://files.cdn.printful.com https://cdn.snapcase.ai data:",
-      "frame-src 'self' https://checkout.stripe.com https://files.cdn.printful.com",
-      "connect-src 'self' https://api.stripe.com https://api.printful.com",
-      "font-src 'self'",
+      "img-src 'self' data: blob: https://files.cdn.printful.com https://cdn.snapcase.ai",
+      "frame-src 'self' https://checkout.stripe.com https://*.printful.com",
+      "connect-src 'self' https://api.stripe.com https://api.printful.com https://embed.printful.com",
+      "font-src 'self' https://fonts.gstatic.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self' https://checkout.stripe.com",
@@ -331,6 +331,11 @@ const securityHeaders = [
     ].join('; ')
   }
 ]
+
+// Implementation notes:
+// - Apply via next.config.mjs `headers()` so every route inherits the allowlist.
+// - Override X-Frame-Options to `SAMEORIGIN` on the EDM embed container only if Printful requires nested iframes.
+// - Add integration tests (Playwright / supertest) to assert the header set on `/design`, `/checkout`, and API routes.
 
 // Rate limiting implementation
 import { Ratelimit } from "@upstash/ratelimit";
@@ -567,6 +572,15 @@ export function trackError(error: Error, context: any) {
 - **Errors**: API failures, client-side errors
 - **Business**: Order volume, AOV, fulfillment success rate
 
+## dY"q Developer Tooling & MCP Integrations
+- **GitHub MCP (`github`)**: Backed by `@modelcontextprotocol/server-github` using `GITHUB_PAT`. Use for repository queries (open PRs, branch status) and file diffs instead of hand-rolled REST calls.
+- **Vercel MCP (`vercel`)**: Hosted at https://mcp.vercel.com with `VERCEL_TOKEN`. Use to list deployments, inspect environment variables, and trigger redeployments directly within agent workflows.
+- **Stripe MCP (`stripe`)**: Hosted at https://mcp.stripe.com with `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY`. Use to create sandbox Checkout Sessions, replay webhooks, or manage test customers/products during payment development.
+- **Printful MCP**: Not yet available. Continue mocking Printful endpoints until a first-party server or credentials land.
+- **Verification**: Run `npm run verify:mcp` (`scripts/verify-mcp.js`) to confirm connectivity; it enumerates exposed tools and will fail fast if a token is missing.
+- **Agent expectation**: Default to MCP calls whenever tasks touch GitHub, Vercel, or Stripe APIs. Record gaps (missing tool, insufficient scopes) in `PROGRESS.md` so we can extend automation.
+
+
 ## 🚀 Deployment Architecture
 
 ### Vercel Configuration
@@ -622,3 +636,5 @@ export function trackError(error: Error, context: any) {
 **Document Owner**: Ethan Trifari  
 **Technical Review**: AI Assistant  
 **Last Updated**: December 2024
+
+

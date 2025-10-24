@@ -2,7 +2,7 @@
 
 **Project**: SnapCase Custom Phone Case Platform  
 **Version**: v1.0  
-**Last Updated**: December 2024  
+**Last Updated**: October 22, 2025  
 **Owner**: Ethan Trifari  
 
 ## 🚀 Deployment Overview
@@ -72,6 +72,17 @@ vercel env add STRIPE_WEBHOOK_SECRET
 vercel env add NEXT_PUBLIC_APP_URL
 vercel env add USE_EDM
 ```
+> **Important:** Always link to the existing Vercel project named `snapcase-app`. If the CLI or dashboard offers to create a new project, choose the "link existing" option and pick `snapcase-app`. New slugs such as `snap-case-app-v1` create duplicate projects that track the same repository and add maintenance overhead.
+
+#### Verify Vercel <-> GitHub Link (do this once)
+- **On Vercel:** Settings -> *snapcase-app* -> Git. Confirm `ethtri/SnapCase_App` is listed as the connected repository and `main` is the production branch. If the wrong repo appears, click *Connect Git Repository* and reselect `ethtri/SnapCase_App`.
+- **On GitHub:** Settings -> Integrations -> GitHub Apps -> *Vercel*. The app should be installed for "Only select repositories" with `SnapCase_App` checked. Remove any extra Vercel installations that point at the same repo.
+- **GitHub webhooks:** When the official Vercel GitHub App is installed, you may not see a webhook entry under Settings -> Webhooks; the app delivers events through GitHub's Checks API instead. Only add/delete webhooks here if you previously created manual Vercel deploy hooks.
+
+##### 2025-10-22 Vercel Cleanup Summary
+- Confirmed `snapcase-app` (slug `snapcase-app`) is the canonical project; duplicates (`snap-case-app`, `snap-case-app-v1`, `snap-case-appv1`) were removed.
+- Production and preview deploys now originate from branch `main`. Always push release work to `main` (or execute `git push origin main`).
+- During `vercel link`, select the existing `snapcase-app` project instead of creating a new import.
 
 ## 🔧 Environment Configuration
 
@@ -86,6 +97,8 @@ PRINTFUL_STORE_ID=your_live_store_id
 # Stripe Configuration
 STRIPE_SECRET_KEY=sk_live_your_live_secret_key
 STRIPE_WEBHOOK_SECRET=whsec_your_live_webhook_secret
+STRIPE_SHIPPING_RATE_STANDARD=shr_live_standard_rate_id
+STRIPE_SHIPPING_RATE_EXPRESS=shr_live_express_rate_id
 
 # Application Configuration
 NEXT_PUBLIC_APP_URL=https://app.snapcase.ai
@@ -93,6 +106,7 @@ USE_EDM=true
 
 # Feature Flags
 SHOW_EXPRESS_SHIPPING=true
+NEXT_PUBLIC_SHOW_EXPRESS_SHIPPING=true
 ENABLE_ANALYTICS=true
 ```
 
@@ -105,6 +119,8 @@ PRINTFUL_STORE_ID=your_test_store_id
 # Stripe Configuration (Test Mode)
 STRIPE_SECRET_KEY=sk_test_your_test_secret_key
 STRIPE_WEBHOOK_SECRET=whsec_your_test_webhook_secret
+STRIPE_SHIPPING_RATE_STANDARD=shr_test_standard_rate_id
+STRIPE_SHIPPING_RATE_EXPRESS=shr_test_express_rate_id
 
 # Application Configuration
 NEXT_PUBLIC_APP_URL=https://snapcase-app-git-develop-username.vercel.app
@@ -112,6 +128,7 @@ USE_EDM=true
 
 # Feature Flags
 SHOW_EXPRESS_SHIPPING=true
+NEXT_PUBLIC_SHOW_EXPRESS_SHIPPING=true
 ENABLE_ANALYTICS=false
 ```
 
@@ -124,6 +141,8 @@ PRINTFUL_STORE_ID=your_test_store_id
 # Stripe Configuration (Test Mode)
 STRIPE_SECRET_KEY=sk_test_your_test_secret_key
 STRIPE_WEBHOOK_SECRET=whsec_your_test_webhook_secret
+STRIPE_SHIPPING_RATE_STANDARD=shr_dev_standard_rate_id
+STRIPE_SHIPPING_RATE_EXPRESS=shr_dev_express_rate_id
 
 # Application Configuration
 NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -131,6 +150,7 @@ USE_EDM=false
 
 # Feature Flags
 SHOW_EXPRESS_SHIPPING=true
+NEXT_PUBLIC_SHOW_EXPRESS_SHIPPING=true
 ENABLE_ANALYTICS=false
 ```
 
@@ -594,4 +614,9 @@ vercel env pull .env.debug
 
 **Document Owner**: Ethan Trifari  
 **Deployment Lead**: AI Assistant  
-**Last Updated**: December 2024
+**Last Updated**: October 21, 2025
+
+## MCP Connectivity Checklist
+- Ensure OS-level tokens (`GITHUB_PAT`, `VERCEL_TOKEN`, `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`) align with Docs/MCP_Credentials.md.
+- Run `npm run verify:mcp` before deploys to confirm GitHub, Vercel, and Stripe servers respond; resolve failures before promoting builds.
+- Document MCP automation gaps in PROGRESS.md so deploy runbooks stay current.
