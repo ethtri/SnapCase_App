@@ -6,7 +6,7 @@ SnapCase brings the in-mall custom case experience online. This Next.js 14 proje
 - Next.js App Router scaffold deployed to Vercel previews
 - `/design` route with Printful EDM toggle and Fabric.js fallback placeholder
 - `/checkout` and `/thank-you` stub flows ready for Stripe integration
-- Placeholder device picker with sample state management
+- `/design` device picker styled per storyboard scenes with catalog-backed data and placeholder analytics logging
 - API routes `/api/catalog/phones` and `/api/edm/nonce` using Printful-aware mock data
 
 ## Local development
@@ -17,6 +17,16 @@ npm run dev
 ```
 
 The dev server runs at <http://localhost:3000>.
+Run the Jest placeholders with `npm run test:unit` and `npm run test:integration` to validate the Sprint 0 test harness.
+Run the Playwright smoke test with `npm run test:e2e` after installing the Playwright browsers.
+
+### Verification
+
+Run `npm run verify` before promoting changes to staging or production. It chains `npm run verify:mcp`, `npm run test:unit`, `npm run test:integration`, and `npm run test:e2e` so MCP connectivity and the full test suite are covered in one pass.
+
+## Analytics placeholder
+
+`logAnalyticsEvent` in `src/lib/analytics.ts` currently fans out to `console.log` (e.g. `analytics.select_device`). Swap this helper when we plug in the real analytics provider so existing calls keep working without touching feature code.
 
 ## Environment variables
 

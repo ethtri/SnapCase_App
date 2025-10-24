@@ -100,6 +100,8 @@ describe('Design and Order Flow', () => {
 
 ## 🔄 Testing Workflow
 
+Run `npm run verify` before merging to confirm MCP connectivity and the full automated suite still passes.
+
 ### Pre-Development Testing
 - [ ] **Requirements Review**: Ensure acceptance criteria are testable
 - [ ] **Test Planning**: Define test scenarios and data requirements

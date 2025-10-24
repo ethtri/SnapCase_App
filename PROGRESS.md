@@ -6,28 +6,63 @@
 **Repository**: https://github.com/ethtri/SnapCase_App  
 **Last Updated**: October 24, 2025
 
-## 🎯 Current Status: MVP Development Phase
+## Current Status: MVP Development Phase
 
 ### Project Overview
 Building a web application at `app.snapcase.ai` that allows customers to design and order custom phone cases, extending the kiosk experience to the web through Printful's print-on-demand infrastructure.
 
-### dYs" Current Blockers
-- **Printful EDM Access**: Awaiting approval to use the embedded designer in production.
+### Current Blockers
+- **Printful EDM Access**: Token + store ID configured; need live catalog products (external IDs) and end-to-end nonce tests before enabling production orders.
 - **Domain Configuration**: app.snapcase.ai DNS still needs to point to Vercel.
-- **Secrets in Vercel**: Production `PRINTFUL_TOKEN` / `STRIPE_SECRET_KEY` not yet stored in Vercel project settings.
+- **Build Tooling**: ESLint config mismatch (Next 14 vs eslint-config-next 15) keeps `npm run lint` from finishing; align versions or pin legacy config.
+- **Secrets in Vercel**: Production `STRIPE_SECRET_KEY` not yet stored in Vercel project settings.
 
-### dYZ_ Next 3 Actions
-1. **API Skeleton** (AI): Implement `/api/checkout`, `/api/order/create`, and Stripe/Printful webhook handlers using mock Printful responses.
-2. **Fallback Editor Deepening** (AI): Complete device picker, safe-area overlay, and DPI guard for the Fabric.js editor flow.
-3. **Order Tracking Store** (AI): Wire Vercel KV with the `OrderRecord` schema and idempotent webhook processing loop.
+### Next 3 Actions
+1. **Design Shell Polish** (AI): Align `/design` device picker with storyboard scenes 1-3, using catalog external IDs and emitting analytics events.
+2. **Editor Guardrails** (AI): Implement EDM/Fabric safe-area + DPI guardrails with template persistence (storyboard scenes 4-8).
+3. **Checkout Cancel/Resume Flow** (AI): Deliver Stripe test-mode checkout with cancel-and-return handling and preserved design context (scenes 9-10).
 
-### Pre-EDM Work Plan
-- Mock Printful API responses for checkout and order creation so the API layer can ship ahead of EDM access.
+## Sprint Log
+
+### Sprint 0 - Testing Loop Setup *(Oct 25 - Nov 7, 2025)*
+
+| Task | Owner | Status | Notes / Next Step |
+| --- | --- | --- | --- |
+| Provide Stripe production secret + webhook signing secret via secure channel | Ethan | DONE | Stripe sandbox keys + webhook secret confirmed; no further action until we swap to live. |
+| Store Stripe and Printful secrets in Vercel + refresh `.env.local` | AI | DONE | Vercel env updated, redeploy triggered, and `.env.local` synced with Stripe sandbox values. |
+| Verify Printful catalog external IDs align with curated data | AI | DONE | Catalog snapshot captured in `Docs/PRINTFUL_CATALOG.md`; ready to wire live Printful queries. |
+| Point `app.snapcase.ai` CNAME at Vercel (`cname.vercel-dns.com`) | Ethan | DONE | DNS now validated in Vercel (see app.snapcase.ai domain dashboard). |
+| Harden automated test harness (`test:unit`, `test:integration`, `test:e2e`) and add smoke stubs | AI | DONE | Jest unit/integration placeholders plus the Playwright smoke test now run locally; `npm run test:e2e` passes with mocked services. |
+| Wire CI/local `npm run verify:mcp` + test suite into developer workflow | AI | DONE | Added `npm run verify` script chaining MCP + unit/integration/e2e tests and linked it into README and deployment checklist. |
+| Draft Playwright happy-path scenario for design->checkout using mock services | AI | DONE | Smoke spec walks design → checkout flow with mocked EDM + Stripe endpoints. |
+| Publish user-testing plan (participants, schedule, success criteria) | Ethan + AI | IN PROGRESS | Ethan will self-test each preview build; flesh out script & logging template before Sprint 1 demo. |
+
+#### Blockers
+- 2025-10-24: Runaway agent widened scope beyond the prompt and touched config defaults; diff was rolled back, workspace cleaned, and the guardrails now live in `Docs/PROJECT_MANAGEMENT.md` for future prompts.
+
+**Sprint Goal:** Establish a reliable build -> preview -> test loop so every feature increment can be exercised in Vercel previews and shared with testers before production deploys.
+
+### Sprint 1 - Design Flow v1 *(Nov 8 - Nov 21, 2025)*
+
+| Task | Owner | Status | Notes / Next Step |
+| --- | --- | --- | --- |
+| Align `/design` device picker UX with storyboard scenes 1-3 (copy, pricing, analytics event) | AI | DONE | Catalog module powers the picker, Tailwind styling matches storyboard, and placeholder analytics logs `select_device`. |
+| Implement EDM/Fabric guardrails (safe-area overlay, DPI warnings, template persistence) | AI | TODO | Respect `USE_EDM` flag; mirror storyboard scenes 4-8. |
+| Wire Stripe cancel/resume loop with persisted design context | AI | TODO | Mock Stripe test-mode; ensure cancel returns to `/checkout` with state intact. |
+| Extend Playwright spec to cover guardrail + cancel/resume behaviors | AI | TODO | Update after features land; keep deterministic with mocks. |
+| Prepare Sprint 1 self-test script and feedback log template | Ethan | IN PROGRESS | Outline steps (device selection, guardrails, checkout cancel/resume) and where to capture notes. |
+
+**Sprint Goal:** Deliver a preview-ready design → checkout flow matching storyboard scenes 1-10 that can be exercised in moderated user tests.
+
+### EDM Integration Work Plan
+- Verify Printful store catalog metadata (external IDs, thumbnails) so live APIs stay in sync with fallback data.
 - Continue Fabric.js fallback work: device picker, safe-area overlay, DPI validation, and local draft persistence.
 - Implement Vercel KV order tracking plus Stripe/Printful webhook idempotency using sandbox payloads.
 - Expand automated checks (e.g., `npm run verify:mcp`, Jest/Playwright stubs) to keep regressions visible.
 
 ### Latest Updates
+  - 2025-10-24: `/api/catalog/phones` now queries Printful via the shared client and falls back to curated fixtures when live data is missing.
+  - 2025-10-24: Printful EDM token regenerated for the Snapcase API store (V2); secrets stored locally and on Vercel.
   - 2025-10-24: Upgraded Stripe webhook endpoint to verify signatures and log key events while we stage downstream automation.
   - 2025-10-24: Documented MCP usage patterns so future agents know when to lean on GitHub, Vercel, and Stripe servers.
   - 2025-10-24: Wired `/api/checkout` to Stripe (with mock fallback), gated express shipping via feature flag, and added global security headers/CSP in Next.js.
@@ -40,22 +75,22 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - 2025-10-21: Added .env.example, editor scaffolding (/design, /checkout, /thank-you), and refreshed landing copy to align with MVP milestones.
 - 2025-10-21: Implemented /api/catalog/phones + /api/edm/nonce with mock fallbacks and hooked the design editor to consume them, persisting state into checkout stub.
 
-### 📝 Documentation Status
+### [Notes] Documentation Status
 - **Last Updated**: October 24, 2025
 - **Next Review**: Daily (as part of sprint discipline)
 - **Current Status**: Up to date with latest changes
 - **Pending Updates**: Monitor MCP automation adoption and update guides as new servers come online.
 
-## 📊 Milestone Progress
+## [Metrics] Milestone Progress
 
-### ✅ Completed Milestones
+### [Done] Completed Milestones
 
 #### M0: Repository & Infrastructure Setup
 - [x] GitHub repository created and configured
 - [x] README.md with comprehensive documentation
 - [x] PROGRESS.md for tracking development
 - [x] Basic project structure established
-- [x] Next.js 14 project scaffolded (✅ Already exists)
+- [x] Next.js 14 project scaffolded ([Done] Already exists)
 - [x] Vercel deployment configured (preview build successful on Vercel)
 - [ ] Custom domain (app.snapcase.ai) setup
 
@@ -65,7 +100,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - [x] UX/CX guidelines established
 - [x] Development progress tracking system implemented
 
-### 🚧 In Progress
+### [In Progress] In Progress
 
 #### M1: Design Editor Implementation (Days 2-3)
 - [ ] Printful EDM integration setup
@@ -74,7 +109,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - [ ] Safe area overlay system
 - [ ] DPI validation and warnings
 
-## 👥 Accountability Matrix
+## [Team] Accountability Matrix
 
 ### **Ethan's Tasks (Product Owner)**
 - [ ] **Printful Account**: Create account, request EDM access, get API tokens
@@ -91,12 +126,12 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - [ ] **Design Editor**: Implement EDM integration + Fabric.js fallback
 - [ ] **Testing**: Set up testing framework and implement test suite
 
-## 📝 Definition of Done (Sprint Requirements)
+## [Notes] Definition of Done (Sprint Requirements)
 
 ### **Every Sprint Must Include:**
 - [ ] **Code Complete**: All planned features implemented and tested
 - [ ] **Documentation Updated**: PROGRESS.md reflects current status
-- [ ] **Progress Logged**: Completed tasks marked with ✅ and timestamps
+- [ ] **Progress Logged**: Completed tasks marked with [Done] and timestamps
 - [ ] **Blockers Documented**: Any new blockers added to current blockers section
 - [ ] **Next Actions Updated**: Next 3 actions reflect current priorities
 - [ ] **Technical Docs Updated**: API docs, architecture docs updated if changed
@@ -109,23 +144,23 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - **Before Merge**: Ensure all relevant docs are current
 - **After Deployment**: Update deployment status and any configuration changes
 
-### 📋 Documentation Checklist (Every Sprint)
+### [Checklist] Documentation Checklist (Every Sprint)
 - [ ] **PROGRESS.md Updated**: Current status, completed tasks, new blockers
 - [ ] **Technical Docs Current**: Architecture, API, deployment docs updated if changed
-- [ ] **Progress Logged**: All completed tasks marked with ✅ and timestamps
+- [ ] **Progress Logged**: All completed tasks marked with [Done] and timestamps
 - [ ] **Next Actions Updated**: Next 3 actions reflect current priorities
 - [ ] **Blockers Documented**: Any new blockers added to current blockers section
 - [ ] **Testing Docs Updated**: Test strategy and results documented
 - [ ] **Deployment Status**: Current deployment status and any changes noted
 
-### 🚨 Documentation is NOT Optional
+### [Alert] Documentation is NOT Optional
 **Every sprint MUST include documentation updates. No exceptions.**
 - Documentation is part of the Definition of Done
 - Incomplete documentation = incomplete sprint
 - Use the Sprint Update Template for consistency
 - AI agents depend on current documentation for context
 
-### 📋 Upcoming Milestones
+### [Checklist] Upcoming Milestones
 
 #### M2: Payment Integration (Days 3-4)
 - [ ] Stripe Checkout implementation
@@ -141,19 +176,19 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 #### M4: Polish & Launch (Days 6-7)
 - [ ] Accessibility audit (WCAG AA compliance)
-- [ ] Performance optimization (Lighthouse ≥90)
+- [ ] Performance optimization (Lighthouse >=90)
 - [ ] Security review
 - [ ] Production deployment
 - [ ] Go-live checklist completion
 
-## 📈 Success Metrics & KPIs
+## [Growth] Success Metrics & KPIs
 
 ### Target Metrics
-- **Conversion Rate**: ≥4% (editor start → purchase)
+- **Conversion Rate**: >=4% (editor start -> purchase)
 - **Average Order Value**: $35-$45
 - **Reprint/Defect Rate**: <2%
-- **30-day Repeat Rate**: ≥10%
-- **Performance Score**: Lighthouse ≥90
+- **30-day Repeat Rate**: >=10%
+- **Performance Score**: Lighthouse >=90
 - **Uptime**: 99.9%
 
 ### Current Performance
@@ -162,7 +197,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - **Performance Score**: TBD
 - **Uptime**: TBD
 
-## 🔄 Development Backlog
+## [Cycle] Development Backlog
 
 ### High Priority
 1. **Core Application Setup**
@@ -202,7 +237,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
    - Referral system
    - Analytics and reporting
 
-## ⚠️ Risks & Issues
+## [Warning] Risks & Issues
 
 ### High Risk Items
 
@@ -244,7 +279,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
   - **Mitigation**: Service monitoring, fallback options
   - **Status**: Monitoring
 
-## 🐛 Known Issues
+## [Bug] Known Issues
 
 ### Critical Issues
 - None currently identified
@@ -258,7 +293,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 ### Low Priority Issues
 - None currently identified
 
-## 🔧 Technical Debt
+## [Tools] Technical Debt
 
 ### Code Quality
 - [ ] Implement comprehensive error boundaries
@@ -278,7 +313,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - [ ] Security headers configuration
 - [ ] Regular dependency updates
 
-## 📊 Development Velocity
+## [Metrics] Development Velocity
 
 ### Recent Sprints
 - **Sprint 1** (Week 1): Project setup and documentation
@@ -290,7 +325,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - **Design**: AI + Ethan collaboration
 - **QA**: Manual testing by team
 
-## 🎯 Next Actions
+## Next Actions
 
 ### Immediate (This Week)
 1. Harden API routes with Zod validation, schema-driven inputs, and request size limits
@@ -310,7 +345,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 3. Advanced checkout polish (shipping options, copy)
 4. Marketing integrations & launch content
 
-## 📞 Communication & Updates
+## [Communication] Communication & Updates
 
 ### Daily Standups
 - **Format**: Async updates via this document
@@ -326,7 +361,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - **Format**: Process improvement discussion
 - **Focus**: What worked, what didn't, process improvements
 
-## 📚 Resources & References
+## [Resources] Resources & References
 
 ### Documentation
 - [Business Context](./Docs/BusinessContext.Md)

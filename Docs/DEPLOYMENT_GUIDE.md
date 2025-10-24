@@ -570,6 +570,7 @@ vercel env pull .env.debug
 ## 📋 Deployment Checklist
 
 ### Pre-Deployment
+- [ ] Run `npm run verify` (required before staging and production promotions)
 - [ ] All tests passing
 - [ ] Environment variables configured
 - [ ] Domain DNS configured
