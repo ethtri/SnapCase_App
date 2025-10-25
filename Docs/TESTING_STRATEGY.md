@@ -42,6 +42,11 @@ describe('DPI Validation', () => {
 });
 ```
 
+#### Guardrail Threshold Checks
+- Guardrail constants are defined in `src/lib/guardrails.ts`. Adjust `DPI_GOOD_THRESHOLD` and `DPI_WARN_THRESHOLD` there when Printful sends live specs.
+- `tests/unit/guardrails.test.ts` covers the allow/block bands and safe-area overrides from the storyboard.
+- Session storage helpers and Stripe cancel/resume persistence are exercised in `tests/integration/design-context.test.ts` to confirm template/export payloads persist and `markCheckoutAttempt()` keeps context intact when `/checkout?cancelled=1` (or `stripe=cancelled`) returns from Stripe.
+
 ### 2. Integration Tests (20%)
 **Scope**: API routes, component interactions  
 **Tools**: Jest, Supertest  
@@ -97,6 +102,10 @@ describe('Design and Order Flow', () => {
   });
 });
 ```
+
+#### Playwright Flow Notes
+- `tests/e2e/design-to-checkout.spec.ts` drives the real `/design → /checkout → /thank-you` pages, using component `data-testid` hooks (variant cards, guardrail copy, cancel banner, thank-you summary) to cover guardrail allow/deny bands and the cancel/resume banner before validating the stored variant label clears on thank-you.
+- `npm run verify` automatically wipes the local `.next` build directory before Playwright boots its dev server, preventing OneDrive file locks from breaking repeated runs.
 
 ## 🔄 Testing Workflow
 

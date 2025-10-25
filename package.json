@@ -11,13 +11,14 @@
     "verify:mcp": "node scripts/verify-mcp.js",
     "test:unit": "npx --yes jest --runInBand --testPathPatterns tests/unit",
     "test:integration": "npx --yes jest --runInBand --testPathPatterns tests/integration",
-    "test:e2e": "npx --yes playwright test",
+    "test:e2e": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true });\" && npm run build && npx --yes playwright test",
     "verify": "npm run verify:mcp && npm run test:unit && npm run test:integration && npm run test:e2e"
   },
   "dependencies": {
     "next": "^14.2.33",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "stripe": "^14.25.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

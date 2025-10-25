@@ -4,7 +4,9 @@ import { z } from "zod";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY ?? "";
 const stripeClient = stripeSecretKey
-  ? new Stripe(stripeSecretKey, { apiVersion: "2024-06-20" })
+  ? new Stripe(stripeSecretKey, {
+      apiVersion: "2024-06-20" as Stripe.LatestApiVersion,
+    })
   : null;
 
 const MAX_BODY_SIZE_BYTES = 50_000; // 50 KB is plenty for metadata payloads.

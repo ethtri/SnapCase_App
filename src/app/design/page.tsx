@@ -1,23 +1,74 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState, type JSX } from "react";
 
+import { EdmEditor } from "@/components/editor/edm-editor";
+import { FabricEditor } from "@/components/editor/fabric-editor";
+import { useDesignGuardrails } from "@/components/editor/use-design-guardrails";
 import {
   type DeviceCatalogEntry,
   getDeviceCatalog,
 } from "@/data/catalog";
 import { logAnalyticsEvent } from "@/lib/analytics";
+import type { GuardrailInput } from "@/lib/guardrails";
+import { markCheckoutAttempt, saveDesignContext } from "@/lib/design-context";
+
+declare global {
+  interface Window {
+    __snapcaseDesignHydrated?: boolean;
+  }
+}
 
 type CatalogByBrand = {
   brand: DeviceCatalogEntry["brand"];
   items: DeviceCatalogEntry[];
 };
 
+const DEFAULT_PRINT_DIMENSIONS = {
+  widthInches: 3.0,
+  heightInches: 6.1,
+};
+
+const PLACEHOLDER_VARIANT_BANDS: Partial<
+  Record<DeviceCatalogEntry["variantId"], "good" | "warn" | "block">
+> = {
+  632: "good",
+  631: "warn",
+  633: "warn",
+  642: "block",
+  712: "warn",
+};
+
+const PLACEHOLDER_SAFE_AREA_COLLISIONS = new Set<number>([633, 643, 712]);
+
+function buildPlaceholderGuardrailInput(
+  device: DeviceCatalogEntry,
+): GuardrailInput {
+  // TODO(guardrails): Replace placeholder DPI bands with live EDM/Fabric metrics when Printful data is wired up.
+  const band = PLACEHOLDER_VARIANT_BANDS[device.variantId] ?? "good";
+
+  const dpi =
+    band === "good" ? 320 : band === "warn" ? 220 : 150;
+
+  const imageWidth = Math.round(dpi * DEFAULT_PRINT_DIMENSIONS.widthInches);
+  const imageHeight = Math.round(dpi * DEFAULT_PRINT_DIMENSIONS.heightInches);
+
+  return {
+    imageWidth,
+    imageHeight,
+    targetPrintWidthInches: DEFAULT_PRINT_DIMENSIONS.widthInches,
+    targetPrintHeightInches: DEFAULT_PRINT_DIMENSIONS.heightInches,
+    safeAreaCollisions: PLACEHOLDER_SAFE_AREA_COLLISIONS.has(device.variantId),
+  };
+}
+
 function formatCaseType(caseType: DeviceCatalogEntry["caseType"]): string {
   return `${caseType.charAt(0).toUpperCase()}${caseType.slice(1)} case`;
 }
 
 export default function DesignPage(): JSX.Element {
+  const router = useRouter();
   const catalog = useMemo(() => getDeviceCatalog(), []);
   const catalogByBrand = useMemo<CatalogByBrand[]>(() => {
     return catalog.reduce<CatalogByBrand[]>((groups, item) => {
@@ -32,17 +83,99 @@ export default function DesignPage(): JSX.Element {
 
   const [selectedDevice, setSelectedDevice] =
     useState<DeviceCatalogEntry | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+    window.__snapcaseDesignHydrated = true;
+    document.body.dataset.snapcaseDesignHydrated = "true";
+    return () => {
+      delete window.__snapcaseDesignHydrated;
+      delete document.body.dataset.snapcaseDesignHydrated;
+    };
+  }, []);
+
+  const useEdm =
+    (process.env.NEXT_PUBLIC_USE_EDM ?? "true").toLowerCase() !== "false";
+
+  const guardrailInput = useMemo<GuardrailInput | null>(() => {
+    if (!selectedDevice) {
+      return null;
+    }
+    return buildPlaceholderGuardrailInput(selectedDevice);
+  }, [selectedDevice]);
+
+  const guardrailState = useDesignGuardrails(guardrailInput);
 
   const handleSelect = (entry: DeviceCatalogEntry) => {
     setSelectedDevice(entry);
+    saveDesignContext({
+      variantId: entry.variantId,
+      externalProductId: entry.externalProductId,
+      templateId: null,
+      exportedImage: null,
+      variantLabel: `${entry.brand.toUpperCase()} - ${entry.model}`,
+    });
     logAnalyticsEvent("select_device", {
       variantId: entry.variantId,
       externalProductId: entry.externalProductId,
     });
   };
 
+  const handleTemplateSaved = useCallback(
+    ({ templateId, variantId }: { templateId: string; variantId: number }) => {
+      if (!selectedDevice || selectedDevice.variantId !== variantId) {
+        return;
+      }
+      saveDesignContext({
+        variantId,
+        externalProductId: selectedDevice.externalProductId,
+        templateId,
+        exportedImage: null,
+      });
+    },
+    [selectedDevice],
+  );
+
+  const handleContinueToCheckout = useCallback(() => {
+    if (!selectedDevice || !guardrailState.allowProceed) {
+      return;
+    }
+
+    markCheckoutAttempt({
+      variantId: selectedDevice.variantId,
+      externalProductId: selectedDevice.externalProductId,
+      variantLabel: `${selectedDevice.brand.toUpperCase()} - ${selectedDevice.model}`,
+    });
+    router.push("/checkout");
+  }, [guardrailState.allowProceed, router, selectedDevice]);
+
+  const handleFabricExport = useCallback(
+    ({
+      exportedImage,
+      variantId,
+    }: {
+      exportedImage: string;
+      variantId: number;
+    }) => {
+      if (!selectedDevice || selectedDevice.variantId !== variantId) {
+        return;
+      }
+      saveDesignContext({
+        variantId,
+        externalProductId: selectedDevice.externalProductId,
+        templateId: null,
+        exportedImage,
+      });
+    },
+    [selectedDevice],
+  );
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-12 px-4 py-12">
+      {isHydrated ? (
+        <span data-testid="design-hydrated-marker" hidden />
+      ) : null}
       <header className="space-y-4">
         <p className="text-sm uppercase tracking-[0.2em] text-gray-500">
           Scene 1 - Start your design
@@ -80,6 +213,7 @@ export default function DesignPage(): JSX.Element {
                         ? "border-gray-900 ring-2 ring-gray-900"
                         : "border-gray-200 hover:border-gray-300"
                     }`}
+                    data-testid={`variant-card-${entry.variantId}`}
                   >
                     <input
                       type="radio"
@@ -112,8 +246,38 @@ export default function DesignPage(): JSX.Element {
         ))}
       </section>
 
+      {selectedDevice ? (
+        <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <header className="space-y-1">
+            <p className="text-xs uppercase tracking-wide text-gray-500">
+              Scene 5 - Guardrails
+            </p>
+            <h2 className="text-xl font-semibold text-gray-900">
+              DPI meter and safe-area overlay
+            </h2>
+            <p className="text-sm text-gray-600">
+              These guardrails mirror the storyboard copy so both EDM and Fabric
+              flows share the same messaging.
+            </p>
+          </header>
+          {useEdm ? (
+            <EdmEditor
+              variantId={selectedDevice.variantId}
+              guardrailInput={guardrailInput}
+              onTemplateSaved={handleTemplateSaved}
+            />
+          ) : (
+            <FabricEditor
+              variantId={selectedDevice.variantId}
+              guardrailInput={guardrailInput}
+              onExport={handleFabricExport}
+            />
+          )}
+        </section>
+      ) : null}
+
       <footer className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 md:flex-row md:items-center md:justify-between">
-        <div>
+        <div data-testid="selection-summary">
           {selectedDevice ? (
             <div className="space-y-1">
               <span className="font-medium text-gray-900">
@@ -130,19 +294,48 @@ export default function DesignPage(): JSX.Element {
               No device selected yet
             </span>
           )}
-          <p>
-            We will unlock the editor and checkout once you choose a device and
-            confirm the case.
-          </p>
+          {selectedDevice ? (
+            <div className="space-y-2 pt-2">
+              <p>
+                Guardrail status updates in real time as you upload artwork in the
+                editor.
+              </p>
+              {!guardrailState.allowProceed ? (
+                <p className="text-xs font-medium text-red-600">
+                  {guardrailState.dpiStatus === "block"
+                    ? guardrailState.dpiMessage.description
+                    : guardrailState.safeAreaMessage.description}
+                </p>
+              ) : guardrailState.dpiStatus === "warn" ||
+                guardrailState.safeAreaCollisions ? (
+                <p className="text-xs font-medium text-amber-600">
+                  {guardrailState.dpiMessage.description}
+                </p>
+              ) : (
+                <p className="text-xs font-medium text-emerald-600">
+                  {guardrailState.dpiMessage.description}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p>
+              We will unlock the editor and checkout once you choose a device and
+              confirm the case.
+            </p>
+          )}
         </div>
         <button
           type="button"
-          disabled={!selectedDevice}
+          disabled={!selectedDevice || !guardrailState.allowProceed}
+          onClick={handleContinueToCheckout}
           className="inline-flex w-full items-center justify-center rounded-md bg-gray-900 px-4 py-2 font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300 md:w-auto"
+          data-testid="continue-button"
         >
+          {/* TODO(scene 10): Revisit CTA copy if storyboard wording changes. */}
           Continue to design
         </button>
       </footer>
     </div>
   );
 }
+

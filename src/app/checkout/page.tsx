@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState, type JSX } from "react";
 
-type DesignContext = {
-  variantId: number;
-  externalProductId: string;
-  templateId: string | null;
-  exportedImage: string | null;
-  timestamp: number;
-};
+import {
+  clearDesignContext,
+  loadDesignContext,
+  markCheckoutAttempt,
+  type DesignContext,
+} from "@/lib/design-context";
 
 type ShippingOption = "standard" | "express";
 
@@ -17,7 +17,74 @@ const showExpressShipping =
   (process.env.NEXT_PUBLIC_SHOW_EXPRESS_SHIPPING ?? "false").toLowerCase() ===
   "true";
 
-export default function CheckoutPage() {
+type CheckoutCancelBannerProps = {
+  onResume: () => void;
+};
+
+function CheckoutCancelBanner({ onResume }: CheckoutCancelBannerProps): JSX.Element | null {
+  const searchParams = useSearchParams();
+  const isCheckoutCancelled = useMemo(() => {
+    const stripeParam = searchParams.get("stripe");
+    if (stripeParam?.toLowerCase() === "cancelled") {
+      return true;
+    }
+    if (!searchParams.has("cancelled")) {
+      return false;
+    }
+    const cancelledValue = searchParams.get("cancelled");
+    if (!cancelledValue) {
+      return true;
+    }
+    const normalized = cancelledValue.toLowerCase();
+    return (
+      normalized !== "0" &&
+      normalized !== "false" &&
+      normalized !== "no"
+    );
+  }, [searchParams]);
+
+  if (!isCheckoutCancelled) {
+    return null;
+  }
+
+  return (
+    <aside
+      className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900"
+      data-testid="checkout-cancel-banner"
+    >
+      <div className="space-y-2">
+        <h2 className="text-base font-semibold text-amber-900">
+          Stripe checkout was cancelled
+        </h2>
+        <p>
+          Your latest design is still saved below. Jump back into checkout
+          whenever you&rsquo;re ready or head to the editor to tweak the
+          artwork.
+        </p>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          type="button"
+          onClick={onResume}
+          className="inline-flex items-center justify-center rounded-md bg-amber-900 px-3 py-2 text-sm font-medium text-amber-50 transition hover:bg-amber-800"
+          data-testid="resume-checkout-button"
+        >
+          Resume checkout
+        </button>
+        <Link
+          href="/design"
+          className="text-sm font-medium text-amber-900 underline"
+          data-testid="return-to-design-link"
+        >
+          Return to design
+        </Link>
+      </div>
+    </aside>
+  );
+}
+
+export default function CheckoutPage(): JSX.Element {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [designContext, setDesignContext] = useState<DesignContext | null>(null);
   const [shippingOption, setShippingOption] =
@@ -25,15 +92,11 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [mockCheckoutUrl, setMockCheckoutUrl] = useState<string | null>(null);
 
+
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const raw = sessionStorage.getItem("snapcase:design-context");
-    if (!raw) return;
-    try {
-      const parsed = JSON.parse(raw) as DesignContext;
-      setDesignContext(parsed);
-    } catch (err) {
-      console.error("Failed to parse design context", err);
+    const context = loadDesignContext();
+    if (context) {
+      setDesignContext(context);
     }
   }, []);
 
@@ -58,6 +121,11 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
+      const updatedContext = markCheckoutAttempt();
+      if (updatedContext) {
+        setDesignContext(updatedContext);
+      }
+
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,9 +168,14 @@ export default function CheckoutPage() {
     }
   };
 
+  const resumeCheckout = () => {
+    setError(null);
+    setMockCheckoutUrl(null);
+router.replace("/checkout");
+  };
+
   const clearDesign = () => {
-    if (typeof window === "undefined") return;
-    sessionStorage.removeItem("snapcase:design-context");
+    clearDesignContext();
     setDesignContext(null);
   };
 
@@ -124,6 +197,10 @@ export default function CheckoutPage() {
         </p>
       </header>
 
+      <Suspense fallback={null}>
+        <CheckoutCancelBanner onResume={resumeCheckout} />
+      </Suspense>
+
       <section className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="space-y-2">
           <h2 className="text-lg font-medium text-gray-900">
@@ -138,11 +215,24 @@ export default function CheckoutPage() {
 
         {designContext ? (
           <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between gap-3">
               <span className="font-medium">Variant</span>
-              <span className="font-mono text-xs">
-                {designContext.variantId} / {designContext.externalProductId}
-              </span>
+              <div className="flex flex-col items-end text-right">
+                {designContext.variantLabel ? (
+                  <span
+                    className="text-xs font-semibold text-gray-900"
+                    data-testid="checkout-variant-label"
+                  >
+                    {designContext.variantLabel}
+                  </span>
+                ) : null}
+                <span className="font-mono text-xs text-gray-600">
+                  {designContext.variantId ?? "—"}
+                  {designContext.externalProductId
+                    ? ` / ${designContext.externalProductId}`
+                    : ""}
+                </span>
+              </div>
             </div>
             {designContext.templateId ? (
               <div className="flex items-center justify-between">
@@ -227,17 +317,28 @@ export default function CheckoutPage() {
         ) : null}
 
         {mockCheckoutUrl ? (
-          <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            Stripe secrets are not configured. A mock checkout URL is available
-            for testing:{" "}
-            <a
-              href={mockCheckoutUrl}
-              className="underline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              {mockCheckoutUrl}
-            </a>
+          <div className="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            <p>
+              Stripe secrets are not configured. Use the mock checkout URL to
+              demo the flow without leaving the prototype.
+            </p>
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              <a
+                href={mockCheckoutUrl}
+                className="font-medium text-amber-900 underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open mock checkout
+              </a>
+              <Link
+                href="/checkout?stripe=cancelled"
+                className="font-medium text-amber-900 underline"
+                data-testid="mock-cancel-link"
+              >
+                Simulate Stripe cancel
+              </Link>
+            </div>
           </div>
         ) : null}
 
@@ -270,3 +371,4 @@ export default function CheckoutPage() {
     </div>
   );
 }
+

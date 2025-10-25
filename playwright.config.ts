@@ -9,14 +9,18 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:3000",
     trace: "on-first-retry",
+    bypassCSP: true,
   },
   webServer: {
-    command: "npm run dev -- --hostname 127.0.0.1 --port 3000",
+    command: "npx next start --hostname 127.0.0.1 --port 3000",
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
     env: {
       NEXT_PUBLIC_E2E_MODE: "true",
       USE_EDM: "false",
+      STRIPE_SHIPPING_RATE_STANDARD: "rate_mock_standard",
+      STRIPE_SECRET_KEY: "",
+      STRIPE_WEBHOOK_SECRET: "",
     },
   },
   projects: [
@@ -27,3 +31,4 @@ export default defineConfig({
   ],
   reporter: [["list"]],
 });
+

@@ -1,213 +1,117 @@
 import { expect, test } from "@playwright/test";
 
-const designStubHtml = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Snapcase E2E Design Stub</title>
-    <style>
-      :root {
-        color-scheme: light;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      }
+const DESIGN_CONTEXT_KEY = "snapcase:design-context";
 
-      body {
-        margin: 0;
-        padding: 32px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        max-width: 520px;
-      }
-
-      button {
-        font-size: 16px;
-        padding: 12px 16px;
-        border-radius: 8px;
-        border: 1px solid #cbd5f5;
-        cursor: pointer;
-        background: #f1f5ff;
-      }
-
-      button[disabled] {
-        cursor: not-allowed;
-        opacity: 0.5;
-      }
-    </style>
-  </head>
-  <body data-testid="design-page">
-    <h1>Mock Design Surface</h1>
-    <p>Select a device to unlock checkout.</p>
-    <button type="button" data-testid="device-iphone-15-pro">
-      iPhone 15 Pro Snap Case
-    </button>
-    <div data-testid="selection-status">No device selected</div>
-    <button type="button" data-testid="continue-button" disabled>
-      Continue to checkout
-    </button>
-    <script type="module" src="/__snapcase-e2e-stub.js"></script>
-  </body>
-</html>
-`;
-
-test("design to checkout smoke path", async ({ page }) => {
-  const designContextPayload = {
-    variantId: 632,
-    externalProductId: "prod_mock_device",
-    templateId: "tmpl_mock_123",
-    exportedImage: null,
-    timestamp: Date.now(),
-  };
-  const designStubScript = `(() => {
-    const payload = ${JSON.stringify(designContextPayload)};
-    const deviceButton = document.querySelector('[data-testid="device-iphone-15-pro"]');
-    const continueButton = document.querySelector('[data-testid="continue-button"]');
-    const status = document.querySelector('[data-testid="selection-status"]');
-
-    deviceButton?.addEventListener("click", async () => {
-      deviceButton.setAttribute("data-selected", "true");
-      if (status) {
-        status.textContent = "Selected: iPhone 15 Pro Snap Case";
-      }
-      if (continueButton) {
-        continueButton.disabled = false;
-      }
-
-      try {
-        await fetch("/api/edm/nonce", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            externalProductId: payload.externalProductId,
-          }),
-        });
-      } catch (error) {
-        console.error("Mock nonce request failed", error);
-      }
-    });
-
-    continueButton?.addEventListener("click", () => {
-      const nextPayload = { ...payload, timestamp: Date.now() };
-      sessionStorage.setItem(
-        "snapcase:design-context",
-        JSON.stringify(nextPayload),
-      );
-      window.location.assign("/checkout");
-    });
-  })();`;
-
-  await page.route("**/api/edm/nonce", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ nonce: "mock-edm-nonce" }),
-    });
-  });
-
-  await page.route("**/api/checkout", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        mock: true,
-        message: "Mock checkout session created",
-        url: "https://dashboard.stripe.com/test/payments/mock-session",
-      }),
-    });
-  });
-
-  await page.route("**/__snapcase-e2e-stub.js", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/javascript",
-      body: designStubScript,
-    });
-  });
-
-  await page.route("**/design", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "text/html",
-      body: designStubHtml,
-    });
-  });
-
-  await page.context().addInitScript((payload) => {
-    if (window.location.pathname === "/checkout") {
-      sessionStorage.setItem(
-        "snapcase:design-context",
-        JSON.stringify(payload),
-      );
-    }
-  }, designContextPayload);
-
+test("design guardrails enforce block/warn flows and checkout cancel/resume", async ({
+  page,
+}) => {
   await page.goto("/design");
+  await page.waitForFunction(() => {
+    return window.__snapcaseDesignHydrated === true;
+  });
 
-  const deviceOption = page.getByTestId("device-iphone-15-pro");
   const continueButton = page.getByTestId("continue-button");
+  const selectionSummary = page.getByTestId("selection-summary");
 
   await expect(continueButton).toBeDisabled();
+  await expect(selectionSummary).toContainText("No device selected yet");
 
-  const nonceRequest = page.waitForRequest("**/api/edm/nonce");
-  await deviceOption.click();
-  await nonceRequest;
+  const guardrailTitle = page.getByTestId("guardrail-title");
+  const guardrailDescription = page.getByTestId("guardrail-description");
+  const guardrailFootnote = page.getByTestId("guardrail-footnote");
 
+  const blockVariantRadio = page.locator('input[name="device"][value="642"]');
+  await blockVariantRadio.scrollIntoViewIfNeeded();
+  await blockVariantRadio.check({ force: true });
+  await blockVariantRadio.evaluate((node) => {
+    node.dispatchEvent(new Event("input", { bubbles: true }));
+    node.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.waitForFunction((key) => {
+    return window.sessionStorage.getItem(key) !== null;
+  }, DESIGN_CONTEXT_KEY);
+
+  await expect(guardrailTitle).toHaveText("Image too low-resolution");
+  await expect(guardrailDescription).toContainText("below 180 DPI");
+  await expect(guardrailFootnote).toContainText("Continue is disabled");
+  await expect(continueButton).toBeDisabled();
+
+  const warnVariantRadio = page.locator('input[name="device"][value="631"]');
+  await warnVariantRadio.scrollIntoViewIfNeeded();
+  await warnVariantRadio.check({ force: true });
+  await warnVariantRadio.evaluate((node) => {
+    node.dispatchEvent(new Event("input", { bubbles: true }));
+    node.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+
+  await expect(selectionSummary).toContainText("Variant ID 631");
+  await expect(guardrailTitle).toHaveText("Heads up on DPI");
+  await expect(guardrailDescription).toContainText("between 180-299 DPI");
+  await expect(guardrailFootnote).toContainText("You can continue");
   await expect(continueButton).toBeEnabled();
-  await expect(page.getByTestId("selection-status")).toHaveText(
-    "Selected: iPhone 15 Pro Snap Case",
-  );
+
+  const mockTemplateButton = page.getByRole("button", {
+    name: "Mock save template",
+  });
+  await mockTemplateButton.click();
 
   await Promise.all([
-    page.waitForNavigation(),
+    page.waitForURL(/\/checkout$/),
     continueButton.click(),
   ]);
 
   await expect(page).toHaveURL(/\/checkout$/);
-  await page.waitForFunction(() => {
-    return Boolean(sessionStorage.getItem("snapcase:design-context"));
-  });
-  const storedContext = await page.evaluate(() => {
-    return sessionStorage.getItem("snapcase:design-context");
-  });
-  expect(storedContext).not.toBeNull();
-  if (storedContext) {
-    const parsed = JSON.parse(storedContext) as {
-      variantId: number;
-      externalProductId: string;
-      templateId: string | null;
-    };
-    expect(parsed.variantId).toBe(designContextPayload.variantId);
-    expect(parsed.externalProductId).toBe(
-      designContextPayload.externalProductId,
-    );
-    expect(parsed.templateId).toBe(designContextPayload.templateId);
-  }
-
   await expect(
-    page.getByRole("heading", { level: 2, name: "Order summary prototype" }),
-  ).toBeVisible();
-  const variantValue = page
-    .locator("span.font-mono")
-    .filter({ hasText: "prod_mock_device" });
-  await expect(variantValue).toBeVisible();
-  const templateValue = page
-    .locator("span.font-mono")
-    .filter({ hasText: "tmpl_mock_123" });
-  await expect(templateValue).toBeVisible();
-
-  const proceedButton = page.getByRole("button", { name: "Proceed to Stripe" });
-  const checkoutRequest = page.waitForRequest("**/api/checkout");
-  await proceedButton.click();
-  await checkoutRequest;
-
-  await expect(
-    page.getByText("A mock checkout URL is available for testing:", {
-      exact: false,
+    page.getByRole("heading", {
+      level: 2,
+      name: "Order summary prototype",
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", {
-      name: "https://dashboard.stripe.com/test/payments/mock-session",
-    }),
+    page.getByTestId("checkout-variant-label"),
+  ).toHaveText("APPLE - iPhone 15");
+
+  const proceedToStripe = page.getByRole("button", {
+    name: "Proceed to Stripe",
+  });
+  await Promise.all([
+    page.waitForResponse("**/api/checkout"),
+    proceedToStripe.click(),
+  ]);
+  await expect(
+    page.getByText("Stripe secrets are not configured", { exact: false }),
   ).toBeVisible();
+
+  const cancelLink = page.getByTestId("mock-cancel-link");
+  await Promise.all([
+    page.waitForURL(/\/checkout\?stripe=cancelled$/),
+    cancelLink.click(),
+  ]);
+
+  await expect(page.getByTestId("checkout-cancel-banner")).toBeVisible();
+
+  const resumeButton = page.getByTestId("resume-checkout-button");
+  await Promise.all([
+    page.waitForURL(/\/checkout$/),
+    resumeButton.click(),
+  ]);
+  await expect(page.getByTestId("checkout-cancel-banner")).toHaveCount(0);
+
+  await Promise.all([
+    page.waitForResponse("**/api/checkout"),
+    proceedToStripe.click(),
+  ]);
+  await expect(
+    page.getByRole("link", { name: "Open mock checkout" }),
+  ).toHaveAttribute("href", expect.stringContaining("https://dashboard.stripe.com/test/payments"));
+
+  await page.goto("/thank-you");
+  await expect(page).toHaveURL(/\/thank-you$/);
+  const designSummary = page.getByTestId("design-summary");
+  await expect(designSummary).toContainText("APPLE - iPhone 15");
+
+  await page.waitForFunction((key) => {
+    return window.sessionStorage.getItem(key) === null;
+  }, DESIGN_CONTEXT_KEY);
 });
+

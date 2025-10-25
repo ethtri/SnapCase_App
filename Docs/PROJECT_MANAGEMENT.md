@@ -42,6 +42,14 @@ Deliverables:
 - Documentation updates required.
 ```
 
+## 4. Prompt Guardrails & Timeboxing
+- **Timebox every run:** structure prompts so an agent can finish in 20 minutes or less. If a run exceeds 20 minutes with no result, stop it, review the partial diff, and rescope before retrying.
+- **One deliverable per prompt:** avoid bundling config changes, test rewrites, and docs in one run. Sequence them (e.g., “add data-testid attributes” then “extend Playwright spec”).
+- **Known friction first:** call out required cleanup upfront. For Playwright on Windows/OneDrive, instruct the agent to delete the `.next` directory before launching the web server and to stop on the first `EBUSY` file-lock error instead of retrying endlessly.
+- **No stubbing real pages:** when testing flows, interact with the actual Next.js pages. Do not allow agents to inject standalone HTML/JS stubs that diverge from the app.
+- **Force a plan:** ask agents to print a brief plan before editing (`_plan`), so we can confirm scope before actions begin.
+- **Clean exits on failure:** require agents to halt and report if key commands (build, tests, deployments) fail after one retry; we’ll decide how to proceed instead of letting them loop.
+
 ## 4. Review & Merge Process
 1. **Diff Review:** Inspect `git status` and `git diff` after each agent run. If changes exceed scope, stop and decide whether to keep or revert before continuing.
 2. **Testing Confirmation:** Ensure `npm run test:unit`, `npm run test:integration`, `npm run test:e2e`, and `npm run verify:mcp` (when relevant) succeed before merging.
