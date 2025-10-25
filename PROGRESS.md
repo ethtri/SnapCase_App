@@ -40,6 +40,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 #### Blockers
 - 2025-10-24: Runaway agent widened scope beyond the prompt and touched config defaults; diff was rolled back, workspace cleaned, and the guardrails now live in `Docs/PROJECT_MANAGEMENT.md` for future prompts.
 - 2025-10-25: Playwright prompt exceeded timebox while fighting `.next` file locks on OneDrive; updated the playbook with timeboxing, cleanup, and no-stub guidance to prevent repeat overruns.
+- 2025-10-25: Squarespace already handles the marketing hero; plan to redirect `/` → `/design` in the Next.js app so users land directly in Scene 1.
 
 **Sprint Goal:** Establish a reliable build -> preview -> test loop so every feature increment can be exercised in Vercel previews and shared with testers before production deploys.
 
@@ -51,7 +52,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 | Implement EDM/Fabric guardrails (safe-area overlay, DPI warnings, template persistence) | AI | IN PROGRESS | Guardrail state + session persistence stubbed with tests; awaiting live Printful metrics for final tuning. |
 | Wire Stripe cancel/resume loop with persisted design context | AI | DONE | Mock Stripe flow preserves session context, displays cancel/resume messaging, and thank-you summary mirrors storyboard scenes 9-10. |
 | Extend Playwright spec to cover guardrail + cancel/resume behaviors | AI | DONE | Spec now drives the live design→checkout→thank-you flow with data-testid hooks, covering guardrail block/warn bands, cancel/resume banner, and thank-you context clear. |
-| Prepare Sprint 1 self-test script and feedback log template | Ethan | IN PROGRESS | Outline steps (device selection, guardrails, checkout cancel/resume) and where to capture notes. |
+| Prepare Sprint 1 self-test script and feedback log template | Ethan | DONE | Added `Docs/SELF_TEST_CHECKLIST.md` with step-by-step flow + session log template. |
 
 **Sprint Goal:** Deliver a preview-ready design → checkout flow matching storyboard scenes 1-10 that can be exercised in moderated user tests.
 

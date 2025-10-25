@@ -65,6 +65,7 @@ Deliverables:
 - Maintain the sprint plan in `PROGRESS.md` and note preview URLs for each midpoint + end-of-sprint drop.
 - For each sprint, prepare a short test script referencing the storyboard scenes covered.
 - Capture findings in a shared doc or the Sprint Log and translate into backlog items.
+- When Squarespace (snapcase.ai) drives the funnel, keep the Next.js app focused on Scene 1 onward. `/` should redirect to `/design` so users land directly in the storyboard flow; avoid duplicating the marketing hero already handled on Squarespace.
 
 ---
 
