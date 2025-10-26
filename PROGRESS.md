@@ -16,12 +16,14 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - **Domain Configuration**: app.snapcase.ai DNS still needs to point to Vercel.
 - **Build Tooling**: ESLint config mismatch (Next 14 vs eslint-config-next 15) keeps `npm run lint` from finishing; align versions or pin legacy config.
 - **Secrets in Vercel**: Production `STRIPE_SECRET_KEY` not yet stored in Vercel project settings.
-- **Design Continue CTA Disabled** *(Resolved 2025-10-26)*: Relaxed CSP `script-src` to permit Next bootstrap (dev adds `'unsafe-eval'` temporarily) and removed the test-only header bypass so warn/good variants unlock Continue again. `npm run verify` now succeeds locally.
+
+### Recently Resolved
+- **Design Continue CTA Disabled** *(Resolved 2025-10-26)*: Relaxed CSP `script-src` to permit Next bootstrap (dev adds `'unsafe-eval'` temporarily). Removed lingering CSP bypass so warn/good variants unlock Continue again. `npm run verify` now succeeds locally and in CI.
 
 ### Next 3 Actions
-1. **Design Shell Polish** (AI): Align `/design` device picker with storyboard scenes 1-3, using catalog external IDs and emitting analytics events.
-2. **Editor Guardrails** (AI): Implement EDM/Fabric safe-area + DPI guardrails with template persistence (storyboard scenes 4-8).
-3. **Checkout Cancel/Resume Flow** (AI): Deliver Stripe test-mode checkout with cancel-and-return handling and preserved design context (scenes 9-10).
+1. **Preview Routing** (AI): Implement `/` → `/design` redirect in the Next.js app to match the Squarespace CTA and storyboard Scene 1 entry.
+2. **EDM Integration Spike** (AI): Wire Printful nonce request + iframe handshake behind `USE_EDM`, validating guardrail messaging within the EDM chrome.
+3. **Printful Order Dry Run** (AI + Ethan): Capture live catalog external IDs and run a sandbox order/confirm cycle to validate fulfillment mapping and webhook handling.
 
 ## Sprint Log
 
@@ -43,15 +45,27 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - 2025-10-25: Playwright prompt exceeded timebox while fighting `.next` file locks on OneDrive; updated the playbook with timeboxing, cleanup, and no-stub guidance to prevent repeat overruns.
 - 2025-10-25: Squarespace already handles the marketing hero; plan to redirect `/` → `/design` in the Next.js app so users land directly in Scene 1.
 - 2025-10-26: CSP relaxation merged; both dev + prod builds hydrate `/design` correctly and unlock Continue for warn/good variants. Full `npm run verify` green.
+- 2025-10-26: Follow-up review removed the legacy `NEXT_PUBLIC_E2E_MODE` CSP bypass branch to ensure playwright and preview builds always exercise the production headers.
 
 **Sprint Goal:** Establish a reliable build -> preview -> test loop so every feature increment can be exercised in Vercel previews and shared with testers before production deploys.
+
+**Outcome Summary (2025-10-26):** Sprint 1 completed with the design → checkout → thank-you loop running in preview, `npm run verify` automated, and self-test checklist entries captured. Guardrail UX remains a stub pending EDM access and moves to Sprint 2.
+
+### Sprint 2 - Redirect & EDM Integration *(Nov 22 - Dec 5, 2025)*
+
+| Task | Owner | Status | Notes / Next Step |
+| --- | --- | --- | --- |
+| Add `/` → `/design` redirect and document Squarespace handoff | AI | NOT STARTED | Update App Router middleware/route and deployment checklist to reflect hero handoff. |
+| Replace guardrail stub with EDM iframe nonce flow | AI | NOT STARTED | Implement Printful nonce API call, mount EDM under `USE_EDM=true`, map guardrail copy into iframe. |
+| Run Printful sandbox order end-to-end using saved template | AI + Ethan | NOT STARTED | Validate variant mapping and webhook payloads; record in `Docs/PRINTFUL_CATALOG.md` and Sprint log. |
+| Refine `/design` UX messaging per self-test feedback | Design/AI | NOT STARTED | Consolidate guardrail messaging and polish layout once EDM renders. |
 
 ### Sprint 1 - Design Flow v1 *(Nov 8 - Nov 21, 2025)*
 
 | Task | Owner | Status | Notes / Next Step |
 | --- | --- | --- | --- |
 | Align `/design` device picker UX with storyboard scenes 1-3 (copy, pricing, analytics event) | AI | DONE | Catalog module powers the picker, Tailwind styling matches storyboard, and placeholder analytics logs `select_device`. |
-| Implement EDM/Fabric guardrails (safe-area overlay, DPI warnings, template persistence) | AI | IN PROGRESS | Guardrail state + session persistence stubbed with tests; awaiting live Printful metrics for final tuning. |
+| Implement EDM/Fabric guardrails (safe-area overlay, DPI warnings, template persistence) | AI | CARRY FORWARD | Guardrail state + session persistence stubbed with tests; awaiting live Printful metrics and EDM access to replace stub UI. |
 | Wire Stripe cancel/resume loop with persisted design context | AI | DONE | Mock Stripe flow preserves session context, displays cancel/resume messaging, and thank-you summary mirrors storyboard scenes 9-10. |
 | Extend Playwright spec to cover guardrail + cancel/resume behaviors | AI | DONE | Spec now drives the live design→checkout→thank-you flow with data-testid hooks, covering guardrail block/warn bands, cancel/resume banner, and thank-you context clear. |
 | Prepare Sprint 1 self-test script and feedback log template | Ethan | DONE | Added `Docs/SELF_TEST_CHECKLIST.md` with step-by-step flow + session log template. |
@@ -332,22 +346,22 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 ## Next Actions
 
 ### Immediate (This Week)
-1. Harden API routes with Zod validation, schema-driven inputs, and request size limits
-2. Build Fabric.js fallback editor foundation (canvas setup + safe-area overlay plan)
-3. Prepare Stripe integration scaffolding (checkout API stub + webhook handler outline)
+1. Ship `/` → `/design` redirect and validate Squarespace CTA flow.
+2. Kick off EDM integration spike (nonce fetch, iframe mount, guardrail parity).
+3. Refresh Printful catalog snapshot with latest external IDs ahead of order testing.
 
 ### Short Term (Next 2 Weeks)
-1. Wire live Printful credentials once available and replace mock EDM responses
-2. Implement order tracking data flow + /order/[id] stub
-3. Conduct accessibility + responsive review for design/checkout pages
-4. Begin rate limiting & security header implementation
-5. Automate deployment/status checks via MCP (GitHub/Vercel/Stripe)
+1. Complete EDM handshake and migrate guardrail UI into the iframe.
+2. Execute Printful order dry run; document webhook mappings and timelines.
+3. Polish `/design` layout and copy per Sprint 1 self-test feedback.
+4. Plan `/order/[id]` status timeline scaffold leveraging webhook outputs.
+5. Align ESLint config to unblock `npm run lint`.
 
 ### Medium Term (Next Month)
-1. Full Fabric editor features (DPI guard, exports, template presets)
-2. Analytics + error monitoring instrumentation
-3. Advanced checkout polish (shipping options, copy)
-4. Marketing integrations & launch content
+1. Ship Fabric.js fallback parity (if EDM remains gated) with safe-area + export tooling.
+2. Instrument analytics and error monitoring across the funnel.
+3. Advance checkout polish (shipping options, copy refinement, cancel/resume UX).
+4. Coordinate marketing integrations and launch content.
 
 ## [Communication] Communication & Updates
 

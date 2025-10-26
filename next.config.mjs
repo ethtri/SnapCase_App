@@ -53,22 +53,13 @@ const securityHeaders = [
   },
 ];
 
-const resolveSecurityHeaders = () => {
-  if (process.env.NEXT_PUBLIC_E2E_MODE === "true") {
-    return securityHeaders.filter(
-      (header) => header.key !== "Content-Security-Policy",
-    );
-  }
-  return securityHeaders;
-};
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
     return [
       {
         source: "/(.*)",
-        headers: resolveSecurityHeaders(),
+        headers: securityHeaders,
       },
     ];
   },
