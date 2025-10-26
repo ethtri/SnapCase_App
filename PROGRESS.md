@@ -4,7 +4,7 @@
 **Owner**: Ethan Trifari  
 **Engineering Lead**: AI Assistant (Cursor)  
 **Repository**: https://github.com/ethtri/SnapCase_App  
-**Last Updated**: October 24, 2025
+**Last Updated**: October 26, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -16,6 +16,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - **Domain Configuration**: app.snapcase.ai DNS still needs to point to Vercel.
 - **Build Tooling**: ESLint config mismatch (Next 14 vs eslint-config-next 15) keeps `npm run lint` from finishing; align versions or pin legacy config.
 - **Secrets in Vercel**: Production `STRIPE_SECRET_KEY` not yet stored in Vercel project settings.
+- **Design Continue CTA Disabled** *(Resolved 2025-10-26)*: Relaxed CSP `script-src` to permit Next bootstrap (dev adds `'unsafe-eval'` temporarily) and removed the test-only header bypass so warn/good variants unlock Continue again. `npm run verify` now succeeds locally.
 
 ### Next 3 Actions
 1. **Design Shell Polish** (AI): Align `/design` device picker with storyboard scenes 1-3, using catalog external IDs and emitting analytics events.
@@ -41,6 +42,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - 2025-10-24: Runaway agent widened scope beyond the prompt and touched config defaults; diff was rolled back, workspace cleaned, and the guardrails now live in `Docs/PROJECT_MANAGEMENT.md` for future prompts.
 - 2025-10-25: Playwright prompt exceeded timebox while fighting `.next` file locks on OneDrive; updated the playbook with timeboxing, cleanup, and no-stub guidance to prevent repeat overruns.
 - 2025-10-25: Squarespace already handles the marketing hero; plan to redirect `/` → `/design` in the Next.js app so users land directly in Scene 1.
+- 2025-10-26: CSP relaxation merged; both dev + prod builds hydrate `/design` correctly and unlock Continue for warn/good variants. Full `npm run verify` green.
 
 **Sprint Goal:** Establish a reliable build -> preview -> test loop so every feature increment can be exercised in Vercel previews and shared with testers before production deploys.
 

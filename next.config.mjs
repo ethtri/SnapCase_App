@@ -1,3 +1,14 @@
+const isProduction = process.env.NODE_ENV === "production";
+const scriptSrcDirectives = [
+  "script-src 'self'",
+  "'unsafe-inline'",
+  "https://js.stripe.com",
+];
+
+if (!isProduction) {
+  scriptSrcDirectives.push("'unsafe-eval'");
+}
+
 const securityHeaders = [
   {
     key: "X-DNS-Prefetch-Control",
@@ -27,7 +38,8 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' https://js.stripe.com",
+      // TODO(security): tighten script-src once nonce-based bootstrapping is wired to satisfy Next inline needs.
+      scriptSrcDirectives.join(" "),
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://files.cdn.printful.com https://cdn.snapcase.ai",
       "frame-src 'self' https://checkout.stripe.com https://*.printful.com",

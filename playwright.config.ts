@@ -16,7 +16,6 @@ export default defineConfig({
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
     env: {
-      NEXT_PUBLIC_E2E_MODE: "true",
       USE_EDM: "false",
       STRIPE_SHIPPING_RATE_STANDARD: "rate_mock_standard",
       STRIPE_SECRET_KEY: "",
