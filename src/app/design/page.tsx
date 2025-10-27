@@ -95,8 +95,13 @@ export default function DesignPage(): JSX.Element {
     };
   }, []);
 
-  const useEdm =
-    (process.env.NEXT_PUBLIC_USE_EDM ?? "true").toLowerCase() !== "false";
+  const useEdm = useMemo(() => {
+    const flag =
+      (process.env.NEXT_PUBLIC_USE_EDM ??
+        process.env.USE_EDM ??
+        "").toLowerCase();
+    return flag === "true";
+  }, []);
 
   const guardrailInput = useMemo<GuardrailInput | null>(() => {
     if (!selectedDevice) {
@@ -127,10 +132,11 @@ export default function DesignPage(): JSX.Element {
       if (!selectedDevice || selectedDevice.variantId !== variantId) {
         return;
       }
+      const normalizedTemplateId = String(templateId);
       saveDesignContext({
         variantId,
         externalProductId: selectedDevice.externalProductId,
-        templateId,
+        templateId: normalizedTemplateId,
         exportedImage: null,
       });
     },
@@ -263,6 +269,7 @@ export default function DesignPage(): JSX.Element {
           {useEdm ? (
             <EdmEditor
               variantId={selectedDevice.variantId}
+              externalProductId={selectedDevice.externalProductId}
               guardrailInput={guardrailInput}
               onTemplateSaved={handleTemplateSaved}
             />

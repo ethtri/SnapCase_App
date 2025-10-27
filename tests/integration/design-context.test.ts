@@ -79,4 +79,20 @@ describe("design context persistence", () => {
     expect(reloaded?.templateId).toBe("tmpl_checkout");
     expect(reloaded?.lastCheckoutAttemptAt).toBe(marked?.lastCheckoutAttemptAt);
   });
+
+  it("can clear exported images when switching to an EDM template", () => {
+    saveDesignContext({
+      variantId: 900,
+      externalProductId: "SNAP_PIXEL9_PRO",
+      exportedImage: "data:image/png;base64,FAKE",
+    });
+
+    const updated = saveDesignContext({
+      templateId: "tmpl_pixel",
+      exportedImage: null,
+    });
+
+    expect(updated?.templateId).toBe("tmpl_pixel");
+    expect(updated?.exportedImage).toBeNull();
+  });
 });

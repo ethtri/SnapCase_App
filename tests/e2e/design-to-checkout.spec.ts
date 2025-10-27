@@ -55,10 +55,18 @@ test("design guardrails enforce block/warn flows and checkout cancel/resume", as
   await expect(guardrailFootnote).toContainText("You can continue");
   await expect(continueButton).toBeEnabled();
 
-  const mockTemplateButton = page.getByRole("button", {
-    name: "Mock save template",
+  const mockExportButton = page.getByRole("button", {
+    name: /Mock export design/i,
   });
-  await mockTemplateButton.click();
+  const mockSaveButton = page.getByRole("button", {
+    name: /Mock save template/i,
+  });
+
+  if ((await mockExportButton.count()) > 0) {
+    await mockExportButton.click();
+  } else {
+    await mockSaveButton.click();
+  }
 
   await Promise.all([
     page.waitForURL(/\/checkout$/),

@@ -76,6 +76,7 @@ vercel env add STRIPE_SECRET_KEY
 vercel env add STRIPE_WEBHOOK_SECRET
 vercel env add NEXT_PUBLIC_APP_URL
 vercel env add USE_EDM
+vercel env add NEXT_PUBLIC_USE_EDM
 ```
 > **Important:** Always link to the existing Vercel project named `snapcase-app`. If the CLI or dashboard offers to create a new project, choose the "link existing" option and pick `snapcase-app`. New slugs such as `snap-case-app-v1` create duplicate projects that track the same repository and add maintenance overhead.
 
@@ -108,6 +109,8 @@ STRIPE_SHIPPING_RATE_EXPRESS=shr_live_express_rate_id
 # Application Configuration
 NEXT_PUBLIC_APP_URL=https://app.snapcase.ai
 USE_EDM=true
+# Flip to true once Printful EDM is production-ready
+NEXT_PUBLIC_USE_EDM=false
 
 # Feature Flags
 SHOW_EXPRESS_SHIPPING=true
@@ -130,12 +133,15 @@ STRIPE_SHIPPING_RATE_EXPRESS=shr_test_express_rate_id
 # Application Configuration
 NEXT_PUBLIC_APP_URL=https://snapcase-app-git-develop-username.vercel.app
 USE_EDM=true
+NEXT_PUBLIC_USE_EDM=true
 
 # Feature Flags
 SHOW_EXPRESS_SHIPPING=true
 NEXT_PUBLIC_SHOW_EXPRESS_SHIPPING=true
 ENABLE_ANALYTICS=false
 ```
+
+> **EDM toggle:** `/api/edm/nonce` now proxies Printful nonce requests using `PRINTFUL_TOKEN`. When the token is absent the route returns `503`, so keep `NEXT_PUBLIC_USE_EDM=false` (Fabric fallback) until staging validates the Printful handshake. Flip the flag to `true` once the iframe loads reliably with live credentials.
 
 #### Development Environment
 ```env
@@ -152,6 +158,7 @@ STRIPE_SHIPPING_RATE_EXPRESS=shr_dev_express_rate_id
 # Application Configuration
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 USE_EDM=false
+NEXT_PUBLIC_USE_EDM=false
 
 # Feature Flags
 SHOW_EXPRESS_SHIPPING=true
