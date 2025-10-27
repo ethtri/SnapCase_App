@@ -23,7 +23,51 @@ function createEmptyContext(): DesignContext {
 }
 
 function isSessionStorageAvailable(): boolean {
-  return typeof window !== "undefined" && Boolean(window.sessionStorage);
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    return Boolean(window.sessionStorage);
+  } catch {
+    return false;
+  }
+}
+
+function readFromSessionStorage(): string | null {
+  if (!isSessionStorageAvailable()) {
+    return null;
+  }
+
+  try {
+    return window.sessionStorage.getItem(DESIGN_CONTEXT_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeToSessionStorage(value: string): void {
+  if (!isSessionStorageAvailable()) {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(DESIGN_CONTEXT_STORAGE_KEY, value);
+  } catch {
+    // Ignore write errors (e.g., privacy mode).
+  }
+}
+
+function removeFromSessionStorage(): void {
+  if (!isSessionStorageAvailable()) {
+    return;
+  }
+
+  try {
+    window.sessionStorage.removeItem(DESIGN_CONTEXT_STORAGE_KEY);
+  } catch {
+    // Ignore removal errors.
+  }
 }
 
 export function loadDesignContext(): DesignContext | null {
@@ -31,7 +75,7 @@ export function loadDesignContext(): DesignContext | null {
     return null;
   }
 
-  const raw = window.sessionStorage.getItem(DESIGN_CONTEXT_STORAGE_KEY);
+  const raw = readFromSessionStorage();
   if (!raw) {
     return null;
   }
@@ -67,10 +111,7 @@ export function saveDesignContext(
     timestamp: Date.now(),
   };
 
-  window.sessionStorage.setItem(
-    DESIGN_CONTEXT_STORAGE_KEY,
-    JSON.stringify(next),
-  );
+  writeToSessionStorage(JSON.stringify(next));
   return next;
 }
 
@@ -84,10 +125,7 @@ export function markCheckoutAttempt(
 }
 
 export function clearDesignContext(): void {
-  if (!isSessionStorageAvailable()) {
-    return;
-  }
-  window.sessionStorage.removeItem(DESIGN_CONTEXT_STORAGE_KEY);
+  removeFromSessionStorage();
 }
 
 // TODO(design-context): Replace sessionStorage with authenticated persistence when user accounts arrive.

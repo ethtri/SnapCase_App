@@ -18,6 +18,7 @@ Reference sources: `Docs/Storyboard_EDM.md` scenes 1-10, `tests/e2e/design-to-ch
    - Actions: Switch to a warn-range variant (e.g., Variant ID 631); move the asset toward the camera/safe-area boundary.
    - Expected: Guardrail copy shifts to the warning tone (“Heads up on DPI”); safe-area overlay or chip flags the potential collision while allowing continue.
    - Notes / Timestamp: 2025-10-26 17:20 CT — Variant 631 shows warning copy; guardrail stub still inline under Scene 1 but Continue enables.
+   - Notes / Timestamp: 2025-10-27 09:42 CT - Warn-path retest after handoff fix; Continue remains enabled and session storage persists updated label.
    - TODO: Capture exact safe-area warning copy once finalized in UI.
 
 4. **Mock template save & export persistence (Scene 8)**
@@ -34,10 +35,12 @@ Reference sources: `Docs/Storyboard_EDM.md` scenes 1-10, `tests/e2e/design-to-ch
    - Actions: Open `/thank-you` after successful resume attempt (manual nav acceptable if Stripe redirect stubbed).
    - Expected: Thank-you page loads with design summary matching selected variant; session storage context clears post-thank-you.
    - Notes / Timestamp: 2025-10-26 17:27 CT — Thank-you page matches variant; design context cleared from storage.
+   - Notes / Timestamp: 2025-10-27 09:45 CT - Summary restored via handoff token; context clears after load and matches warn-path variant.
 
 ## Session feedback log
 
 | Participant | Date / Time | Scenario Focus | Issues / Opportunities | Follow-ups |
 |-------------|-------------|----------------|------------------------|------------|
 | Ethan       | 2025-10-26  | Warn-path pass | Guardrail stub sits inline beneath Scene 1; UX polish deferred to Sprint 2 | Track UX tidy-up with EDM integration |
+| Ethan       | 2025-10-27  | Warn-path + thank-you regression retest | Handoff token restores summary; next focus is EDM iframe spike | Document EDM spike plan in Sprint 2 log |
 |             |             |                |                        |            |

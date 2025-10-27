@@ -17,6 +17,27 @@ const showExpressShipping =
   (process.env.NEXT_PUBLIC_SHOW_EXPRESS_SHIPPING ?? "false").toLowerCase() ===
   "true";
 
+const encodeDesignHandoff = (
+  context: DesignContext | null,
+): string | null => {
+  if (!context) {
+    return null;
+  }
+
+  const payload = {
+    variantId: context.variantId ?? null,
+    externalProductId: context.externalProductId ?? null,
+    templateId: context.templateId ?? null,
+    variantLabel: context.variantLabel ?? null,
+  };
+
+  try {
+    return encodeURIComponent(JSON.stringify(payload));
+  } catch {
+    return null;
+  }
+};
+
 type CheckoutCancelBannerProps = {
   onResume: () => void;
 };
@@ -122,19 +143,30 @@ export default function CheckoutPage(): JSX.Element {
 
     try {
       const updatedContext = markCheckoutAttempt();
+      const contextForRequest = updatedContext ?? designContext;
+
+      if (!contextForRequest || contextForRequest.variantId == null) {
+        setError("Missing design context. Return to the editor to start checkout.");
+        setIsSubmitting(false);
+        return;
+      }
+
       if (updatedContext) {
         setDesignContext(updatedContext);
       }
+
+      const handoffToken = encodeDesignHandoff(contextForRequest);
 
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          variantId: designContext.variantId,
-          templateId: designContext.templateId ?? undefined,
-          designImage: designContext.exportedImage ?? undefined,
+          variantId: contextForRequest.variantId,
+          templateId: contextForRequest.templateId ?? undefined,
+          designImage: contextForRequest.exportedImage ?? undefined,
           quantity: 1,
           shippingOption,
+          ...(handoffToken ? { handoffToken } : {}),
         }),
       });
 

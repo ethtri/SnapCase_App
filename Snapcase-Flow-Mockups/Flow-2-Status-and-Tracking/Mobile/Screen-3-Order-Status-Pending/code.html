@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Tracking</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;family=Inter:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#4B3ACB",
+            "background-light": "#F5F7FA",
+            "background-dark": "#141121",
+            "text-light": "#0D0B21",
+            "text-dark": "#ffffff"
+          },
+          fontFamily: {
+            "display": ["Poppins", "sans-serif"],
+            "body": ["Inter", "sans-serif"],
+          },
+          borderRadius: {
+            "DEFAULT": "16px",
+            "lg": "16px",
+            "xl": "16px",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-body">
+<div class="relative flex h-auto min-h-screen w-full flex-col items-center justify-center bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden p-4" style='font-family: Inter, "Noto Sans", sans-serif;'>
+<div class="flex flex-col items-center gap-8 text-center">
+<div class="flex items-center justify-center w-32 h-32 bg-primary/10 dark:bg-primary/20 rounded-full">
+<span class="material-symbols-outlined text-primary text-6xl">
+          search
+        </span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<p class="text-text-light dark:text-text-dark text-xl font-display font-semibold leading-tight tracking-[-0.015em] max-w-[480px]">We’re getting your status… check back soon.</p>
+<p class="text-text-light/70 dark:text-text-dark/70 text-base font-normal leading-normal max-w-[480px]">Refresh updates within a few minutes.</p>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-primary text-white text-base font-body font-semibold leading-normal tracking-[0.015em]">
+<span class="truncate">Retry</span>
+</button>
+</div>
+</div>
+</body></html>

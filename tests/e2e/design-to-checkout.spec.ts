@@ -5,7 +5,12 @@ const DESIGN_CONTEXT_KEY = "snapcase:design-context";
 test("design guardrails enforce block/warn flows and checkout cancel/resume", async ({
   page,
 }) => {
-  await page.goto("/design");
+  const redirectResponse = await page.request.get("/", { maxRedirects: 0 });
+  expect(redirectResponse.status()).toBe(307);
+  expect(redirectResponse.headers().location).toContain("/design");
+
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/design$/);
   await page.waitForFunction(() => {
     return window.__snapcaseDesignHydrated === true;
   });
@@ -105,8 +110,36 @@ test("design guardrails enforce block/warn flows and checkout cancel/resume", as
     page.getByRole("link", { name: "Open mock checkout" }),
   ).toHaveAttribute("href", expect.stringContaining("https://dashboard.stripe.com/test/payments"));
 
-  await page.goto("/thank-you");
-  await expect(page).toHaveURL(/\/thank-you$/);
+  const handoffToken = await page.evaluate((key) => {
+    const raw = window.sessionStorage.getItem(key);
+    if (!raw) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(raw) as {
+        variantId?: number | null;
+        externalProductId?: string | null;
+        templateId?: string | null;
+        variantLabel?: string | null;
+      };
+      const payload = {
+        variantId: parsed.variantId ?? null,
+        externalProductId: parsed.externalProductId ?? null,
+        templateId: parsed.templateId ?? null,
+        variantLabel: parsed.variantLabel ?? null,
+      };
+      return encodeURIComponent(JSON.stringify(payload));
+    } catch {
+      return null;
+    }
+  }, DESIGN_CONTEXT_KEY);
+
+  expect(handoffToken).not.toBeNull();
+
+  await page.goto(
+    `/thank-you${handoffToken ? `?handoff=${handoffToken}` : ""}`,
+  );
+  await expect(page).toHaveURL(/\/thank-you/);
   const designSummary = page.getByTestId("design-summary");
   await expect(designSummary).toContainText("APPLE - iPhone 15");
 
@@ -114,4 +147,3 @@ test("design guardrails enforce block/warn flows and checkout cancel/resume", as
     return window.sessionStorage.getItem(key) === null;
   }, DESIGN_CONTEXT_KEY);
 });
-

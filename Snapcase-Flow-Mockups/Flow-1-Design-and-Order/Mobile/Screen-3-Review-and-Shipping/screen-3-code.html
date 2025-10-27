@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Review</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#4F46E5",
+            "background-light": "#F9F9F9",
+            "background-dark": "#141121",
+          },
+          fontFamily: {
+            "display": ["Inter", "sans-serif"]
+          },
+          borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    :root {
+      --radio-dot-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27%234F46E5%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3ccircle cx=%278%27 cy=%278%27 r=%273%27/%3e%3c/svg%3e');
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111827] dark:text-white">
+<div class="relative min-h-screen w-full">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+<div class="flex items-center p-4 justify-between border-b border-gray-200 dark:border-gray-700">
+<div class="flex size-10 shrink-0 items-center justify-center">
+<span class="material-symbols-outlined text-2xl text-[#111827] dark:text-white">arrow_back</span>
+</div>
+<h1 class="text-xl font-bold leading-tight tracking-tight flex-1 text-center text-[#111827] dark:text-white">Review Your Order</h1>
+<div class="w-10"></div>
+</div>
+</header>
+<main class="p-4 pb-48">
+<!-- Design Summary -->
+<section class="mb-6">
+<h2 class="text-lg font-semibold leading-tight tracking-tight text-[#111827] dark:text-white mb-3">Design</h2>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+<div class="flex items-center gap-4 p-4 min-h-[88px] justify-between">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-16" data-alt="Custom phone case with abstract colorful pattern" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB9ziBtTvVnRsmtbOl9rA-jD5HI8E3Pf8Su5_eRK33ssKrxn1-P0j_FlTNP3PGMHxx-8R6kdT_TyU752vitwWMx2RpbzfmdkkiKxP9EjOJLTWk0MpJXo-HWjBcyXyFvYTfWDBaDzVDO4yd3oooGKQmFneie8VOKaOcx5uADLjYP4Etwfm-5n51a_QoEhoJBGJI6N9jPh0c90NRb0FF77nRTXo-Z8VHglWjW_aIVdmQ-nWsf7ghFZAvKht5uDi1j7LcG0LRKTf15lkv2");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#111827] dark:text-white text-base font-medium leading-normal line-clamp-1">Case for iPhone 15 Pro</p>
+<p class="text-[#6B7280] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Glossy Finish</p>
+</div>
+</div>
+<div class="shrink-0">
+<button class="text-primary text-sm font-medium leading-normal flex items-center gap-1">
+<span class="material-symbols-outlined text-base">edit</span>
+                    Edit
+                </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Shipping Options -->
+<section class="mb-6">
+<h2 class="text-lg font-semibold leading-tight tracking-tight text-[#111827] dark:text-white mb-3">Shipping</h2>
+<div class="flex flex-col gap-3">
+<label class="flex items-center gap-4 rounded-lg border border-solid border-gray-200 dark:border-gray-700 p-4 flex-row-reverse bg-white dark:bg-gray-800 has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/20">
+<input checked="" class="h-5 w-5 border-2 border-gray-300 dark:border-gray-600 bg-transparent text-transparent checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0" name="shipping-option" type="radio"/>
+<div class="flex grow justify-between items-center">
+<div class="flex flex-col">
+<p class="text-[#111827] dark:text-white text-sm font-medium leading-normal">Standard</p>
+<p class="text-[#6B7280] dark:text-gray-400 text-sm font-normal leading-normal">3-5 business days</p>
+</div>
+<p class="text-[#111827] dark:text-white text-sm font-medium">$4.99</p>
+</div>
+</label>
+<label class="flex items-center gap-4 rounded-lg border border-solid border-gray-200 dark:border-gray-700 p-4 flex-row-reverse bg-white dark:bg-gray-800 has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/20">
+<input class="h-5 w-5 border-2 border-gray-300 dark:border-gray-600 bg-transparent text-transparent checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0" name="shipping-option" type="radio"/>
+<div class="flex grow justify-between items-center">
+<div class="flex flex-col">
+<p class="text-[#111827] dark:text-white text-sm font-medium leading-normal">Express</p>
+<p class="text-[#6B7280] dark:text-gray-400 text-sm font-normal leading-normal">1-2 business days</p>
+</div>
+<p class="text-[#111827] dark:text-white text-sm font-medium">$12.99</p>
+</div>
+</label>
+</div>
+</section>
+<!-- Ship-to Address -->
+<section class="mb-6">
+<h2 class="text-lg font-semibold leading-tight tracking-tight text-[#111827] dark:text-white mb-3">Ship to</h2>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+<div class="flex items-start gap-4 p-4 justify-between">
+<div class="flex flex-col justify-center">
+<p class="text-[#111827] dark:text-white text-base font-medium leading-normal">Jane Doe</p>
+<p class="text-[#6B7280] dark:text-gray-400 text-sm font-normal leading-relaxed mt-1">123 Market St, Suite 450<br/>San Francisco, CA 94103<br/>United States</p>
+</div>
+<div class="shrink-0">
+<button class="text-primary text-sm font-medium leading-normal">Change</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Cost Breakdown -->
+<section class="mb-6">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 space-y-3">
+<div class="flex justify-between items-center text-sm">
+<p class="text-[#6B7280] dark:text-gray-400">Subtotal</p>
+<p class="text-[#111827] dark:text-white font-medium">$35.00</p>
+</div>
+<div class="flex justify-between items-center text-sm">
+<p class="text-[#6B7280] dark:text-gray-400">Shipping</p>
+<p class="text-[#111827] dark:text-white font-medium">$4.99</p>
+</div>
+<div class="flex justify-between items-center text-sm">
+<p class="text-[#6B7280] dark:text-gray-400">Estimated Tax</p>
+<p class="text-[#111827] dark:text-white font-medium">$3.15</p>
+</div>
+<div class="border-t border-gray-200 dark:border-gray-700 my-3"></div>
+<div class="flex justify-between items-center text-base">
+<p class="text-[#111827] dark:text-white font-bold">Total</p>
+<p class="text-[#111827] dark:text-white font-bold">$43.14</p>
+</div>
+</div>
+</section>
+<!-- Quality Promise -->
+<section>
+<div class="bg-primary/10 dark:bg-primary/20 rounded-lg p-4 flex items-center gap-4">
+<div class="flex-shrink-0">
+<span class="material-symbols-outlined text-primary text-3xl">verified_user</span>
+</div>
+<div>
+<h3 class="font-semibold text-primary">Our Quality Guarantee</h3>
+<p class="text-sm text-primary/80 dark:text-primary/90 mt-1">We stand by our products. If you're not 100% satisfied, we'll make it right.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Sticky Footer -->
+<footer class="fixed bottom-0 left-0 right-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-t border-gray-200 dark:border-gray-700 p-4">
+<div class="flex items-center gap-3">
+<button class="w-full h-12 px-4 rounded-lg bg-gray-200 dark:bg-gray-700 text-[#111827] dark:text-white text-base font-semibold">Back to Design</button>
+<button class="w-full h-12 px-4 rounded-lg bg-primary text-white text-base font-semibold flex items-center justify-center gap-2">
+<span>Pay with</span>
+<svg class="h-5 w-auto" fill="none" viewbox="0 0 60 25" xmlns="http://www.w3.org/2000/svg"><path d="M59.98 12.35c0-6.53-4.43-10.74-12.33-10.74-5.32 0-9.28 2.57-11.23 4.81l3.52 2.65c1.4-1.8 3.32-2.91 6.55-2.91 3.82 0 6.4 2.21 6.4 5.37 0 4.14-5.6 4.9-8.87 6.64-4.03 2.18-5.5 4.38-5.5 7.1h20.48v-3.32H47.1c.14-1.8.84-2.83 4.38-4.59 4.1-2.1 8.5-3.32 8.5-6.19zM20.25.16H0v24.6h6.58V15.54h11.23c6.04 0 10.3-3.41 10.3-8.82C28.11 2.91 24.6.16 20.25.16zM6.58 4.2h12.55c3.27 0 5.4 2.07 5.4 4.54s-2.13 4.54-5.4 4.54H6.58V4.2z" fill="#fff"></path></svg>
+</button>
+</div>
+</footer>
+</div>
+</body></html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Snapcase Order Tracking Error</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;family=Inter:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+    .font-poppins {
+      font-family: 'Poppins', sans-serif;
+    }
+    .font-inter {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#4B3ACB",
+            "background-light": "#F5F7FA",
+            "background-dark": "#0D0B21",
+            "text-primary": "#0D0B21",
+          },
+          fontFamily: {
+            "display": ["Poppins", "sans-serif"],
+            "body": ["Inter", "sans-serif"],
+          },
+          borderRadius: {
+            "DEFAULT": "16px",
+            "lg": "16px",
+            "xl": "16px",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-body text-text-primary">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-hidden">
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between">
+<div class="flex size-12 shrink-0 items-center justify-center">
+<span class="material-symbols-outlined text-text-primary dark:text-white">arrow_back</span>
+</div>
+<h2 class="text-text-primary dark:text-white text-lg font-display font-semibold leading-tight tracking-[-0.015em] flex-1 text-center">Track Order</h2>
+<div class="w-12"></div>
+</div>
+<div class="flex flex-col flex-1 justify-center items-center p-6 space-y-6">
+<div class="flex flex-col items-center gap-6 text-center">
+<div class="flex items-center justify-center bg-primary/10 rounded-full w-24 h-24">
+<span class="material-symbols-outlined text-primary text-5xl">error_outline</span>
+</div>
+<div class="flex max-w-sm flex-col items-center gap-2">
+<p class="font-display font-semibold text-xl leading-tight tracking-[-0.015em]">We couldn’t load your order.</p>
+<p class="text-sm font-normal leading-normal text-text-primary/60 dark:text-white/60">Try again.</p>
+</div>
+<button class="flex min-w-[84px] w-full max-w-sm cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] font-body">
+<span class="truncate">Retry</span>
+</button>
+</div>
+</div>
+</div>
+
+</body></html>

@@ -1,26 +1,90 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 
 import {
   clearDesignContext,
   loadDesignContext,
+  saveDesignContext,
   type DesignContext,
 } from "@/lib/design-context";
+
+const HANDOFF_PARAM = "handoff";
 
 export default function ThankYouPage(): JSX.Element {
   const [designContext, setDesignContext] = useState<DesignContext | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasLoadedContext, setHasLoadedContext] = useState(false);
+  const hasClearedContextRef = useRef(false);
 
   useEffect(() => {
-    const context = loadDesignContext();
+    let context = loadDesignContext();
+    let loadedViaHandoff = false;
+
+    if (!context && typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const encodedHandoff = searchParams.get(HANDOFF_PARAM);
+
+      if (encodedHandoff) {
+        try {
+          const decoded = decodeURIComponent(encodedHandoff);
+          const parsed = JSON.parse(decoded) as Partial<DesignContext>;
+          const sanitized: Partial<DesignContext> = {
+            variantId:
+              typeof parsed.variantId === "number" ? parsed.variantId : null,
+            externalProductId:
+              typeof parsed.externalProductId === "string"
+                ? parsed.externalProductId
+                : null,
+            templateId:
+              typeof parsed.templateId === "string" ? parsed.templateId : null,
+            variantLabel:
+              typeof parsed.variantLabel === "string"
+                ? parsed.variantLabel
+                : null,
+          };
+
+          const restored = saveDesignContext(sanitized);
+          if (restored) {
+            context = restored;
+            loadedViaHandoff = true;
+          }
+        } catch (error) {
+          console.error("Failed to hydrate design context handoff", error);
+        }
+      }
+    }
+
     if (context) {
       setDesignContext(context);
-      clearDesignContext();
+      setHasLoadedContext(true);
+
+      if (loadedViaHandoff && typeof window !== "undefined") {
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete(HANDOFF_PARAM);
+          const nextSearch = url.searchParams.toString();
+          window.history.replaceState(
+            null,
+            "",
+            `${url.pathname}${nextSearch ? `?${nextSearch}` : ""}${url.hash}`,
+          );
+        } catch {
+          // Ignore URL manipulation errors.
+        }
+      }
     }
+
     setIsLoaded(true);
   }, []);
+
+  useEffect(() => {
+    if (hasLoadedContext && !hasClearedContextRef.current) {
+      clearDesignContext();
+      hasClearedContextRef.current = true;
+    }
+  }, [hasLoadedContext]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-12">

@@ -36,6 +36,10 @@ const requestSchema = z
     email: z.string().email().optional(),
     quantity: z.number().int().positive().optional().default(1),
     shippingOption: z.enum(["standard", "express"]).optional().default("standard"),
+    handoffToken: z
+      .string()
+      .max(2048)
+      .optional(),
   })
   .refine(
     (data) => Boolean(data.templateId) || Boolean(data.designImage),
@@ -130,8 +134,11 @@ export async function POST(request: Request) {
   }
 
   const shippingOptions = buildShippingOptions();
-
   const baseUrl = resolveBaseUrl();
+  const handoffParam = payload.handoffToken
+    ? `&handoff=${payload.handoffToken}`
+    : "";
+  const successUrl = `${baseUrl}/thank-you?session_id={CHECKOUT_SESSION_ID}${handoffParam}`;
 
   try {
     const session = await stripeClient.checkout.sessions.create({
@@ -151,7 +158,7 @@ export async function POST(request: Request) {
           quantity: payload.quantity,
         },
       ],
-      success_url: `${baseUrl}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl,
       cancel_url: `${baseUrl}/checkout?cancelled=1`,
       customer_email: payload.email,
       metadata: {

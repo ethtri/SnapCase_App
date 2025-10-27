@@ -20,6 +20,11 @@ This guide covers the complete deployment process for the SnapCase application, 
 
 ## 📋 Prerequisites
 
+### Routing Rules
+- `/` responds with a 307 redirect to `/design`, ensuring Squarespace handoffs land directly in the Scene 1 editor experience.
+- `/api/*`, static assets, and other application routes bypass the redirect via the App Router middleware (`src/middleware.ts`).
+- Verify the redirect during smoke tests with `npm run verify`; the `design-to-checkout` Playwright spec asserts the root redirect.
+
 ### Required Accounts
 - [ ] **Vercel Account**: For hosting and deployment
 - [ ] **GitHub Account**: For repository management

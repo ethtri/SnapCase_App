@@ -4,7 +4,7 @@
 **Owner**: Ethan Trifari  
 **Engineering Lead**: AI Assistant (Cursor)  
 **Repository**: https://github.com/ethtri/SnapCase_App  
-**Last Updated**: October 26, 2025
+**Last Updated**: October 27, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -20,10 +20,14 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 ### Recently Resolved
 - **Design Continue CTA Disabled** *(Resolved 2025-10-26)*: Relaxed CSP `script-src` to permit Next bootstrap (dev adds `'unsafe-eval'` temporarily). Removed lingering CSP bypass so warn/good variants unlock Continue again. `npm run verify` now succeeds locally and in CI.
 
+### Documentation Updates
+- **2025-10-27**: Captured detailed delta notes for Review & Shipping (Screen 3) and Order Placed (Screen 4) in `Snapcase-Flow-Mockups/Flow-1-Design-and-Order/Mobile/*/snapcase-notes-delta-screen-*.md`, aligning Stitch mockups with Snapcase design tokens, accessibility guardrails, and analytics expectations.
+- **2025-10-27**: Added `Docs/Responsive_Blueprint.md`, documenting breakpoint-by-breakpoint behavior for Screens 1–4 and listing outstanding desktop design follow-ups (Stripe lockup asset, animation specs, optional right-rail content).
+
 ### Next 3 Actions
-1. **Preview Routing** (AI): Implement `/` → `/design` redirect in the Next.js app to match the Squarespace CTA and storyboard Scene 1 entry.
-2. **EDM Integration Spike** (AI): Wire Printful nonce request + iframe handshake behind `USE_EDM`, validating guardrail messaging within the EDM chrome.
-3. **Printful Order Dry Run** (AI + Ethan): Capture live catalog external IDs and run a sandbox order/confirm cycle to validate fulfillment mapping and webhook handling.
+1. **EDM Integration Spike** (AI): Wire Printful nonce request + iframe handshake behind `USE_EDM`, validating guardrail messaging within the EDM chrome.
+2. **Responsive Alignment** (AI + Design): Review `Docs/Responsive_Blueprint.md` tasks (floating CTA, sticky checkout panel, timeline layout) and slot the first set into Sprint 2 execution.
+3. **Printful Order Dry Run** (AI + Ethan): Capture live catalog external IDs and run the sandbox order/confirm cycle to validate fulfillment mapping and webhook handling.
 
 ## Sprint Log
 
@@ -46,6 +50,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - 2025-10-25: Squarespace already handles the marketing hero; plan to redirect `/` → `/design` in the Next.js app so users land directly in Scene 1.
 - 2025-10-26: CSP relaxation merged; both dev + prod builds hydrate `/design` correctly and unlock Continue for warn/good variants. Full `npm run verify` green.
 - 2025-10-26: Follow-up review removed the legacy `NEXT_PUBLIC_E2E_MODE` CSP bypass branch to ensure playwright and preview builds always exercise the production headers.
+- 2025-11-23: Playwright `design-to-checkout` failing after redirect rollout—`/thank-you` renders empty state because design context is missing. Needs debugging before merging redirect changes.
 
 **Sprint Goal:** Establish a reliable build -> preview -> test loop so every feature increment can be exercised in Vercel previews and shared with testers before production deploys.
 
@@ -55,10 +60,13 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 | Task | Owner | Status | Notes / Next Step |
 | --- | --- | --- | --- |
-| Add `/` → `/design` redirect and document Squarespace handoff | AI | NOT STARTED | Update App Router middleware/route and deployment checklist to reflect hero handoff. |
+| Add `/` → `/design` redirect and document Squarespace handoff | AI | DONE | 2025-11-22: Middleware now issues 307 redirect to `/design`, Playwright + docs updated. |
 | Replace guardrail stub with EDM iframe nonce flow | AI | NOT STARTED | Implement Printful nonce API call, mount EDM under `USE_EDM=true`, map guardrail copy into iframe. |
 | Run Printful sandbox order end-to-end using saved template | AI + Ethan | NOT STARTED | Validate variant mapping and webhook payloads; record in `Docs/PRINTFUL_CATALOG.md` and Sprint log. |
 | Refine `/design` UX messaging per self-test feedback | Design/AI | NOT STARTED | Consolidate guardrail messaging and polish layout once EDM renders. |
+| Audit design tokens & responsive assets from new CX docs | AI + Design | NOT STARTED | Confirm `Docs/Responsive_Blueprint.md`, Stripe button lockup, and animation specs are wired into tickets before lg+/desktop work. |
+
+- 2025-11-23: Added thank-you handoff token (query param + sessionStorage rehydrate) so the design summary survives Stripe-style redirects; `npm run verify` re-ran successfully on 2025-10-27 with Stripe MCP configured.
 
 ### Sprint 1 - Design Flow v1 *(Nov 8 - Nov 21, 2025)*
 
@@ -346,9 +354,9 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 ## Next Actions
 
 ### Immediate (This Week)
-1. Ship `/` → `/design` redirect and validate Squarespace CTA flow.
-2. Kick off EDM integration spike (nonce fetch, iframe mount, guardrail parity).
-3. Refresh Printful catalog snapshot with latest external IDs ahead of order testing.
+1. Begin EDM nonce handshake spike, capturing guardrail expectations and iframe notes in `PROGRESS.md`.
+2. Inventory CX/UX follow-ups (Stripe button asset, animation specs, desktop mockups) and spin tickets aligned to `Docs/Responsive_Blueprint.md`.
+3. Schedule Printful sandbox order dry run and document webhook expectations ahead of Sprint 2 delivery.
 
 ### Short Term (Next 2 Weeks)
 1. Complete EDM handshake and migrate guardrail UI into the iframe.
@@ -387,6 +395,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - [UX/CX Guidelines](./Docs/UXCX_Guidelines.MD)
 - [Design System](./Docs/DESIGN_SYSTEM.md)
 - [Visual Consistency Guide](./Docs/VISUAL_CONSISTENCY_GUIDE.md)
+- [Responsive Blueprint](./Docs/Responsive_Blueprint.md)
 - [Design Implementation Guide](./Docs/DESIGN_IMPLEMENTATION_GUIDE.md)
 - [EDM Storyboard](./Docs/Storyboard_EDM.md)
 - [MCP Credentials](./Docs/MCP_Credentials.md)
