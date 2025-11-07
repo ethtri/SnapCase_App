@@ -1,342 +1,751 @@
-# SnapCase Development Progress
+﻿# SnapCase Development Progress
 
-**Project**: SnapCase Custom Phone Case Platform  
-**Owner**: Ethan Trifari  
-**Engineering Lead**: AI Assistant (Cursor)  
-**Repository**: https://github.com/ethtri/SnapCase_App  
-**Last Updated**: December 2024
+**Project**: SnapCase Custom Phone Case Platform
 
-## 🎯 Current Status: MVP Development Phase
+**Owner**: Ethan Trifari
+
+**Engineering Lead**: AI Assistant (Cursor)
+
+**Repository**: https://github.com/ethtri/SnapCase_App
+
+**Last Updated**: December 31, 2024
+
+## Current Status: MVP Development Phase
 
 ### Project Overview
+
 Building a web application at `app.snapcase.ai` that allows customers to design and order custom phone cases, extending the kiosk experience to the web through Printful's print-on-demand infrastructure.
 
-### 🚨 Current Blockers
-- **Account Setup Required**: Printful, Stripe, and Vercel accounts need to be created
-- **Domain Configuration**: app.snapcase.ai subdomain needs DNS setup
-- **EDM Access**: Printful EDM access may be delayed (fallback ready)
+### Current Blockers
 
-### 🎯 Next 3 Actions
-1. **Account Setup** (Ethan): Create Printful, Stripe, Vercel accounts
-2. **Domain Setup** (Ethan): Configure app.snapcase.ai DNS
-3. **Project Enhancement** (AI): Enhance Next.js project structure
+- **Printful EDM Access (2025-11-04 update)**: `ensureEdmScript()` now loads `embed.js` as a plain `<script>` (no `crossOrigin`) with a 15s watchdog so diagnostics capture script failures, and create-mode always passes Printful’s SUBLIMATION technique + a fallback reboot when PF returns `Template not found`. `npm run vercel-build` (Nov 4 @ 19:14Z) succeeded aside from pre-existing lint warnings, `vercel deploy --yes` published preview `https://snapcase-fbtuk9oqr-snapcase.vercel.app`, and `"/mnt/c/Program Files/nodejs/node.exe" scripts/collect-edm-diagnostics.js` logged the healthy session (`Images/diagnostics/edm-diagnostics-2025-11-04T19-17-46-144Z.png`) showing `setProductOK` / `designerLoadedOK`. **Next actions:** capture the first real template save, persist template IDs server-side, and keep Printful’s allowlist + dev alias in sync.
 
-### 📝 Documentation Status
-- **Last Updated**: December 2024
+- **Printful UI customization research (2025-11-04)**: Audited `docs/openapi-Printful.json` plus `src/components/editor/edm-editor.tsx` and published the UI customization matrix + escalation draft in `docs/Printful_EDM_InvalidOrigin.md`. **Next actions:** wire the documented `featureConfig` flags into `EdmEditor` to hide non-MVP buttons, build a theming adapter that sets Printful’s `style.variables` tokens, gather screenshots proving why we need their picker/guardrail hidden, and be ready to send the escalation draft if support is required.
+- **Printful EDM escalation packet (2025-11-04)**: `docs/Printful_EDM_Escalation.md` now bundles the context, asset list (`design-desktop-*.png`, `design-mobile-*.png`, `Images/diagnostics/11.4.25_badCXUX.png`, `Images/diagnostics/edm-diagnostics-2025-11-04T21-12-24-222Z.png`), and diagnostics JSON/runbook for contacting Printful about hiding their picker + guardrail banner. **Next action for Ethan:** email the packet to Printful support (script included in the doc) and track their response back in `docs/Printful_EDM_InvalidOrigin.md`.
+- **Printful EDM UX alignment (2025-11-04)**: Decision logged to ship exactly with Printful’s native picker/toolbar/guardrail UX for MVP. We’ll theme the iframe, capture variant/pricing/guardrail telemetry via callbacks, and avoid any duplicate SnapCase guardrail UI. Wishlist items (picker suppression, banner toggle) remain future nice-to-haves only if Printful exposes them.
+
+- **Domain Configuration**: app.snapcase.ai DNS still needs to point to Vercel.
+
+- **Secrets in Vercel**: Production `STRIPE_SECRET_KEY` not yet stored in Vercel project settings.
+- **Sprint02-Task22 – Segment env promotion (2025-11-07)**: Logged into Vercel CLI under WSL, pushed the preview Segment variables (`SEGMENT_WRITE_KEY`, `NEXT_PUBLIC_*`) via `vercel env add … preview`, and verified them with `vercel env ls`. Production values still pending vault access, and the follow-up preview redeploy (`vercel deploy`) failed because `lightningcss-win32-x64-msvc` is Windows-only (`npm ERR! EBADPLATFORM` on Linux). Need to make the dependency cross-platform before retrying the deploy.
+
+### Recently Resolved
+
+- **Sprint02-Task25 – Git MCP automation workflow (2025-11-08):** Added `scripts/mcp-branch.mjs`, a `mcp-client` CLI that shells into the GitHub MCP (`@modelcontextprotocol/server-github`) to create `task/SprintNN-TaskXX-*` branches from `main`, serialize staged/working-tree/patch files, push with the standardized `${TaskID}: <summary> [MCP]` message, and optionally draft a PR. Documented the process + quickstart checklist in `docs/PROJECT_MANAGEMENT.md` and the full reference in `docs/Engineering/Automation.md`. Dry-run + live pushes now log compare/PR URLs so AgentReports can include proof without relying on local branch gymnastics.
+- **Sprint02-Task17 – Repo hygiene + docs consolidation (2025-11-06):** Added `.gitignore` coverage for `next-dev*.log`, `tmp_*.js`, and `node_modules_win_backup/`, deleted the stray artifacts, and kept `Images/diagnostics/*` intact for the AgentReports that cite those captures. The mixed-case `Docs/` tree now lives under the lowercase `docs/` root; every README/AgentReport reference points at `docs/`, and the layout is documented inside `docs/PROJECT_MANAGEMENT.md` so new work lands in the canonical path.
+- **Sprint02-Task19 – Playbook right-sizing (2025-11-07)**: Updated `docs/PROJECT_MANAGEMENT.md` with a dated Process Update that raises the run timebox to 45 minutes, allows dependent multi-step prompts (with explicit `_plan` steps), and lets documentation updates batch per feature while keeping Task ID logging, AgentReports, and source-of-truth citations mandatory. See `docs/AgentReports/Sprint02-Task19.md` for rationale + follow-ups.
+- **Git workflow guardrail refresh (2025-11-08)**: Added a Git Workflow section to `docs/PROJECT_MANAGEMENT.md` that mandates per-task branches (`task/SprintNN-TaskXX-*`), pre/post `git status` checks, commit-or-stash handoffs, and a cap of two concurrent engineering prompts. All new prompts must include the branch/clean-tree checklist, and the PM tracks active branches in this log so we avoid the “too many active changes” errors seen earlier in the week.
+- **Sprint02-Task12 – Analytics buffer bootstrap (2025-11-06):** Investigated the dev preview bundle (`/_next/static/chunks/app/design/page-7831b2ffeb422515.js?dpl=...`) and confirmed all `logAnalyticsEvent` calls were tree-shaken once `NEXT_PUBLIC_USE_EDM=false`, which left `window.__snapcaseAnalyticsEvents` undefined for QA. Added `initializeAnalyticsBuffers()` plus a root-level `<AnalyticsBootstrap />` client shim so every preview load pre-creates the buffer and emits an `analytics_buffer_ready` event before any EDM code runs. `next build` (Node 20) now passes, and a Playwright smoke against `next start` shows both the bootstrap event and the usual `design_cta_state_change` payloads landing in the buffer. See `Docs/AgentReports/Sprint02-Task12.md` for curl evidence + verification logs.
+- **Sprint02-Task14 – Next.js build stabilization (2025-11-07):** Reproduced the `_document` crash on WSL Node 20, added a stub `src/pages/_document.tsx`, guarded nullable `useSearchParams()` call sites in checkout/thank-you, and confirmed `npm run vercel-build` now finishes with only the pre-existing `<img>` lint warnings. Full log: `docs/AgentReports/Sprint02-Task14.md`.
+- **Sprint02-Task18 – ESLint alignment (2025-11-06)**: Revalidated the Next 14 toolchain with `next@14.2.33`, `eslint-config-next@14.2.33`, and `eslint@8.57.1` pinned in both `package.json` and `package-lock.json`. `npm run lint` (WSL Node 20) now completes without fatal errors; remaining warnings are `@next/next/no-img-element` on `src/app/checkout/page.tsx:543`/`733` and `src/app/thank-you/page.tsx:605`. Next actions: migrate the `<img>` tags to `next/image` (or document why they must remain).
+
+- **Sprint02-Task24 – Analytics hook dependency fix (2025-11-07):** `getAnalyticsBasePayload` now uses `useCallback` scoped to `variantId`, and the EDM bootstrap effect lists it in its dependency array so `react-hooks/exhaustive-deps` is satisfied without changing payload contents. `npm run lint` passes aside from the known `<img>` warnings noted above. See `docs/AgentReports/Sprint02-Task24.md` for verification details.
+- **Printful guardrail consolidation (2025-11-05)**: Wired `EdmEditor` to consume Printful’s `onDesignStatusUpdate` payloads, surface them inside the diagnostics drawer, and pass normalized guardrail state back up to `/design` so the Continue CTA is disabled whenever `designValid=false`, blocking errors exist, or Printful’s variant IDs diverge from the SnapCase selection. We removed the SnapCase guardrail card entirely—Printful’s banner is the only warning surface—and analytics fire from those callbacks. Docs (`docs/Responsive_Blueprint.md`, `docs/Printful_EDM_KeyFacts.md`, `docs/openapi-Printful.json`) call out the new ownership model. Commands: `npm run lint` (passes with pre-existing checkout/thank-you warnings).
+- **EDM guardrail summary + picker notice (2025-11-06)**: When Printful drives validation we now suppress the SnapCase safe-area overlay + guardrail panel, render a compact summary card (`src/components/editor/edm-editor.tsx`) that mirrors `designValid`/`errors[]`, log `analytics.edm_guardrail_summary_update`, and show inline helper copy reminding users the Printful picker is locked to the SnapCase variant. Documentation updates span `docs/Responsive_Blueprint.md`, `docs/UXCX_Guidelines.MD`, and `docs/Printful_EDM_Risk_Analysis.md` so stakeholders see the before/after UX and retired assumptions. **Next actions:** capture refreshed screenshots for the blueprint gallery and confirm Fabric-only fallback still needs the SnapCase overlay before deleting that component entirely.
+- **Sprint02-Task04 copy alignment (2025-11-05)**: `/design` now ships the documented “Variant locked to your SnapCase selection” chip, CTA copy states (`Select a device` → `Resolve the Printful banner above` → `Waiting on Printful…` → `Continue to checkout`), and a serialized guardrail-toast queue that mirrors Printful payloads. `/checkout` keeps the cancel/resume banner persistent; any future dismiss is guarded by `NEXT_PUBLIC_ALLOW_CANCEL_BANNER_DISMISS`. Docs refreshed (`docs/SnapCase_App_Prototype.MD`, `docs/UXCX_Guidelines.MD`) cite `docs/Responsive_Blueprint.md` §Screen 2, and new diagnostics live at `Images/diagnostics/design-messaging-2025-11-05T15-57-23-800Z.png` + `Images/diagnostics/checkout-cancel-banner-2025-11-05T15-57-23-800Z.png`. Command: `PLAYWRIGHT_PORT=3100 npx playwright test tests/e2e/design-to-checkout.spec.ts --project=chromium`.
+- **Sprint02-Task05 – Checkout reassurance + live pricing (2025-11-07)**: `/checkout` now matches Screen 3 with the violet Snapcase Quality Promise card, sticky cost rail, Stripe lockup CTA + helper copy, analytics for `checkout_shipping_selected`/`checkout_pricing_update`, and polite `aria-live` regions wiring the totals + shipping helpers. Docs updated (`docs/Responsive_Blueprint.md`, `docs/UXCX_Guidelines.MD`, `docs/SnapCase_App_Prototype.MD`) and diagnostics captured at `Images/diagnostics/checkout-desktop-2025-11-05T16-48-23-099Z.png` + `Images/diagnostics/checkout-mobile-2025-11-05T16-48-23-099Z.png`. `npx playwright test tests/e2e/design-to-checkout.spec.ts --project=chromium` currently **fails** because `next start` crashes with `TypeError: e[o] is not a function` while loading `/design`; resolver needed before the suite can reach the new checkout assertions/screenshots.
+- **Sprint02-Task13 – Sponsor test readiness (2025-11-06)**: Authored `docs/UserTesting/Sprint02_Sponsor_Script.md` with a four-screen sponsor script, PM readiness checklist (preview URL, diagnostics timestamps, analytics buffer, seeded design context, mock Stripe dry run), and caveats (mock Stripe flow, placeholder Printful order IDs, analytics buffer limitations, locked Printful picker, diagnostics cadence). Linked the doc from `docs/UXCX_Guidelines.MD` and captured next steps in `docs/AgentReports/Sprint02-Task13.md`. Follow-up: schedule the sponsor walk-through once parity build lands and re-run diagnostics to confirm Screen 2 helper copy + analytics fire in preview.
+- **Sprint02-Task09 – Playwright prod server fix (2025-11-08)**: Reproduced the `next start` crash with `DEBUG=pw:webserver` and traced it to `.next/server/webpack-runtime.js` coming from a dev build (it tries to `require("./948.js")`/`./682.js` instead of `./chunks/…`), which is the same stale artifact that surfaces as `TypeError: e[o] is not a function` when `/design` hydrates. Added `scripts/run-playwright-server.mjs` and updated `playwright.config.ts` so every `npx playwright test …` run now deletes `.next`, runs `next build`, and only then boots `next start` with the Playwright env. Guardrail logged in `docs/PROJECT_MANAGEMENT.md`, and `DEBUG=pw:webserver npx playwright test tests/e2e/design-to-checkout.spec.ts --project=chromium` now passes (3/3 specs, ~57 s). **Next steps:** use the new script for any manual production-mode server to avoid leaking dev bundles back into `.next`.
+- **UX/CX documentation hygiene (2025-11-07)**: Tagged every UX/CX spec with Authoritative/Deprecated/Needs Rewrite labels, added the Source-of-Truth appendix inside `docs/UXCX_Guidelines.MD`, aligned `docs/SnapCase_App_Prototype.MD`, `docs/Responsive_Blueprint.md`, `docs/Printful_EDM_KeyFacts.md`, `docs/Printful_EDM_Risk_Analysis.md`, `docs/Printful_EDM_Escalation.md`, and all Flow 1/Flow 2 delta docs with the Picker-visible, Printful-owned guardrail reality, and logged Fabric-only guidance as deprecated. **Next steps:** Rewrite Screen 2 delta docs (mobile + desktop) for EDM-first layout, refresh the Printful escalation packet now that picker suppression is off the table, and capture new blueprint screenshots once staging redeploys.
+- **Sprint02-Task02 – EDM desktop grid + diagnostics (2025-11-07)**: `/design` now uses the shared `container-lg` grid with safe-area padding, a 960px Printful column, 320px SnapCase order column, and the optional left-rail placeholder (hidden on `lg-`). The helper pill above the iframe reiterates the locked picker, the CTA column shows Printful-first guardrail copy + `Next: Review`, and the sticky mobile ActionBar/floating desktop CTA share the same gating logic. Docs refreshed: `docs/Responsive_Blueprint.md` Mockup-vs-Reality table cites the new captures, and `Snapcase-Flow-Mockups/.../Desktop/Screen-2-Design-your-case/snapcase-notes-delta-screen-2.md` now describes the EDM-first layout + open questions. **Artifacts:** `Images/diagnostics/design-desktop-2025-11-05T15-47-53-583Z.png`, `Images/diagnostics/design-mobile-2025-11-05T15-49-00-368Z.png`, `docs/AgentReports/Sprint02-Task02.md`. **Commands:** `npm run build`, `npx playwright test tests/e2e/design-to-checkout.spec.ts --project=chromium` (pass after killing stale Windows `node.exe` listeners on port 3000).
+- **Sprint02-Task03 – EDM telemetry instrumentation (2025-11-07)**: Wired `EdmEditor` to emit normalized analytics payloads (`variantId`, `designValid`, `errorSummaries`, `timestamp`) for `edm_variant_locked`, `edm_design_status`, `edm_guardrail_blocked`, `edm_guardrail_warning`, `edm_pricing_update`, and `edm_template_saved`, added a Playwright spec that forces `/design?forceEdm=1` to assert each event fires, and captured payload samples at `Images/diagnostics/edm-analytics-forceEdm-sample.json`. See `docs/AgentReports/Sprint02-Task03.md` for verification evidence + open approvals.
+- **Sprint02-Task06 – Screen 4 thank-you timeline + diagnostics (2025-11-05)**: `/thank-you` now matches the blueprint hero, order summary card, delivery ETA chip, support link, and dual CTAs while a four-step timeline (Submitted → Print files → In production → Shipped) maps Printful statuses to UI state. Checkout persists an `order-confirmation` snapshot so the confirmation page can copy order IDs, emit analytics (`thank_you_viewed`, `track_order_clicked`, `timeline_step_revealed`, `copy_order_id`), and expose `?status=` QA overrides until Printful webhooks land. Docs refreshed (`docs/Responsive_Blueprint.md` §Screen 4, `docs/UXCX_Guidelines.MD`, `docs/SnapCase_App_Prototype.MD`, `docs/AgentReports/Sprint02-Task06.md`) and diagnostics live at `Images/diagnostics/thank-you-desktop-2025-11-05T16-41-30-616Z.png` + `Images/diagnostics/thank-you-mobile-2025-11-05T16-41-30-616Z.png`. Command: `npx playwright test tests/e2e/design-to-checkout.spec.ts --project=chromium`.
+- **Sprint02-Task07 – Analytics sink & data policy (2025-11-07)**: Selected Segment Connections as the production telemetry destination (bridging to GA4 + BigQuery), documented the retention/privacy stance + data minimization grid in `docs/Printful_EDM_KeyFacts.md`, extended `docs/TESTING_STRATEGY.md` with the analytics validation plan, added a PoC Segment stub + hashing/sampling guardrails in `src/lib/analytics.ts`, and filed `docs/AgentReports/Sprint02-Task07.md`. **Next actions:** Ethan to approve Segment ownership + retention, drop the write key + template salt into `docs/MCP_Credentials.md`, and prioritize Fabric/checkout telemetry follow-ups before enabling the live sink.
+- **Sprint02-Task10 – Segment preview enablement (2025-11-06)**: Wired the `snapcase-web-dev` write key + preview hashing salt into `.env.local`, enabled `NEXT_PUBLIC_SEGMENT_PREVIEW_ONLY=1`, and captured diagnostics proving `/design?forceEdm=1` + `/thank-you` telemetry land in both `window.__snapcaseAnalyticsEvents` (raw) and `window.__snapcaseSegmentPreview` (sanitized with `templateFingerprint`). Evidence: `Images/diagnostics/analytics-preview-2025-11-06T16-37-14.644Z.{json,png}`. Docs touched: `docs/MCP_Credentials.md`, `docs/Printful_EDM_KeyFacts.md`, `docs/TESTING_STRATEGY.md`, `docs/AgentReports/Sprint02-Task10.md`. **Next:** capture the `snapcase-web-prod` credentials + salt, push the env vars into Vercel, and rerun the checklist with `NEXT_PUBLIC_SEGMENT_PREVIEW_ONLY=0` before shipping live traffic.
+- **Sprint02-Task10 follow-up – Segment prod dry-run (2025-11-06)**: Added the prod write key/salt references to `docs/MCP_Credentials.md`, gated the Segment snippet in `src/app/layout.tsx`, opened CSP to `cdn.segment.com`/`api.segment.io`, and ran a live-mode smoke where `/design?forceEdm=1` + `/thank-you` events hit Segment endpoints. Evidence: `Images/diagnostics/analytics-live-verified-2025-11-06T17-26-31.656Z.{json,png}` (decoded payloads show hashed `templateFingerprint`). **Next:** store the prod salt/key in Vercel Production, capture a Segment debugger screenshot once the deployment is live, then leave Previews in preview-only mode to avoid noisy data.
+- **Sprint02-Task21 – Segment env promotion & runbook sync (2025-11-06)**: Documented the exact CLI workflow to mirror preview/prod Segment keys + salts into Vercel (`vercel env pull`, `env add`, `env ls/diff`) and spelled out the verification artifacts (Segment debugger screenshot + `/design?forceEdm=1` smoke). Updates touch `docs_new/MCP_Credentials.md`, `docs_new/DEPLOYMENT_GUIDE.md`, and `docs_new/AgentReports/Sprint02-Task21.md`. **Next:** Ethan runs the CLI steps with real secrets, redeploys both scopes, and drops the debugger screenshots into `Images/diagnostics/` before promoting prod analytics.
+- **Sprint02-Task08 – Live EDM QA (2025-11-05)**: Exercised `/design → /checkout → /thank-you` against `https://dev.snapcase.ai` with real Printful payloads (desktop + iPhone emulation) using `scripts/collect-edm-diagnostics.js` and the new `scripts/run-edm-live-flow.js` harness. Captured diagnostics (`Images/diagnostics/edm-diagnostics-2025-11-05T18-41-16-226Z.png`, `Images/diagnostics/design-live-desktop-2025-11-05T18-29-13-147Z.png`, `Images/diagnostics/checkout-live-2025-11-05T18-29-13-147Z.png`, `Images/diagnostics/thank-you-live-2025-11-05T18-29-13-147Z.png`) plus accessibility dumps to prove current copy. Key findings: helper pill/CTA states are still the Scene 5 prototype, `window.__snapcaseAnalyticsEvents` never initializes (no `edm_*`, `checkout_*`, or `thank_you_*` events), and preview builds continue to serve the pre-Sprint02 checkout/thank-you UI. Reported in `docs/AgentReports/Sprint02-Task08.md` with follow-ups to redeploy Screens 2–4 and restore the analytics buffer. Command history: `"/mnt/c/Program Files/nodejs/node.exe" scripts/collect-edm-diagnostics.js`, `SNAPCASE_BASE_URL="https://dev.snapcase.ai" "/mnt/c/Program Files/nodejs/node.exe" scripts/run-edm-live-flow.js`.
+- **Sprint02-Task11 – dev alias redeploy (2025-11-06)**: Confirmed `dev.snapcase.ai` still resolves to `snapcase-6ic8h47wt-snapcase.vercel.app` (`dpl_6BW1PB9tBT4uXhJBhewbtdUSbwmF` in project `snapcase-app`). `npm run vercel-build` keeps failing locally—Windows Node 22 hits the long-standing `TypeError: e[o] is not a function` while prerendering `/design` + `/checkout`, and even after switching to WSL Node 20 with a fresh `npm install`, the build halts with `PageNotFoundError: Cannot find module for page: /_document`. A remote `vercel deploy --yes` fallback produced slug `https://snapcase-k5tu1tq4r-snapcase.vercel.app` but aborted because `package-lock.json` currently lists `lightningcss-win32-x64-msvc` as a direct dependency (`npm ERR! EBADPLATFORM …`). Result: no new deployment, alias still serves the Nov 4 slug, and diagnostics were not rerun. Next steps: regenerate the lockfile on Linux/WSL, get `npm run vercel-build` green, then repeat `vercel deploy --prebuilt` followed by `SNAPCASE_BASE_URL="https://dev.snapcase.ai" node scripts/run-edm-live-flow.js`. Full report: `docs/AgentReports/Sprint02-Task11.md`.
+- **UX/CX blueprint reset (2025-11-06)**: Rewrote `docs/Responsive_Blueprint.md` (responsive strategy + Screen 2 guardrails), `docs/UXCX_Guidelines.MD`, `docs/SnapCase_App_Prototype.MD` (Design section), and `PROGRESS.md` to codify the Printful-first guardrail plan, Mockup-vs-Reality table, and business-copy clarifications. Remaining execution: (1) audit `Snapcase-Flow-Mockups/.../Desktop/Screen-2-*` commentary to sync helper copy, (2) capture fresh desktop/mobile screenshots once `PFDesignMakerOptions.style.navigation` type issue is resolved, (3) thread the new helper/CTA messaging into `/design`, and (4) operationalize today’s resolved UX decisions (no extra rail, persistent cancel/resume banner, queued guardrail toasts) in code + QA checklists.
+
+- **Responsive layout + CTA restoration (2025-11-05)**: Rebuilt `/design` to match the responsive blueprint by adding the search input, Apple/Samsung segmented tabs, Detect CTA row with UA helper text, and a 2/3/4/5-column card grid clamped to `max-w-screen-xl`. Guardrail/editor content now sits inside a wider container with a scaffolded optional rail, and the sticky ActionBar (base/sm) plus floating CTA pod (lg+) share the guardrail gating copy (“Back-only print”). Updated `docs/Responsive_Blueprint.md` Live Gap Analysis to mark those deltas resolved and called out that screenshots will follow once the Printful EDM type error stops blocking local builds. Verification: `npm run lint` (passes with the existing checkout/thank-you warnings). Screenshot capture via `next dev` + Playwright remains blocked by the upstream `PFDesignMakerOptions.style.navigation` type failure; noted for follow-up in the gap section.
+
+- **Printful config builder diagnostics (2025-11-10)**: Refactored the Printful config builder into a single payload that carries initProduct, variant locks, tool suppression, SnapCase CSS tokens, navigation icon overrides, and confirmation-mode settings, exposed analytics hook stubs for `onDesignStatusUpdate`/`onPricingStatusUpdate`, mirrored those hooks inside `EdmEditor`, expanded the diagnostics drawer with the new snapshot data, and documented the module in `docs/Printful_EDM_KeyFacts.md`. Commands: `npm run lint` (passes with existing checkout/thank-you warnings).
+- **Printful EDM bootstrap hardening (2025-11-04)**: Removed the `crossOrigin="anonymous"` attribute from the dynamically injected `embed.js`, added a 15s watchdog + request IDs so diagnostics capture stalled loads, and forced Printful create-mode to include the documented SUBLIMATION technique plus an automatic retry when PF responds with `Template not found`. Redeployed via `npm run vercel-build` → `vercel deploy --yes` (preview `snapcase-fbtuk9oqr`) and captured a clean run with `scripts/collect-edm-diagnostics.js` showing `setProductOK`/`designerLoadedOK` events for variant `SNAP_IP15PRO_SNAP`.
+- **Printful EDM viewport fix (2025-11-04)**: Added a global CSS rule (`[id^="snapcase-edm-canvas-"] iframe`) so the injected Printful iframe stretches to 100% width/height of the phone mock. Prior to the fix the iframe defaulted to 300×150 px, which made it appear as a tiny tile near the guardrail column. Verified by sampling bounding boxes via Playwright (iframe now matches the 418×908 canvas) and redeployed through `npm run vercel-build` → `vercel deploy --yes` (preview `https://snapcase-6ic8h47wt-snapcase.vercel.app`, aliased to `dev.snapcase.ai`).
+
+- **Printful EDM config + theming (2025-11-06)**: Added `src/components/editor/printful-config.ts` so `EdmEditor` now passes a centralized `buildPrintfulConfig(...)` payload (initProduct, variant-lock flags, tool suppression, Snapcase violet theme tokens, and `useUserConfirmationErrors=false`) into PFDesignMaker, wired `onDesignStatusUpdate` snapshots + theme info into the diagnostics drawer, and refreshed `docs/Printful_EDM_InvalidOrigin.md` plus `docs/Responsive_Blueprint.md`. Commands: `npm run lint`, `npm run test:integration -- template-cache`.
+
+- **EDM template regression harness** *(2025-11-08)*: Added `npm run check:printful-templates` to probe every `externalProductId` via the Printful template API and fail fast when a template is missing, plus a Playwright spec that forces `?forceEdm=1`, saves a template, reloads, and confirms edit-mode reuse without `initProduct`. The spec stubs `embed.js`, clears `snapcase:design-context` / `snapcase:edm-template-cache`, updates the JSON mock at `tests/fixtures/printful-template-mock.json`, and captures screenshots when failures occur so Ethan can share diagnostics.
+- **Printful EDM Invalid Origin** *(Regression flagged 2025-10-30)*: Local (`localhost:3050`) passes with `Snapcase-Dev-110325-1`, but protected Vercel previews will still loop on `invalidOrigin` until every preview slug is whitelisted (or aliased) in the Printful dashboard. Use the diagnostics panel on `/design` to copy origin + nonce payloads for support, and confirm the domain entries listed in [docs/Printful_EDM_InvalidOrigin.md](docs/Printful_EDM_InvalidOrigin.md).
+  - **Printful EDM template gap** *(Found 2025-11-04)*: Even with the alias whitelisted, the Printful iframe stays blank and emits `rpcError`/`loadTemplateFailed` because the store has no saved template associated with `external_product_id=SNAP_IP15PRO_SNAP`. Printful responds with a valid nonce but then returns `Template not found`, so the design surface never renders. Action: either (1) create base product templates in Printful for every `external_product_id` we request, or (2) update `EdmEditor` to call `initProduct` with full variant metadata once Printful shares the required payload format. Evidence: latest diagnostics run (`Images/diagnostics/edm-diagnostics-2025-11-04T01-15-29-155Z.png`) + console log attached to Ethan’s bug report.
+  - 2025-11-05: Refreshed `docs/Responsive_Blueprint.md` with a “Responsive Delivery Strategy” section clarifying that mobile deltas remain the primary spec, desktop commentary lives alongside them, guardrails are SnapCase-owned, and every responsive tweak must update the blueprint/delta docs before code merges. Also updated `docs/Printful_EDM_KeyFacts.md` to link both the official Printful docs and our local `docs/openapi-Printful.json` so every agent knows exactly where to look before troubleshooting EDM again.
+- **2025-11-04**: Captured Printful EDM customization research in `docs/Printful_EDM_InvalidOrigin.md#UI Customization & Control Matrix`, summarizing configuration knobs (initProduct, variant locks, toolbar toggles, theming tokens) plus embedded UX best practices from Planoly/Dunkin case studies. Logged open questions for Printful support (hiding variant panels, extra CSS hooks) so future agents know the limits before building layout experiments.
+- **Printful EDM automation plan** *(Kickoff 2025-11-04)*: Product templates should be auto-generated the first time a variant is opened. We will (a) map each Snapcase catalog entry to Printful’s catalog `productId`, (b) detect whether a template already exists via `GET /product-templates/@{externalProductId}`, (c) pass `initProduct` to `PFDesignMaker` whenever we need to create a fresh template, and (d) capture `onTemplateSaved` to persist `{ external_product_id, template_id }`. This prevents manual template drift and keeps Ethan out of the Printful dashboard for routine maintenance.
+- **EDM create/edit auto wiring** *(2025-11-07)*: `EdmEditor` now probes `/api/edm/templates/{externalProductId}` before loading `PFDesignMaker`, switches to create mode via `initProduct` when Printful reports `exists=false`, and passes `templateId` for edit sessions. Saved IDs land in the new session-storage `TemplateCacheEntry` helper plus the checkout design context, so repeated visits reuse the same template even if Printful is momentarily offline. The diagnostics panel now calls out create vs edit mode, cache hits, and every template ID involved, and `docs/Printful_EDM_InvalidOrigin.md` + `tests/integration/template-cache.test.ts` were updated to match.
+- **Design Continue CTA Disabled** *(Resolved 2025-10-26)*: Relaxed CSP `script-src` to permit Next bootstrap (dev adds `'unsafe-eval'` temporarily). Removed lingering CSP bypass so warn/good variants unlock Continue again. `npm run verify` now succeeds locally and in CI.
+
+### Documentation Updates
+- **2025-11-06 (Sprint02-Task20)**: Published the component decomposition blueprint in `docs/Engineering/Sprint02_Component_Decomposition.md`, outlining Phases 0‑6 (analytics buffer restoration through guardrail diagnostics/checkout alignment) plus spawn-ready sub-task IDs. The plan references `docs/Responsive_Blueprint.md` and `docs/UXCX_Guidelines.MD` so every slice keeps the Screen 1 layout + guardrail governance intact, and it sets explicit test targets (unit hooks + Playwright coverage) before we touch `/design` or `EdmEditor`.
+- **2025-11-04**: Reconciled MVP assumptions per Ethan’s call. `docs/UXCX_Guidelines.MD` now states that (a) we will not petition Printful for guardrail suppression unless their refusal catastrophically harms UX/CX, (b) the Screen 2 desktop “rail” is solely the native EDM toolbar (no SnapCase assist rail or guardrail panel), and (c) analytics upgrades must remain cost-neutral (free tier or existing credits). `docs/Responsive_Blueprint.md` and `docs/Printful_EDM_InvalidOrigin.md` were amended to match, so future agents don’t plan layout/content work against a non-existent rail or pursue vendor asks prematurely.
+- **2025-11-04**: Logged the UX/CX director memo in `docs/UXCX_Guidelines.MD` plus blueprint/Printful addenda covering (a) guardrail single-ownership, (b) desktop layout assumptions, (c) analytics instrumentation priorities, and (d) Printful escalation posture. Decisions: SnapCase controls all safety messaging while Printful enforces validation; tier-0 analytics events (variant change, guardrail warning, design saved, price update, editor abandon) stream through `logAnalyticsEvent` until Segment is funded. Dependencies: Ethan must approve any vendor escalation; engineering needs `GuardrailStateAdapter` + `logAnalyticsEvent` sinks; design systems must ensure `/design` has enough width for the editor/guardrail columns. Next actions: build the adapter, extend `scripts/collect-edm-diagnostics.js` to capture guardrail events, and prep the escalation artifacts for Ethan’s sign-off.
+- **2025-11-08**: Authored the desktop deltas for Flow 1 Screens 3-4 (`Snapcase-Flow-Mockups/Flow-1-Design-and-Order/Desktop/Screen-3-Review-and-Shipping/snapcase-notes-delta-screen-3.md`, `.../Screen-4-Order-Placed/snapcase-notes-delta-screen-4.md`), extended `docs/Responsive_Blueprint.md` with the "Desktop Checkout & Confirmation" guidance, and logged outstanding desktop-only questions (marketing nav suppression, sticky rail collapse, confirmation timeline orientation, PDF receipt ask) for Ethan.
+- **2025-11-04**: Captured the AI-generated desktop mock review for Flow 1 Screens 1–2; authored `Snapcase-Flow-Mockups/Flow-1-Design-and-Order/Desktop/Screen-1-Pick-your-device/snapcase-notes-delta-screen-1.md` and `Snapcase-Flow-Mockups/Flow-1-Design-and-Order/Desktop/Screen-2-Design-your-case/snapcase-notes-delta-screen-2.md`, then linked both from `docs/Responsive_Blueprint.md` (“Desktop References”). Notes cover layout wins, token drift, CTA/guardrail gaps, and open questions so engineers don’t treat the mockups as shippable UI.
+- **2025-11-04**: Logged the Live Gap Analysis for `/design` (duplicate pickers, layered guardrails, cramped desktop layout), captured supporting screenshots (`design-desktop-selected.png`, `design-mobile-selected.png`, `Images/diagnostics/11.4.25_badCXUX.png`), and documented remediation paths plus open questions in `docs/Responsive_Blueprint.md:91-110`.
+- **2025-11-06**: Added the Template probe API section to `docs/Printful_EDM_InvalidOrigin.md`, covering the new `/api/edm/templates/{externalProductId}` endpoint semantics, error handling contract, and a ready-to-run cURL snippet for QA.
+- **2025-11-05**: Refreshed `docs/Responsive_Blueprint.md` with breakpoint-specific layouts, guardrail messaging (DPI, cancel/resume, safe-area overlays), accessibility checklist, and open UX decisions awaiting Ethan. Updated `docs/UXCX_Guidelines.MD` to point to the new blueprint guidance.
+- **2025-11-05 (Sprint02-Task01)**: Added Delta Status tables to every Flow 1 delta doc (mobile + desktop Screens 1-4), rewrote the blueprint’s Mockup vs Reality + Screen 3/4 sections to call out Quality Promise/thank-you gaps, extended the UX/CX Source-of-Truth index, and filed `docs/AgentReports/Sprint02-Task01.md` so workstreams stay synced with the Printful-first reality. **Next actions:** (1) Ship the Screen 3 Quality Promise banner + `aria-live` pricing updates, (2) build the full `/thank-you` timeline + dual CTA experience and capture new diagnostics, (3) decide on the desktop toolbar/AppHeader nav plan so we can graduate the “Not Started” tags, and (4) capture Screen 1 screenshots once the Printful type error unblocks builds.
+- **2025-11-04**: Investigated the blank EDM stage on dev preview; confirmed Printful sends `iframeLoadedOK` but immediately responds with `rpcError` / `loadTemplateFailed` (`Template not found`). Logged the gap in this tracker, captured screenshots + JSON logs via `scripts/collect-edm-diagnostics.js`, and documented next steps (create base templates or wire `initProduct` calls) in `docs/Printful_EDM_InvalidOrigin.md`.
+- **2025-11-04**: Documented the create-on-demand EDM workflow (initProduct, onTemplateSaved persistence, health-check endpoints) so future agents can implement automated template provisioning without manual Printful setup. See `docs/Printful_EDM_InvalidOrigin.md` “Create-mode workflow” section for the runbook.
+- **2025-11-04**: Verified the aliased preview `https://dev.snapcase.ai?_vercel_share=YUEI91JlQxSOTGd5TxBsDAPA9hthrMd3` loads without the Vercel password gate, exercised `/design` end-to-end with the new `scripts/collect-edm-diagnostics.js` harness (captured origin `https://dev.snapcase.ai`, nonce `j7AfWMqv3AZPULp1EBxoHrsHsjtKiyuG`, Printful iframe events, screenshot `Images/diagnostics/edm-diagnostics-2025-11-04T01-15-29-155Z.png`), and confirmed `node scripts/check-printful-nonce.js` returns `200` with token `Snapcase-Dev-110325-1` (EDM loads, latest warning is `loadTemplateFailed` if no saved template is linked).
+- **2025-11-03**: Deployment/architecture docs refreshed for the preview→alias runbook (`_vercel_share` links, dev.snapcase.ai protection bypass), Vercel secret ownership (`PRINTFUL_TOKEN`, `STRIPE_SECRET_KEY`), and the `app.snapcase.ai` DNS cutover checklist so coordination with Printful stays non-technical.
+- **2025-11-04**: Realigned `eslint-config-next` (14.2.33) with the existing Next.js 14.2 runtime, pinned ESLint to 8.57 to satisfy peer requirements, replaced the flat config with a `.eslintrc.cjs` that mirrors the previous ruleset, and confirmed `npm run lint` completes (warnings remain in app code for `react-hooks/exhaustive-deps` and `@next/next/no-img-element`).
+- **2025-11-03**: Rotated Printful EDM token to `Snapcase-Dev-110325-1`, updated `.env.local` plus Vercel (`PRINTFUL_TOKEN`, `PRINTFUL_TOKEN_DEV_CURRENT`), and refreshed Printful docs with the new allowlist (`dev.snapcase.ai`, localhost, production domains, legacy previews).
+- **2025-11-03**: Expanded `docs/TESTING_STRATEGY.md` with a current automation snapshot, gap analysis, and phased roadmap tied to the guardrail/Stripe/EDM priorities so QA owners have a single source of truth before pilot testing.
+- **2025-10-31**: Rotated Printful EDM token to `Snapcase-Dev-103125-1`, mirrored the value across `.env.local` and Vercel (`PRINTFUL_TOKEN`, `PRINTFUL_TOKEN_DEV_CURRENT`), and expanded the Printful dashboard allowlist to include the latest preview host plus Squarespace domains.
+- **2025-10-31**: Refreshed `docs/Printful_EDM_InvalidOrigin.md` and `docs/MCP_Credentials.md` with the new token metadata, updated origin allowlist, and rotation cadence details.
+
+- **2025-10-28**: Token-aligned Flow 2 status & tracking delta docs (Screens 1-5) to reference `var(--snap-*)`, `--space-*`, `--control-height`, and `--radius-*` tokens instead of raw hex/px values; no additional design tokens needed beyond the new `--snap-cloud`, `--snap-cloud-border`, and `--snap-violet-50` aliases already added to the system.
+- **2025-10-27**: Authored pending-state delta notes for Flow 2 Screen 3 in `Snapcase-Flow-Mockups/Flow-2-Status-and-Tracking/Mobile/Screen-3-Order-Status-Pending/snapcase-notes-delta-screen-3.md`, covering reassurance copy, polling cadence, escalation paths, analytics, and responsive behavior.
+
+- **2025-10-27**: Captured detailed delta notes for Review & Shipping (Screen 3) and Order Placed (Screen 4) in `Snapcase-Flow-Mockups/Flow-1-Design-and-Order/Mobile/*/snapcase-notes-delta-screen-*.md`, aligning Stitch mockups with Snapcase design tokens, accessibility guardrails, and analytics expectations.
+
+- **2025-10-28**: Finalized Screen 3 Review & Shipping delta doc (`Snapcase-Flow-Mockups/Flow-1-Design-and-Order/Mobile/Screen-3-Review-and-Shipping/snapcase-notes-delta-screen-3.md`), updated UX/CX guidelines index with new Flow 2 resources, noted follow-up analytics requirements, and verified the latest Vercel preview (design ? checkout ? thank-you) with results captured in `docs/SELF_TEST_CHECKLIST.md`.
+
+- **2025-10-27**: Added `docs/Responsive_Blueprint.md`, documenting breakpoint-by-breakpoint behavior for Screens 1�4 and listing outstanding desktop design follow-ups (Stripe lockup asset, animation specs, optional right-rail content).
+
+- **2025-10-27**: Filed Flow 2 Status & Tracking delta docs for Mobile Screens 2�5 under `Snapcase-Flow-Mockups/Flow-2-Status-and-Tracking/` and updated `docs/UXCX_Guidelines.MD` to surface the new references (Screen 1 still pending delta coverage).
+
+- **2025-10-27**: Authored Flow 2 Tracking Details delta doc (`Snapcase-Flow-Mockups/Flow-2-Status-and-Tracking/Mobile/Screen-2-Tracking-Details/snapcase-notes-delta-screen-2.md`) covering timeline drill-down behavior, metadata fields, accessibility rules, and analytics hooks.
+
+- **2025-10-27**: Logged Flow 2 order-tracking error handling updates in `Snapcase-Flow-Mockups/Flow-2-Status-and-Tracking/Mobile/Screen-4-Order-Tracking-Errors/snapcase-notes-delta-screen-4.md`, detailing recoverable vs hard failures, accessibility alerts, and analytics for retries/support escalations.
+
+### Next 3 Actions
+
+1. **EDM Integration Spike** (AI): Wire Printful nonce request + iframe handshake behind `USE_EDM`, validating guardrail messaging within the EDM chrome.
+
+2. **Responsive Alignment** (AI + Design): Review `docs/Responsive_Blueprint.md` tasks (floating CTA, sticky checkout panel, timeline layout) and slot the first set into Sprint 2 execution.
+
+3. **Printful Order Dry Run** (AI + Ethan): Capture live catalog external IDs and run the sandbox order/confirm cycle to validate fulfillment mapping and webhook handling.
+
+## Sprint Log
+
+### Sprint 0 - Testing Loop Setup *(Oct 25 - Nov 7, 2025)*
+
+| Task | Owner | Status | Notes / Next Step |
+
+| --- | --- | --- | --- |
+
+| Provide Stripe production secret + webhook signing secret via secure channel | Ethan | DONE | Stripe sandbox keys + webhook secret confirmed; no further action until we swap to live. |
+
+| Store Stripe and Printful secrets in Vercel + refresh `.env.local` | AI | DONE | Vercel env updated, redeploy triggered, and `.env.local` synced with Stripe sandbox values. |
+
+| Verify Printful catalog external IDs align with curated data | AI | DONE | Catalog snapshot captured in `docs/PRINTFUL_CATALOG.md`; ready to wire live Printful queries. |
+
+| Point `app.snapcase.ai` CNAME at Vercel (`2cceb30524b3f38d.vercel-dns-017.com`) | Ethan | DONE | DNS now validated in Vercel (see app.snapcase.ai domain dashboard). |
+
+| Harden automated test harness (`test:unit`, `test:integration`, `test:e2e`) and add smoke stubs | AI | DONE | Jest unit/integration placeholders plus the Playwright smoke test now run locally; `npm run test:e2e` passes with mocked services. |
+
+| Wire CI/local `npm run verify:mcp` + test suite into developer workflow | AI | DONE | Added `npm run verify` script chaining MCP + unit/integration/e2e tests and linked it into README and deployment checklist. |
+
+| Draft Playwright happy-path scenario for design->checkout using mock services | AI | DONE | Smoke spec walks design ? checkout flow with mocked EDM + Stripe endpoints. |
+
+| Publish user-testing plan (participants, schedule, success criteria) | Ethan + AI | IN PROGRESS | Ethan will self-test each preview build; flesh out script & logging template before Sprint 1 demo. |
+
+#### Blockers
+
+- 2025-10-24: Runaway agent widened scope beyond the prompt and touched config defaults; diff was rolled back, workspace cleaned, and the guardrails now live in `docs/PROJECT_MANAGEMENT.md` for future prompts.
+
+- 2025-10-25: Playwright prompt exceeded timebox while fighting `.next` file locks on OneDrive; updated the playbook with timeboxing, cleanup, and no-stub guidance to prevent repeat overruns.
+
+- 2025-10-25: Squarespace already handles the marketing hero; plan to redirect `/` ? `/design` in the Next.js app so users land directly in Scene 1.
+
+- 2025-10-26: CSP relaxation merged; both dev + prod builds hydrate `/design` correctly and unlock Continue for warn/good variants. Full `npm run verify` green.
+
+- 2025-10-26: Follow-up review removed the legacy `NEXT_PUBLIC_E2E_MODE` CSP bypass branch to ensure playwright and preview builds always exercise the production headers.
+
+**Sprint Goal:** Establish a reliable build -> preview -> test loop so every feature increment can be exercised in Vercel previews and shared with testers before production deploys.
+
+**Outcome Summary (2025-10-26):** Sprint 1 completed with the design ? checkout ? thank-you loop running in preview, `npm run verify` automated, and self-test checklist entries captured. Guardrail UX remains a stub pending EDM access and moves to Sprint 2.
+
+### Sprint 2 - Redirect & EDM Integration *(Nov 22 - Dec 5, 2025)*
+
+| Task | Owner | Status | Notes / Next Step |
+
+| --- | --- | --- | --- |
+
+| Add `/` ? `/design` redirect and document Squarespace handoff | AI | DONE | 2025-11-22: Middleware now issues 307 redirect to `/design`, Playwright + docs updated. |
+
+| Replace guardrail stub with EDM iframe nonce flow | AI | IN PROGRESS | 2025-10-28: Added Printful-backed `/api/edm/nonce` and iframe loader behind `USE_EDM=true`; awaiting live-token QA before enabling by default. 2025-10-29: `npm run verify` (unit/integration/e2e + MCP) passing locally; TODO flip `NEXT_PUBLIC_USE_EDM` in staging after Printful sign-off. 2025-10-29: Patched EDM script bootstrap to guard null `readyState`, added slow-load hint and offline banner so previews degrade gracefully when Printful is unreachable. 2025-10-30: Updated CSP + nonce route to handle Printful v2 response shape; confirmed dev token with `product_templates/write` scope returns valid nonce. |
+
+| Sprint02-Task21 – Segment env promotion & runbook sync | AI | DONE | 2025-11-06: Added the Vercel CLI promotion checklist + verification steps to `docs_new/MCP_Credentials.md` and `docs_new/DEPLOYMENT_GUIDE.md`; pending Ethan running `vercel env add` + debugger screenshots with real secrets. |
+
+| Run Printful sandbox order end-to-end using saved template | AI + Ethan | NOT STARTED | Validate variant mapping and webhook payloads; record in `docs/PRINTFUL_CATALOG.md` and Sprint log. |
+
+| Refine `/design` UX messaging per self-test feedback | Design/AI | NOT STARTED | Consolidate guardrail messaging and polish layout once EDM renders. |
+
+| Audit design tokens & responsive assets from new CX docs | AI + Design | NOT STARTED | Confirm `docs/Responsive_Blueprint.md`, Stripe button lockup, and animation specs are wired into tickets before lg+/desktop work. |
+
+- 2025-10-27: Added thank-you handoff token (query param + sessionStorage rehydrate) so the design summary survives Stripe-style redirects; `npm run verify` re-ran successfully on 2025-10-27 with Stripe MCP configured.
+
+### Sprint 1 - Design Flow v1 *(Nov 8 - Nov 21, 2025)*
+
+| Task | Owner | Status | Notes / Next Step |
+
+| --- | --- | --- | --- |
+
+| Align `/design` device picker UX with storyboard scenes 1-3 (copy, pricing, analytics event) | AI | DONE | Catalog module powers the picker, Tailwind styling matches storyboard, and placeholder analytics logs `select_device`. |
+
+| Implement EDM/Fabric guardrails (safe-area overlay, DPI warnings, template persistence) | AI | CARRY FORWARD | Guardrail state + session persistence stubbed with tests; awaiting live Printful metrics and EDM access to replace stub UI. |
+
+| Wire Stripe cancel/resume loop with persisted design context | AI | DONE | Mock Stripe flow preserves session context, displays cancel/resume messaging, and thank-you summary mirrors storyboard scenes 9-10. |
+
+| Extend Playwright spec to cover guardrail + cancel/resume behaviors | AI | DONE | Spec now drives the live design?checkout?thank-you flow with data-testid hooks, covering guardrail block/warn bands, cancel/resume banner, and thank-you context clear. |
+
+| Prepare Sprint 1 self-test script and feedback log template | Ethan | DONE | Added `docs/SELF_TEST_CHECKLIST.md` with step-by-step flow + session log template. |
+
+**Sprint Goal:** Deliver a preview-ready design ? checkout flow matching storyboard scenes 1-10 that can be exercised in moderated user tests.
+
+### EDM Integration Work Plan
+
+- Verify Printful store catalog metadata (external IDs, thumbnails) so live APIs stay in sync with fallback data.
+
+- Continue Fabric.js fallback work: device picker, safe-area overlay, DPI validation, and local draft persistence.
+
+- Implement Vercel KV order tracking plus Stripe/Printful webhook idempotency using sandbox payloads.
+
+- Expand automated checks (e.g., `npm run verify:mcp`, Jest/Playwright stubs) to keep regressions visible.
+
+### Latest Updates
+
+  - 2025-11-06: Added `src/lib/printful/templates.ts` plus `GET /api/edm/templates/{externalProductId}` to surface `{ exists, templateId, printfulProductId }` ahead of EDM launch. New integration coverage lives in `tests/integration/edm-template-status-route.test.ts`; validated locally via `npx jest --runInBand tests/integration/edm-template-status-route.test.ts`. Docs updated with the “Template probe API” subsection.
+  - 2025-11-04: Printful Snap Case catalog map landed in `src/data/printful-catalog.ts:1-75` (+ Jest guard `tests/unit/printful-catalog.test.ts:1-26`). Commands: `curl https://api.printful.com/products/683`, `curl https://api.printful.com/products/684`, and a one-off `python3` filter to list variant labels. Endpoints verified: `GET /products/683`, `GET /products/684`. Output informs EDM create-mode + PROGRESS log per docs/Printful_EDM_InvalidOrigin.md.
+  - 2025-10-24: `/api/catalog/phones` now queries Printful via the shared client and falls back to curated fixtures when live data is missing.
+
+  - 2025-10-24: Printful EDM token regenerated for the Snapcase API store (V2); secrets stored locally and on Vercel.
+
+  - 2025-10-24: Upgraded Stripe webhook endpoint to verify signatures and log key events while we stage downstream automation.
+
+  - 2025-10-24: Documented MCP usage patterns so future agents know when to lean on GitHub, Vercel, and Stripe servers.
+
+  - 2025-10-24: Wired `/api/checkout` to Stripe (with mock fallback), gated express shipping via feature flag, and added global security headers/CSP in Next.js.
+
+  - 2025-10-24: Standardized the checkout route on `/api/checkout`, promoted EDM integration requirements into the PRD, and published the EDM storyboard companion doc for coding agents.
+
+- 2025-10-23: Documented MCP credential workflow and added `npm run verify:mcp` to validate GitHub/Vercel/Stripe MCP servers.
+
+- 2025-10-22: Fabric.js fallback editor foundation implemented (image upload, safe-area overlay, export pipeline).
+
+- 2025-10-22: Added Zod validation and request size limits to /api/edm/nonce; added query filters with validation to /api/catalog/phones.
+
+- 2025-10-22: Verified `snapcase-app` as the sole Vercel project, removed duplicate slugs, and confirmed `main` branch auto-deploys after cleanup.
+
+- 2025-10-21: Vercel preview deployment succeeded after converting Next.js config to next.config.mjs and swapping to Inter/Roboto Mono fonts to unblock builds.
+
+- 2025-10-21: Added .env.example, editor scaffolding (/design, /checkout, /thank-you), and refreshed landing copy to align with MVP milestones.
+
+- 2025-10-21: Implemented /api/catalog/phones + /api/edm/nonce with mock fallbacks and hooked the design editor to consume them, persisting state into checkout stub.
+
+### [Notes] Documentation Status
+
+- **Last Updated**: October 24, 2025
+
 - **Next Review**: Daily (as part of sprint discipline)
-- **Current Status**: ✅ Up to date with latest changes
-- **Pending Updates**: None
 
-## 📊 Milestone Progress
+- **Current Status**: Up to date with latest changes
 
-### ✅ Completed Milestones
+- **Pending Updates**: Monitor MCP automation adoption and update guides as new servers come online.
+
+## [Metrics] Milestone Progress
+
+### [Done] Completed Milestones
 
 #### M0: Repository & Infrastructure Setup
+
 - [x] GitHub repository created and configured
+
 - [x] README.md with comprehensive documentation
+
 - [x] PROGRESS.md for tracking development
+
 - [x] Basic project structure established
-- [x] Next.js 14 project scaffolded (✅ Already exists)
-- [ ] Vercel deployment configured
+
+- [x] Next.js 14 project scaffolded ([Done] Already exists)
+
+- [x] Vercel deployment configured (preview build successful on Vercel)
+
 - [ ] Custom domain (app.snapcase.ai) setup
 
 #### Documentation & Planning
+
 - [x] Business context documented
+
 - [x] Technical prototype specification completed
+
 - [x] UX/CX guidelines established
+
 - [x] Development progress tracking system implemented
 
-### 🚧 In Progress
+### [In Progress] In Progress
 
 #### M1: Design Editor Implementation (Days 2-3)
+
 - [ ] Printful EDM integration setup
+
 - [ ] Fallback Fabric.js editor implementation
+
 - [ ] Device picker component
+
 - [ ] Safe area overlay system
+
 - [ ] DPI validation and warnings
 
-## 👥 Accountability Matrix
+## [Team] Accountability Matrix
 
 ### **Ethan's Tasks (Product Owner)**
+
 - [ ] **Printful Account**: Create account, request EDM access, get API tokens
+
 - [ ] **Stripe Account**: Create account, configure webhooks, get API keys
+
 - [ ] **Vercel Account**: Create account, connect GitHub, configure environment
+
 - [ ] **Domain Setup**: Configure app.snapcase.ai DNS (CNAME to Vercel)
+
 - [ ] **Content**: Provide final copy, logo, pricing, legal policies
 
 ### **AI Assistant Tasks (Technical Lead)**
+
 - [ ] **Next.js Enhancement**: Improve project structure, add missing dependencies
+
 - [ ] **Design System Implementation**: Implement design system matching SnapCase.ai homepage
+
 - [ ] **API Routes**: Implement all API endpoints (EDM, checkout, orders, webhooks)
+
 - [ ] **UI Components**: Build device picker, checkout flow, order tracking
+
 - [ ] **Design Editor**: Implement EDM integration + Fabric.js fallback
+
 - [ ] **Testing**: Set up testing framework and implement test suite
 
-## 📝 Definition of Done (Sprint Requirements)
+## [Notes] Definition of Done (Sprint Requirements)
 
 ### **Every Sprint Must Include:**
+
 - [ ] **Code Complete**: All planned features implemented and tested
+
 - [ ] **Documentation Updated**: PROGRESS.md reflects current status
-- [ ] **Progress Logged**: Completed tasks marked with ✅ and timestamps
+
+- [ ] **Progress Logged**: Completed tasks marked with [Done] and timestamps
+
 - [ ] **Blockers Documented**: Any new blockers added to current blockers section
+
 - [ ] **Next Actions Updated**: Next 3 actions reflect current priorities
+
 - [ ] **Technical Docs Updated**: API docs, architecture docs updated if changed
+
 - [ ] **Testing Complete**: All tests passing, new tests added for new features
+
 - [ ] **Deployment Ready**: Code deployed to staging/preview environment
 
 ### **Documentation Discipline:**
+
 - **Daily**: Update PROGRESS.md with completed tasks and blockers
+
 - **Sprint End**: Full documentation review and update
+
 - **Before Merge**: Ensure all relevant docs are current
+
 - **After Deployment**: Update deployment status and any configuration changes
 
-### 📋 Documentation Checklist (Every Sprint)
+### [Checklist] Documentation Checklist (Every Sprint)
+
 - [ ] **PROGRESS.md Updated**: Current status, completed tasks, new blockers
+
 - [ ] **Technical Docs Current**: Architecture, API, deployment docs updated if changed
-- [ ] **Progress Logged**: All completed tasks marked with ✅ and timestamps
+
+- [ ] **Progress Logged**: All completed tasks marked with [Done] and timestamps
+
 - [ ] **Next Actions Updated**: Next 3 actions reflect current priorities
+
 - [ ] **Blockers Documented**: Any new blockers added to current blockers section
+
 - [ ] **Testing Docs Updated**: Test strategy and results documented
+
 - [ ] **Deployment Status**: Current deployment status and any changes noted
 
-### 🚨 Documentation is NOT Optional
+### [Alert] Documentation is NOT Optional
+
 **Every sprint MUST include documentation updates. No exceptions.**
+
 - Documentation is part of the Definition of Done
+
 - Incomplete documentation = incomplete sprint
+
 - Use the Sprint Update Template for consistency
+
 - AI agents depend on current documentation for context
 
-### 📋 Upcoming Milestones
+### [Checklist] Upcoming Milestones
 
 #### M2: Payment Integration (Days 3-4)
+
 - [ ] Stripe Checkout implementation
+
 - [ ] Payment flow testing
+
 - [ ] Error handling for payment failures
+
 - [ ] Receipt and confirmation system
 
 #### M3: Order Fulfillment (Days 4-5)
+
 - [ ] Printful order creation API
+
 - [ ] Webhook integration for status updates
+
 - [ ] Order tracking system
+
 - [ ] Fulfillment error handling
 
 #### M4: Polish & Launch (Days 6-7)
+
 - [ ] Accessibility audit (WCAG AA compliance)
-- [ ] Performance optimization (Lighthouse ≥90)
+
+- [ ] Performance optimization (Lighthouse >=90)
+
 - [ ] Security review
+
 - [ ] Production deployment
+
 - [ ] Go-live checklist completion
 
-## 📈 Success Metrics & KPIs
+## [Growth] Success Metrics & KPIs
 
 ### Target Metrics
-- **Conversion Rate**: ≥4% (editor start → purchase)
+
+- **Conversion Rate**: >=4% (editor start -> purchase)
+
 - **Average Order Value**: $35-$45
+
 - **Reprint/Defect Rate**: <2%
-- **30-day Repeat Rate**: ≥10%
-- **Performance Score**: Lighthouse ≥90
+
+- **30-day Repeat Rate**: >=10%
+
+- **Performance Score**: Lighthouse >=90
+
 - **Uptime**: 99.9%
 
 ### Current Performance
+
 - **Conversion Rate**: TBD (not yet measured)
+
 - **Average Order Value**: TBD
+
 - **Performance Score**: TBD
+
 - **Uptime**: TBD
 
-## 🔄 Development Backlog
+## [Cycle] Development Backlog
 
 ### High Priority
+
 1. **Core Application Setup**
+
    - Next.js 14 project initialization
+
    - TypeScript configuration
+
    - Tailwind CSS + shadcn/ui setup
+
    - Environment configuration
 
 2. **Design Editor**
+
    - Printful EDM integration
+
    - Fallback editor with Fabric.js
+
    - Device catalog integration
+
    - Image upload and processing
 
 3. **Payment System**
+
    - Stripe Checkout integration
+
    - Payment success/failure handling
+
    - Order confirmation system
 
 ### Medium Priority
+
 4. **Order Management**
+
    - Printful API integration
+
    - Webhook handling
+
    - Order status tracking
+
    - Email notifications
 
 5. **User Experience**
+
    - Mobile responsiveness
+
    - Loading states and error handling
+
    - Accessibility improvements
+
    - Performance optimization
 
 ### Low Priority
+
 6. **Advanced Features**
+
    - User accounts and profiles
+
    - Design templates and galleries
+
    - Referral system
+
    - Analytics and reporting
 
-## ⚠️ Risks & Issues
+## [Warning] Risks & Issues
 
 ### High Risk Items
 
 #### Technical Risks
+
 - **EDM Access Delayed**: Printful EDM may not be immediately available
+
   - **Mitigation**: Fallback Fabric.js editor implemented
+
   - **Status**: Monitoring Printful EDM access
+
   - **Owner**: Development Team
 
 - **API Integration Complexity**: Stripe and Printful webhook reliability
+
   - **Mitigation**: Comprehensive error handling and retry logic
+
   - **Status**: Under development
+
   - **Owner**: Development Team
 
 #### Business Risks
+
 - **Quality Control**: Print quality variance across orders
+
   - **Mitigation**: Sample orders, supplier vetting, defect reprint policy
+
   - **Status**: Pending supplier evaluation
+
   - **Owner**: Ethan Trifari
 
 - **Trademark Issues**: "Snapcase" name clearance
+
   - **Mitigation**: Legal review, backup trademark options
+
   - **Status**: In progress
+
   - **Owner**: Legal Advisor
 
 ### Medium Risk Items
 
 - **Performance Under Load**: Vercel serverless function limits
+
   - **Mitigation**: Performance monitoring, optimization
+
   - **Status**: Monitoring
 
 - **Mobile UX**: Touch interface optimization
+
   - **Mitigation**: Extensive mobile testing
+
   - **Status**: Pending
 
 ### Low Risk Items
 
 - **Third-party Dependencies**: External service reliability
+
   - **Mitigation**: Service monitoring, fallback options
+
   - **Status**: Monitoring
 
-## 🐛 Known Issues
+## [Bug] Known Issues
 
 ### Critical Issues
+
 - None currently identified
 
 ### High Priority Issues
+
 - None currently identified
 
 ### Medium Priority Issues
+
 - None currently identified
 
 ### Low Priority Issues
+
 - None currently identified
 
-## 🔧 Technical Debt
+## [Tools] Technical Debt
 
 ### Code Quality
+
 - [ ] Implement comprehensive error boundaries
+
 - [ ] Add unit tests for critical functions
+
 - [ ] Set up automated testing pipeline
+
 - [ ] Implement proper logging system
 
 ### Performance
+
 - [ ] Optimize image loading and processing
+
 - [ ] Implement caching strategies
+
 - [ ] Bundle size optimization
+
 - [ ] CDN configuration
 
 ### Security
+
 - [ ] Implement rate limiting
+
 - [ ] Add input sanitization
+
 - [ ] Security headers configuration
+
 - [ ] Regular dependency updates
 
-## 📊 Development Velocity
+## [Metrics] Development Velocity
 
 ### Recent Sprints
+
 - **Sprint 1** (Week 1): Project setup and documentation
+
 - **Sprint 2** (Week 2): Core application development (planned)
 
 ### Team Capacity
+
 - **Development**: 1 AI Assistant (Full-time equivalent)
+
 - **Product**: Ethan Trifari (Part-time)
+
 - **Design**: AI + Ethan collaboration
+
 - **QA**: Manual testing by team
 
-## 🎯 Next Actions
+## Next Actions
 
 ### Immediate (This Week)
-1. Set up Next.js 14 project with TypeScript
-2. Configure Vercel deployment
-3. Implement basic design editor
-4. Set up Stripe integration
+
+1. Begin EDM nonce handshake spike, capturing guardrail expectations and iframe notes in `PROGRESS.md`.
+
+2. Inventory CX/UX follow-ups (Stripe button asset, animation specs, desktop mockups) and spin tickets aligned to `docs/Responsive_Blueprint.md`.
+
+3. Schedule Printful sandbox order dry run and document webhook expectations ahead of Sprint 2 delivery.
 
 ### Short Term (Next 2 Weeks)
-1. Complete Printful integration
-2. Implement order tracking
-3. Conduct accessibility audit
-4. Performance optimization
+
+1. Complete EDM handshake and migrate guardrail UI into the iframe.
+
+2. Execute Printful order dry run; document webhook mappings and timelines.
+
+3. Polish `/design` layout and copy per Sprint 1 self-test feedback.
+
+4. Plan `/order/[id]` status timeline scaffold leveraging webhook outputs.
+
+5. Align ESLint config to unblock `npm run lint`.
 
 ### Medium Term (Next Month)
-1. User testing and feedback collection
-2. Analytics implementation
-3. Advanced features development
-4. Marketing integration
 
-## 📞 Communication & Updates
+1. Ship Fabric.js fallback parity (if EDM remains gated) with safe-area + export tooling.
+
+2. Instrument analytics and error monitoring across the funnel.
+
+3. Advance checkout polish (shipping options, copy refinement, cancel/resume UX).
+
+4. Coordinate marketing integrations and launch content.
+
+## [Communication] Communication & Updates
 
 ### Daily Standups
+
 - **Format**: Async updates via this document
+
 - **Participants**: Development team, Product owner
+
 - **Focus**: Progress, blockers, next steps
 
 ### Weekly Reviews
+
 - **Format**: Progress assessment and planning
+
 - **Participants**: Full team
+
 - **Deliverables**: Updated progress, risk assessment, next week planning
 
 ### Monthly Retrospectives
+
 - **Format**: Process improvement discussion
+
 - **Focus**: What worked, what didn't, process improvements
 
-## 📚 Resources & References
+## [Resources] Resources & References
 
 ### Documentation
-- [Business Context](./Docs/BusinessContext.Md)
-- [Technical Prototype](./Docs/SnapCase_App_Prototype.MD)
-- [UX/CX Guidelines](./Docs/UXCX_Guidelines.MD)
-- [Design System](./Docs/DESIGN_SYSTEM.md)
-- [Visual Consistency Guide](./Docs/VISUAL_CONSISTENCY_GUIDE.md)
-- [Design Implementation Guide](./Docs/DESIGN_IMPLEMENTATION_GUIDE.md)
-- [Account Setup Guide](./Docs/ACCOUNT_SETUP_GUIDE.md)
-- [Sprint Update Template](./Docs/SPRINT_UPDATE_TEMPLATE.md)
-- [Documentation Reminder](./Docs/DOCUMENTATION_REMINDER.md)
+
+- [Business Context](./docs/BusinessContext.Md)
+
+- [Technical Prototype](./docs/SnapCase_App_Prototype.MD)
+
+- [UX/CX Guidelines](./docs/UXCX_Guidelines.MD)
+
+- [Design System](./docs/DESIGN_SYSTEM.md)
+
+- [Visual Consistency Guide](./docs/VISUAL_CONSISTENCY_GUIDE.md)
+
+- [Responsive Blueprint](./docs/Responsive_Blueprint.md)
+
+- [Design Implementation Guide](./docs/DESIGN_IMPLEMENTATION_GUIDE.md)
+
+- [EDM Storyboard](./docs/Storyboard_EDM.md)
+
+- [MCP Credentials](./docs/MCP_Credentials.md)
+
+- [Account Setup Guide](./docs/ACCOUNT_SETUP_GUIDE.md)
+
+- [Sprint Update Template](./docs/SPRINT_UPDATE_TEMPLATE.md)
+
+- [Documentation Reminder](./docs/DOCUMENTATION_REMINDER.md)
 
 ### External Resources
+
 - [Printful API Documentation](https://developers.printful.com/)
+
 - [Stripe Documentation](https://stripe.com/docs)
+
 - [Next.js Documentation](https://nextjs.org/docs)
+
 - [Vercel Documentation](https://vercel.com/docs)
 
 ### Tools & Services
+
 - **Development**: Cursor AI, GitHub, Vercel
+
 - **Marketing Site**: Squarespace (snapcase.ai)
+
 - **App Hosting**: Vercel (app.snapcase.ai)
+
 - **Payments**: Stripe
+
 - **Fulfillment**: Printful
+
 - **Analytics**: TBD
+
 - **Monitoring**: Vercel Analytics
 
 ---
 
-**Last Updated**: December 2024  
-**Next Review**: Weekly  
+**Last Updated**: December 31, 2024
+
+**Next Review**: Weekly
+
 **Document Owner**: Ethan Trifari
