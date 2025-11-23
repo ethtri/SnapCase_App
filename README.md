@@ -70,15 +70,15 @@ Run `npm run verify:mcp` before each session to make sure all servers authentica
 
 ## Documentation
 
-- **[API Documentation](Docs/API_DOCUMENTATION.md)** - Complete API reference and endpoints
-- **[Stripe Integration Guide](Docs/StripeMarkdown.md)** - Comprehensive Stripe implementation guide for AI coding agents
-- **[Account Setup Guide](Docs/ACCOUNT_SETUP_GUIDE.md)** - Step-by-step account configuration
-- **[Deployment Guide](Docs/DEPLOYMENT_GUIDE.md)** - Production deployment instructions
-- **[Technical Architecture](Docs/TECHNICAL_ARCHITECTURE.md)** - System design and architecture overview
+- **[API Documentation](docs/API_DOCUMENTATION.md)** - Complete API reference and endpoints
+- **[Stripe Integration Guide](docs/StripeMarkdown.md)** - Comprehensive Stripe implementation guide for AI coding agents
+- **[Account Setup Guide](docs/ACCOUNT_SETUP_GUIDE.md)** - Step-by-step account configuration
+- **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Production deployment instructions
+- **[Technical Architecture](docs/TECHNICAL_ARCHITECTURE.md)** - System design and architecture overview
 
 ## Next steps
 - Swap mock Printful responses for live data once credentials are available
-- Wire up Stripe Checkout session creation and webhook handlers (see [Stripe Integration Guide](Docs/StripeMarkdown.md))
+- Wire up Stripe Checkout session creation and webhook handlers (see [Stripe Integration Guide](docs/StripeMarkdown.md))
 - Replace the Fabric placeholder with the full editor (safe areas, DPI checks)
 
 ---

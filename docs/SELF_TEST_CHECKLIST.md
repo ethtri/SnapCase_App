@@ -1,6 +1,6 @@
 # Sprint 1 Self-Test Checklist
 
-Reference sources: `Docs/Storyboard_EDM.md` scenes 1-10, `tests/e2e/design-to-checkout.spec.ts`, `docs/TESTING_STRATEGY.md`.
+Reference sources: `docs/Storyboard_EDM.md` scenes 1-10, `tests/e2e/design-to-checkout.spec.ts`, `docs/TESTING_STRATEGY.md`.
 
 ## Step-by-step walkthrough
 
@@ -27,8 +27,10 @@ Reference sources: `Docs/Storyboard_EDM.md` scenes 1-10, `tests/e2e/design-to-ch
    - Actions: With `NEXT_PUBLIC_USE_EDM=false`, click “Mock export design” and then continue. When testing the Printful flag, set `NEXT_PUBLIC_USE_EDM=true`, wait for the EDM iframe to load (spinner clears), save a template inside the EDM, and then continue.
    - Expected: Toast or confirmation shows template saved; session storage includes `snapcase:design-context` with template/variant data (or exported image for Fabric fallback); navigation to `/checkout`. EDM run should surface spinner/error states gracefully before the iframe renders.
    - Notes / Timestamp: 2025-10-26 17:22 CT — Mock save emits template ID, navigates to /checkout with summary populated.
-   - Notes / Timestamp: 2025-10-28 09:11 CT — Mock save continues to issue template handoff token; checkout loads summary without delay.
-   - Notes / Timestamp: 2025-10-28 21:10 CT — First-pass EDM iframe mounts behind flag; spinner + retry overlay verified locally while Printful token remains gated for QA.
+- Notes / Timestamp: 2025-10-28 09:11 CT — Mock save continues to issue template handoff token; checkout loads summary without delay.
+- Notes / Timestamp: 2025-10-28 21:10 CT — First-pass EDM iframe mounts behind flag; spinner + retry overlay verified locally while Printful token remains gated for QA.
+- Notes / Timestamp: 2025-10-29 10:12 CT — Slow-load hint surfaces after ~7s and offline banner renders cleanly when Printful is blocked, no longer crashing on `readyState`.
+- Notes / Timestamp: 2025-10-30 14:45 CT — Printful dev token with `product_templates/write` scope returns nonce; EDM iframe boots end-to-end on localhost:3000 after CSP + API shape updates.
 
 5. **Checkout cancel/resume loop (Scenes 9-10)**
    - Actions: Click “Proceed to Stripe,” acknowledge mock secret warning, trigger cancel via `mock-cancel-link`, then resume.

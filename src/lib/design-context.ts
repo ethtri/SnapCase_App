@@ -2,7 +2,11 @@ export type DesignContext = {
   variantId: number | null;
   externalProductId: string | null;
   templateId: string | null;
+  templateStoreId: string | null;
+  templateStoredAt: number | null;
   exportedImage: string | null;
+  designFileId: number | null;
+  designFileUrl: string | null;
   variantLabel?: string | null;
   lastCheckoutAttemptAt: number | null;
   timestamp: number;
@@ -15,7 +19,11 @@ function createEmptyContext(): DesignContext {
     variantId: null,
     externalProductId: null,
     templateId: null,
+    templateStoreId: null,
+    templateStoredAt: null,
     exportedImage: null,
+    designFileId: null,
+    designFileUrl: null,
     variantLabel: null,
     lastCheckoutAttemptAt: null,
     timestamp: Date.now(),
@@ -86,7 +94,11 @@ export function loadDesignContext(): DesignContext | null {
       variantId: parsed.variantId ?? null,
       externalProductId: parsed.externalProductId ?? null,
       templateId: parsed.templateId ?? null,
+      templateStoreId: parsed.templateStoreId ?? null,
+      templateStoredAt: parsed.templateStoredAt ?? null,
       exportedImage: parsed.exportedImage ?? null,
+      designFileId: parsed.designFileId ?? null,
+      designFileUrl: parsed.designFileUrl ?? null,
       variantLabel: parsed.variantLabel ?? null,
       lastCheckoutAttemptAt: parsed.lastCheckoutAttemptAt ?? null,
       timestamp: parsed.timestamp ?? Date.now(),

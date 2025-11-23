@@ -1,38 +1,60 @@
-# Snapcase - Delta Doc (Screen 3: Review & Shipping)
+﻿# Snapcase - Delta Doc (Screen 3: Review & Shipping)
 
 **Viewport:** Mobile 390x844  
 **Executive intent:** Let shoppers confirm design, shipping, and costs with zero surprises before handing off to Stripe; reassure them about Snapcase quality and fulfillment.
+
+> **Section Status**
+>
+> | Section | Status | Notes |
+> | --- | --- | --- |
+> | A) Visual & Components | Authoritative | Matches Responsive Blueprint + Printful pricing callbacks (`docs/Printful_EDM_KeyFacts.md:104-136`). |
+> | B) Behavior & States | Authoritative | Checkout flow still mirrors current EDM handoff. |
+> | C) Accessibility | Authoritative | Applies to Printful + Stripe flows. |
+> | D) Copy & Voice | Authoritative | Voice/tone unchanged. |
+> | E) Analytics | Authoritative | Events required for funnel coverage. |
+> | F) Acceptance Criteria | Authoritative | No Printful conflicts. |
+> | G) Responsive Notes | Authoritative | Aligns with Responsive Blueprint Section 3. |
+
+> **Delta Status (2025-11-05)**
+>
+> | Mockup element | Reality snapshot | Status |
+> | --- | --- | --- |
+> | Shipping cards + Express gating | Standard/Express radios run off Printful pricing with inline helpers per the blueprint guardrail section. | Shipped |
+> | Cancel/resume banner | `/checkout` now surfaces the “No worries—your design is saved” banner when `?canceled=1`, matching blueprint guidance. | Shipped |
+> | Snapcase Quality Promise banner | Still missing in React; blueprint flags it as an open gap and calls for a new diagnostics capture once reinstated. | Not Started |
+> | Pricing skeletons + `aria-live` totals updates | Current build lacks the `aria-live="polite"` hooks required by the blueprint to announce re-pricing; treat as outstanding work. | Not Started |
+> | Stripe lockup asset + CTA helper text | CTA still uses plain text; blueprint’s Stripe handoff note requires the approved lockup asset and Printful-first helper copy. | Not Started |
 
 ## What to change vs Stitch
 
 ### A) Visual & Components
 1. **Page shell**
    - Body background uses `--snap-gray-50`; cards on `--snap-white` w/ shadow `--shadow-md`.
-   - Sticky header reuses global `AppHeader` pattern from Screen 1 (back chevron left, centered title, blur + 1px divider).
-   - Title copy: **Review & Shipping** (Title Case), Poppins 600 20px.
+   - Sticky header reuses global `AppHeader` pattern from Screen 1 (back chevron left, centered title, blur + divider `calc(var(--space-1) / 4)`).
+   - Title copy: **Review & Shipping** (Title Case), `var(--font-display)` `--font-semibold` at `--text-xl`.
 2. **Design summary card**
-   - Reuse `DesignSummary` component from Screen 2 handoff: 16px radius, 20px internal padding, Snap Violet focus ring on keyboard focus.
+   - Reuse `DesignSummary` component from Screen 2 handoff: `--radius-xl` corners, `--space-5` internal padding, `var(--snap-violet)` focus ring on keyboard focus.
    - Thumbnail uses stored template preview (same aspect ratio + rounded border as device cards).
-   - Swap "Edit" text button for tertiary style defined in design system (Snap Violet text, icon 20px, hover underline).
+   - Swap "Edit" text button for tertiary style defined in design system (Snap Violet text, icon `--space-5`, hover underline).
 3. **Shipping option cards**
-   - Convert to `RadioCard` component: 16px radius, 1px `--snap-gray-200` border, 12px vertical padding.
-   - Selected state: 2px Snap Violet ring + soft `--snap-focus-ring` glow; radio uses 20px token; focus ring visible & non-overlapping.
-   - Copy: **Standard (3-5 business days)**, **Express (1-2 business days)**; price pulls from pricing service, right-aligned Inter 600.
+   - Convert to `RadioCard` component: `--radius-xl`, border `calc(var(--space-1) / 4)` in `var(--snap-gray-200)`, `--space-3` vertical padding.
+   - Selected state: border `calc(var(--space-1) / 2)` in `var(--snap-violet)` + soft `--snap-focus-ring` glow; radio uses the `--space-5` token; focus ring visible & non-overlapping.
+   - Copy: **Standard (3-5 business days)**, **Express (1-2 business days)**; price pulls from pricing service, right-aligned `var(--font-body)` with `--font-semibold` weight.
    - Hide Express card entirely when `SHOW_EXPRESS_SHIPPING` false; maintain card spacing.
 4. **Ship-to block**
-   - Reuse global `AddressCard` (16px radius, 20px padding, line height 20px) with text locking to sentence case.
+   - Reuse global `AddressCard` (`--radius-xl`, `--space-5` padding, line height `--text-base`) with text locking to sentence case.
    - `Change` action uses tertiary button style with right chevron icon.
 5. **Cost breakdown**
-   - Use `CostSummary` component: stacked rows 12px spacing, typography Inter 14/16.
-   - Totals row uses Poppins 600 18px; amounts formatted via currency util; include tooltip icon for tax when location uncertain.
-   - Divider 1px `--snap-gray-200` full width.
+   - Use `CostSummary` component: stacked rows `--space-3` spacing, typography `var(--font-body)` at `--text-sm`/`--text-base`.
+   - Totals row uses `var(--font-display)` `--font-semibold` at `--text-lg`; amounts formatted via currency util; include tooltip icon for tax when location uncertain.
+   - Divider `calc(var(--space-1) / 4)` `--snap-gray-200` full width.
 6. **Quality reassurance**
-   - Replace blue block with branded `PromiseBanner`: Snap Violet tint at 10% (#7C3AED1A), icon `shield_star` 24px tint Snap Violet.
+   - Replace blue block with branded `PromiseBanner`: `var(--snap-violet-50)` tint, icon `shield_star` `--space-6` tinted `var(--snap-violet)`.
    - Copy: Heading **Snapcase Quality Promise**, body **"If anything's off, we remake it on us."**
 7. **Sticky CTA bar**
-   - Reuse bottom `ActionBar` component from Screens 1/2: safe-area padding, blur, 1px top border.
+   - Reuse bottom `ActionBar` component from Screens 1/2: safe-area padding, blur, top border `calc(var(--space-1) / 4)`.
    - Left button: tertiary **Back to design** (outline style). Right CTA: primary Snap Violet button labeled **Pay with Stripe** with Stripe wordmark lockup asset (replace ad-hoc SVG with approved asset).
-   - CTA height 48px, 16px radius, disabled state Cloud background + 60% label.
+   - CTA height `--space-12`, radius `--radius-xl`, disabled state `var(--snap-cloud)` background + 60% label tone.
 
 ### B) Behavior & States
 1. **Data appetite**
@@ -52,7 +74,7 @@
    - Primary CTA validates shipping selection, persists checkout payload (`shippingSpeed`, `price`, `templateId`) then calls `POST /api/checkout`.
    - Disable CTA and show loading spinner while request pending; on network failure re-enable and show toast **"Payment couldn't start. Please retry."**
 6. **Stripe cancel/resume**
-   - On return with `?canceled=1`, show inline info bar above totals: **"No worries—your design is saved. Pick up where you left off."**; keep shipping selection and pricing.
+   - On return with `?canceled=1`, show inline info bar above totals: **"No worriesâ€”your design is saved. Pick up where you left off."**; keep shipping selection and pricing.
    - Track cancellations without forcing refresh; CTA remains active.
 7. **Post-payment**
    - On redirect success, `/thank-you` should already create Printful order; ensure this screen stores `shippingSpeed` and `templateId` in checkout metadata for order creation (no duplicates).
@@ -62,7 +84,7 @@
    - If session expired (template missing), show blocking modal **"We saved your design, but need a fresh preview. Reload?"** with reload CTA.
 
 ### C) Accessibility
-- Focus order: Back button → Title → Design summary → Edit → Shipping cards (Standard then Express) → Address block → Change → Totals rows → Promise banner → Back to design → Pay with Stripe.
+- Focus order: Back button â†’ Title â†’ Design summary â†’ Edit â†’ Shipping cards (Standard then Express) â†’ Address block â†’ Change â†’ Totals rows â†’ Promise banner â†’ Back to design â†’ Pay with Stripe.
 - Shipping cards use `role="radiogroup"` wrapper, each card `role="radio"` with `aria-checked`, entire card clickable, radio visible for screen readers.
 - Totals updates announced via `aria-live="polite"` region to convey pricing changes.
 - CTA loading state sets `aria-busy="true"` and announces **"Contacting Stripe"**.
@@ -88,7 +110,7 @@
 - `shipping_option_unavailable { option, reason }`
 
 ### F) Acceptance Criteria
-- Layout matches design tokens (spacing 20px blocks, 16px card radius, Snap Violet CTA) and reuses shared components.
+- Layout matches design tokens (spacing `--space-5` blocks, `--radius-xl` card corners, Snap Violet CTA) and reuses shared components.
 - Standard shipping pre-selected; Express gated by flag and availability; pricing recalculates within 500ms on change with skeleton placeholder.
 - Stripe CTA disabled during async call; on cancel, info bar appears and state persists.
 - Address edits validate via existing rules (required fields, country-led format); inability to validate blocks CTA with inline messaging.
@@ -96,7 +118,12 @@
 - AA contrast, focus states, `aria-live` handlers implemented; keyboard navigation passes (Tab/Shift+Tab cycles, Enter/Space toggles radios).
 
 ### G) Responsive Notes
-- Mobile-first single column; on ≥768px introduce 2-column layout: left column design + shipping, right column totals + promise + CTA stacked (CTA still anchored bottom on mobile, becomes right column sticky on desktop).
-- Sticky ActionBar respects device safe area; on desktop convert to `CheckoutStickyPanel` anchored within right column with 24px padding and 64px max width.
+- Mobile-first single column; on â‰¥768px introduce 2-column layout: left column design + shipping, right column totals + promise + CTA stacked (CTA still anchored bottom on mobile, becomes right column sticky on desktop).
+- Sticky ActionBar respects device safe area; on desktop convert to `CheckoutStickyPanel` anchored within right column with `--space-6` padding and `--space-16` max width.
 - Ensure hero background remains `--snap-gray-50`; avoid full-width tinted sections so content doesn't feel boxed on large screens.
+
+
+
+
+
 

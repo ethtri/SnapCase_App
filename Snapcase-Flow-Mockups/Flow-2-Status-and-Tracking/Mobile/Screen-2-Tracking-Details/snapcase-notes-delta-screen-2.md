@@ -1,28 +1,40 @@
-# Snapcase - Delta Doc (Screen 2: Tracking Details)
+﻿# Snapcase - Delta Doc (Screen 2: Tracking Details)
 
 **Viewport:** Mobile 390x844  
 **Executive intent:** Give customers an instant, trustworthy snapshot of package progress, what is inside, and how to follow up without friction.
+
+> **Section Status**
+>
+> | Section | Status | Notes |
+> | --- | --- | --- |
+> | A) Visual & Components | Authoritative | Uses shared tracking components fed by Printful shipments (`docs/Printful_EDM_KeyFacts.md:289-310`). |
+> | B) Behavior & States | Authoritative | Matches `/api/tracking` polling + carrier refresh strategy. |
+> | C) Data & Content | Authoritative | Enumerates required fields from merged Printful/carrier payloads. |
+> | D) Accessibility | Authoritative | Applies across devices. |
+> | E) Analytics | Authoritative | Ensures telemetry parity with Flow 1 instrumentation. |
+> | F) Acceptance Criteria | Authoritative | Still valid for QA. |
+> | G) Responsive Notes | Authoritative | Aligns with blueprint for tablets/desktop. |
 
 ## What to change vs Stitch v2
 
 ### A) Visual & Components
 1. **Page shell**
-   - Reuse mobile app bar from Screen 1 (back chevron, centered title **Tracking details**), background `--snap-gray-50` light / `--snap-ink-900` dark, 1px divider, safe-area padding.
-   - Show order reference under title as subdued caption: `Order #SC-12345`, Inter 14px, `--snap-gray-500`.
+   - Reuse mobile app bar from Screen 1 (back chevron, centered title **Tracking details**), background `--snap-gray-50` light / `--snap-gray-900` dark, divider `calc(var(--space-1) / 4)`, safe-area padding.
+   - Show order reference under title as subdued caption: `Order #SC-12345`, `var(--font-body)` `--text-sm`, `--snap-gray-500`.
 2. **Status headline**
-   - Under header, stack ETA pill + status copy on white card: headline **"On the way"** (Poppins 22px 600), subcopy `Estimated delivery: Tue, Jan 7` (Inter 16px).
-   - ETA pill uses subtle tint (`--snap-violet-50`, text `--snap-violet-600`) with calendar icon 20px.
+   - Under header, stack ETA pill + status copy on white card: headline **"On the way"** (`var(--font-display)` `--font-semibold` at `--text-2xl`, the closest token to the prior hero scale between `--text-xl` and `--text-2xl`), subcopy `Estimated delivery: Tue, Jan 7` (`var(--font-body)` `--text-base`).
+   - ETA pill uses subtle tint (`--snap-violet-50`, text `--snap-violet-dark`) with calendar icon `--space-5`.
 3. **Timeline rail**
-   - Vertical timeline on left edge of detail card: 24px nodes, 2px connecting line in `--snap-gray-200`; active node filled Snap Violet, future nodes outlined.
-   - Each step is a 16px radius card (white/dark surface) with `Show details` chevron button; card padding 16px vertical, 20px horizontal.
+   - Vertical timeline on left edge of detail card: `--space-6` nodes, connector `calc(var(--space-1) / 2)` in `--snap-gray-200`; active node filled `var(--snap-violet)`, future nodes outlined in `var(--snap-cloud-border)`.
+   - Each step is a `--radius-xl` card (white/dark surface) with `Show details` chevron button; card padding `--space-4` vertical, `--space-5` horizontal.
 4. **Step detail accordion**
-   - Expanded state reveals scan table: timestamp (localised), location, carrier note; uses monospace timestamp 14px Inter, separators 1px `--snap-gray-100`.
-   - Include optional media row (e.g., proof of delivery) as thumbnail 64px with rounded corners and `View photo` link button.
+   - Expanded state reveals scan table: timestamp (localised), location, carrier note; uses monospace timestamp `var(--font-body)` `--text-sm`, separators `calc(var(--space-1) / 4)` `--snap-gray-100`.
+   - Include optional media row (e.g., proof of delivery) as thumbnail `--space-16` with rounded corners and `View photo` link button.
 5. **Package metadata card**
    - Separate card with two-column definition list for: Carrier logo, service level, tracking number (with copy icon button), package weight, contents summary, ship-from facility.
-   - Use `DefinitionList` component: label Inter 13px uppercase, value Inter 16px. Tracking number always wraps to copy-friendly line; long numbers break at 4-digit groups.
+   - Use `DefinitionList` component: label `var(--font-body)` `--text-xs` uppercase, value `var(--font-body)` `--text-base`. Tracking number always wraps to copy-friendly line; long numbers break at 4-digit groups.
 6. **Tracking actions**
-   - Primary button **Open carrier site** (Snap Violet 48px height); secondary outline **Copy tracking number**; tertiary plain text **Share tracking link** with `share` icon.
+   - Primary button **Open carrier site** (`var(--snap-violet)` fill, `--space-12` height); secondary outline **Copy tracking number**; tertiary plain text **Share tracking link** with `share` icon sized to `--space-5`.
    - `Refresh status` icon button (circular) anchored top-right of metadata card; rotates 180deg when loading.
 7. **Support and issue reporting**
    - Info banner tinted `--snap-violet-50` reminding of Snapcase quality promise.
@@ -68,11 +80,11 @@
 ### D) Accessibility
 - **Focus order:** Back -> Title -> Refresh -> Status card -> Timeline steps (top to bottom) -> Actions (Open carrier, Copy, Share) -> Metadata list -> Issue banner -> Report issue -> Footer links.
 - **Timeline semantics:** Use `<ol>` with each step `<li>` `role="listitem"` + `aria-current="step"` when active; toggle button inside step labelled `Show details for {status_label}` with `aria-expanded`.
-- **Scan table:** Wrap in `<section>` with `aria-label="{status_label} event history"`; each row uses `<time>`, `<p>` and ensures 44px min height.
+- **Scan table:** Wrap in `<section>` with `aria-label="{status_label} event history"`; each row uses `<time>`, `<p>` and ensures `var(--control-height)` min height.
 - **Link targets:** When opening new tab, include visually hidden text `(opens in new tab)` and `aria-label` announcing destination (e.g., `Open FedEx tracking in new tab`). Use `rel="noopener noreferrer"`.
 - **Modal overlays:** `role="dialog"`, `aria-modal="true"`, focus trapped to sheet contents, background set `inert`; Escape and Backdrop tap close. Ensure initial focus on first actionable item.
 - **Motion:** Honor `prefers-reduced-motion`; disable timeline line animations, replace with opacity fade.
-- **Touch targets & contrast:** All buttons >=48px height, timeline node hit area 44px; maintain AA contrast (Snap Violet on white tested).
+- **Touch targets & contrast:** All buttons stay at or above `--space-12` height, timeline node hit area honors `var(--control-height)`; maintain AA contrast (Snap Violet on white tested).
 
 ### E) Analytics (snake_case)
 - `tracking_details_viewed { order_id, package_id, carrier, fulfillment_status, has_multiple_packages }`
@@ -92,13 +104,18 @@
 - Refresh button fetches latest data, updates timeline and metadata without full page reload, handles errors gracefully with inline banner.
 - Missing tracking surfaces placeholder messaging and enables Report Issue pathway; analytics still record view/refresh attempts.
 - Deep link opens carrier site in new tab with appended UTM; copy/share actions provide user feedback.
-- Accessibility conditions satisfied (focus order, semantics, modals, 44px targets, reduced motion preferences).
+- Accessibility conditions satisfied (focus order, semantics, modals, `var(--control-height)` targets, reduced motion preferences).
 - All analytics events fire with required payloads and log to console in dev.
 
 ### G) Responsive Notes
 - Mobile default is single column. On >=768px, move timeline to left rail (25% width) and metadata/actions to right (card width 75%), keeping accordion functionality.
 - On >=1024px, pin metadata card sticky at top while timeline scrolls; ensure support banner spans full width below.
-- Report Issue modal becomes centered dialog with max width 480px on desktop; maintain bottom sheet presentation on mobile.
+- Report Issue modal becomes centered dialog with max width ~`7.5 * var(--space-16)`  on desktop; maintain bottom sheet presentation on mobile.
 - Ensure buttons align horizontally on tablet/desktop (Open carrier + Copy side by side, Share as icon button).
-- Timeline connectors scale with density; maintain 24px node even on large screens to stay proportional.
+- Timeline connectors scale with density; maintain `--space-6` node even on large screens to stay proportional.
+
+
+
+
+
 

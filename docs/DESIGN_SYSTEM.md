@@ -36,6 +36,7 @@ This design system ensures the Next.js app (`app.snapcase.ai`) maintains visual 
   --snap-violet: #7C3AED;        /* Primary brand color */
   --snap-violet-light: #A78BFA;  /* Light variant */
   --snap-violet-dark: #5B21B6;   /* Dark variant */
+  --snap-violet-50: rgba(124, 58, 237, 0.1); /* Violet tint for banners */
   
   /* Neutral Colors */
   --snap-white: #FFFFFF;
@@ -49,6 +50,8 @@ This design system ensures the Next.js app (`app.snapcase.ai`) maintains visual 
   --snap-gray-700: #374151;
   --snap-gray-800: #1F2937;
   --snap-gray-900: #111827;
+  --snap-cloud: #F5F7FA;         /* Neutral alias for elevated surfaces */
+  --snap-cloud-border: #E2E8F0;  /* Neutral alias for dividers */
   
   /* Accent Colors */
   --snap-success: #10B981;
@@ -61,6 +64,12 @@ This design system ensures the Next.js app (`app.snapcase.ai`) maintains visual 
   --snap-focus-ring: rgba(124, 58, 237, 0.2);
 }
 ```
+
+**Neutral naming:** Use `--snap-cloud` and `--snap-cloud-border` when referencing light surfaces and borders in documentation. They map directly to the neutral gray family—avoid inventing new color names outside this token list.
+
+**Status chips:** DPI and system feedback chips must reuse the existing accent tokens (`--snap-success`, `--snap-warning`, `--snap-error`) instead of bespoke color labels.
+
+**Violet tint surfaces:** Apply `--snap-violet-50` for lightweight banners, info bars, and highlight chips that need a branded backdrop without increasing contrast debt.
 
 ### Typography
 
@@ -100,11 +109,17 @@ This design system ensures the Next.js app (`app.snapcase.ai`) maintains visual 
   --space-8: 2rem;       /* 32px */
   --space-10: 2.5rem;    /* 40px */
   --space-12: 3rem;      /* 48px */
+  --space-14: 3.5rem;    /* 56px */
   --space-16: 4rem;      /* 64px */
   --space-20: 5rem;      /* 80px */
   --space-24: 6rem;      /* 96px */
+  
+  /* Control sizing */
+  --control-height: 2.75rem; /* 44px min tap target */
 }
 ```
+
+Use `--control-height` for buttons, inputs, segmented controls, and other interactive elements to maintain the 44px touch target. When documenting offsets or gutters that land around 300–320px, reference the nearest tokens (e.g., `--space-12` through `--space-16`) instead of introducing new fixed widths; step up to `--space-14` when timelines or hero cards need additional breathing room.
 
 ### Border Radius
 

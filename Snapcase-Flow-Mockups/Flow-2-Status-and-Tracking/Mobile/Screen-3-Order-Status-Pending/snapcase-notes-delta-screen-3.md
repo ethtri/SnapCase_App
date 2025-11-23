@@ -1,28 +1,37 @@
-# Snapcase - Delta Doc (Flow 2 Screen 3: Order Status - Pending)
+﻿# Snapcase - Delta Doc (Flow 2 Screen 3: Order Status - Pending)
 
 **Viewport:** Mobile 390x844  
 **Executive intent:** Keep shoppers calm while Printful finishes production, surface the next status ETA, and provide clear refresh and escalation controls without leaving the tracking flow.
+
+> **Section Status**
+>
+> | Section | Status | Notes |
+> | --- | --- | --- |
+> | A) Visual & Components | Authoritative | Aligns with Flow 2 styling + Printful production realities. |
+> | B) Behavior & States | Authoritative | Matches polling/backoff expectations for Printful status feeds. |
+> | C) Notifications & Escalation | Authoritative | Reflects current comms + Slack alert procedures. |
+> | D) Accessibility | Authoritative | Applies regardless of backend. |
 
 ## What to change vs Stitch
 
 ### A) Visual & Components
 1. **Page shell**
-   - Reuse `OrderStatusLayout` from Screen 1: background `--snap-gray-50`, content card on `--snap-white`, global `AppHeader` with back chevron, centered title, and order number subtext (`Order #SC-{id}`) in Inter 14.
-   - Header actions: right slot hosts a subtle `help` icon button (Snap Violet outline) that opens the support sheet; hide on desktop where the support rail will surface instead.
+   - Reuse `OrderStatusLayout` from Screen 1: background `--snap-gray-50`, content card on `--snap-white`, global `AppHeader` with back chevron, centered title, and order number subtext (`Order #SC-{id}`) in `var(--font-body)` `--text-sm`.
+   - Header actions: right slot hosts a subtle `help` icon button (outline in `var(--snap-violet)`) that opens the support sheet; hide on desktop where the support rail will surface instead.
 2. **Sticky status banner**
    - Replace the centered hero circle with a `StatusBanner` card that sits directly below the header and stays sticky (`position: sticky`) with `top: headerHeight + safeAreaInset`.
-   - Card styling: `--radius-xl`, `padding: var(--space-5)`, background `--snap-violet` at 0.08 opacity, icon chip (36px) using `hourglass_empty` in Snap Violet, Inter 16 body text.
+   - Card styling: `--radius-xl`, `padding: var(--space-5)`, background `--snap-violet` at 0.08 opacity, icon chip sized to `calc(1.5 * var(--space-6))` using `hourglass_empty` in `var(--snap-violet)`, body text in `var(--font-body)` `--text-base`.
    - Banner content: heading **"Your case is in production"**, supporting line **"We run the presses in batches and keep you posted the moment it ships."**
 3. **Progress timeline**
    - Persist the four-step timeline from Screen 1 under the banner; mark `Created` and `In production` as complete, upcoming steps muted.
    - On mobile the timeline is horizontal and scrollable if needed; on `md+` it snaps into a full-width bar with labels underneath. Use `aria-current="step"` for the active stage.
 4. **Refresh module**
-   - Convert the stitched `Retry` button into the standard `Button` primary: label **"Refresh status"**, Snap Violet background, `--radius-xl`, height 48px.
-   - Beneath the button add secondary helper copy (Inter 14, `--snap-gray-600`): **"Auto-refresh in {countdown}s - Last checked {hh:mm a}"**.
+   - Convert the stitched `Retry` button into the standard `Button` primary: label **"Refresh status"**, Snap Violet background, `--radius-xl`, height `--space-12`.
+   - Beneath the button add secondary helper copy (`var(--font-body)` `--text-sm`, `--snap-gray-600`): **"Auto-refresh in {countdown}s - Last checked {hh:mm a}"**.
    - Include a subtle tertiary text link **"View tracking FAQ"** aligned center; tap opens Docs article in a modal sheet.
 5. **Support and reassurance**
-   - Add an outline button beneath the refresh helper: **"Contact support"** uses secondary button style; place `chevron_right` icon 20px.
-   - Follow with reassurance note in `PromiseBanner` style: Snap Violet shield icon, copy **"If anything looks off, we remake it on us."**
+   - Add an outline button beneath the refresh helper: **"Contact support"** uses secondary button style; place `chevron_right` icon `--space-5`.
+   - Follow with reassurance note in `PromiseBanner` style: `var(--snap-violet)` shield icon, copy **"If anything looks off, we remake it on us."**
 6. **Empty footprint handling**
    - Ensure vertical spacing respects `--space-6` between sections so that when the sticky banner collapses (desktop) the rest of the content still centers without large gaps.
 
@@ -39,7 +48,7 @@
    - If the API returns `order_failed` or `cancelled`, switch to the Screen 4 error variant with blocking message and escalate to support automatically.
 4. **Stale or slow updates**
    - After 30 minutes without status change, show inline helper in the banner: **"Still in production? Some batches take up to an hour - feel free to ping support below."**
-   - After 12 hours still `processing`, elevate the helper to warning (Snap Amber tint), pre-open the support button on load, and send proactive email (see Notifications).
+   - After 12 hours still `processing`, elevate the helper to warning (tint matching `var(--snap-warning)`), pre-open the support button on load, and send proactive email (see Notifications).
 5. **Error and offline handling**
    - Detect offline via `navigator.onLine`; replace countdown with **"You are offline. We will refresh once you are back."** and pause polling.
    - Retry loop maxes at five consecutive failures; after that show alert banner and require manual refresh or support contact.
@@ -55,7 +64,7 @@
 - Sticky banner gains `role="status"` with `aria-live="polite"` so copy updates announce without stealing focus.
 - Countdown text updates every second but only mutates visually every 5 seconds to reduce screen reader chatter; wrap in `aria-live="off"` and announce only on interval change.
 - Manual refresh sets `aria-busy` on the main content region; on completion toggle to `false`.
-- Ensure icon chips and buttons meet 44px touch targets, maintain 4.5:1 contrast (Snap Violet on tinted background uses `color: --snap-violet-dark` for text).
+- Ensure icon chips and buttons meet `var(--control-height)` touch targets, maintain 4.5:1 contrast (Snap Violet on tinted background uses `color: --snap-violet-dark` for text).
 - Respect `prefers-reduced-motion`: replace spinner with static progress dots and remove fade-in animations for banner updates.
 
 ### E) Copy & Voice
@@ -80,8 +89,8 @@
 
 ### G) Responsive Notes
 - **Base / sm (<640px):** Sticky banner spans full width beneath the header, with `top` offset accounting for the safe area; countdown and helper link stack vertically with `--space-3` spacing. Contact support button is full-width.
-- **md (>=768px):** Layout shifts to two-column: left column (60 percent) holds banner and timeline; right column hosts support card and promise banner. Sticky banner remains pinned but gains max width 520px; countdown text sits inline with helper link.
-- **lg+ (>=1024px):** Banner becomes part of a sticky right rail (`OrderStatusAside`) alongside support entry and FAQs; primary refresh button moves into the right rail while timeline expands horizontally in the main column. Ensure sticky containers respect a 96px top offset so they do not collide with the global nav.
+- **md (>=768px):** Layout shifts to two-column: left column (60 percent) holds banner and timeline; right column hosts support card and promise banner. Sticky banner remains pinned but gains max width ~`8 * var(--space-16)` (~512px); countdown text sits inline with helper link.
+- **lg+ (>=1024px):** Banner becomes part of a sticky right rail (`OrderStatusAside`) alongside support entry and FAQs; primary refresh button moves into the right rail while timeline expands horizontally in the main column. Ensure sticky containers respect a `(--space-16 + --space-8)` top offset so they do not collide with the global nav.
 - Sticky behavior must degrade gracefully: when content is shorter than the viewport, sticky banner should not float mid-screen; pin it to the top container instead.
 
 ### H) Acceptance Criteria
@@ -92,3 +101,7 @@
 - Accessibility checks pass: focus order, `aria-live` usage, contrast, and reduced-motion compliance validated via Axe and manual keyboard pass.
 - Analytics events above fire with correct payloads (verify in dev console) and include timestamp metadata; failures raise warnings in logs.
 - Notifications dispatch: email triggered on webhook, support sheet pre-fills order data, offline state handled without crashing the polling loop.
+
+
+
+

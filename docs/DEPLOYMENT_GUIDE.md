@@ -1,8 +1,8 @@
 # Deployment Guide - SnapCase App
 
 **Project**: SnapCase Custom Phone Case Platform  
-**Version**: v1.0  
-**Last Updated**: October 22, 2025  
+**Version**: v1.1  
+**Last Updated**: November 3, 2025  
 **Owner**: Ethan Trifari  
 
 ## 🚀 Deployment Overview
@@ -17,6 +17,25 @@ This guide covers the complete deployment process for the SnapCase application, 
 │   Preview       │    │   (Feature)     │    │ app.snapcase.ai │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
+
+## 🔁 Preview → Alias Workflow (_vercel_share + dev.snapcase.ai)
+
+Follow this workflow every time you need Printful to exercise a new build. It keeps preview slugs stable, creates review links, and ensures the EDM iframe no longer throws `invalid origin` (see `docs/TECHNICAL_ARCHITECTURE.md#🚀 Deployment Architecture` for the network layout).
+
+1. **Push the feature branch** → Vercel automatically builds a preview with protection enabled.
+2. **Generate a share link** → On the deployment page click **Share > Create link**. Distribute the resulting `https://<slug>.vercel.app?_vercel_share=<token>` URL to stakeholders who do *not* need Printful access (it respects preview protection while still surfacing the UI).
+3. **Disable preview protection for Printful** → In Vercel: *Project > Settings > Deployment Protection*. Add an exception for `dev.snapcase.ai` and the specific `_vercel_share` token if support needs to inspect the raw preview. Protection must remain disabled (or skipped) before Printful requests a nonce, otherwise the EDM iframe raises `messageListener invalidOrigin`.
+4. **Attach the dev alias** → From the CLI run `vercel alias set <deployment-url> dev.snapcase.ai` (or use the Dashboard → Preview Deployment → Aliases → **Assign**). This keeps a stable hostname that already sits on Printful’s allowlist.
+5. **Verify the alias** → Run `curl https://dev.snapcase.ai/api/health`, load `/design` to confirm the in-app diagnostics panel shows `origin: https://dev.snapcase.ai`, and send the alias to Printful so their EDM team can test the Embedded Designer from a trusted domain.
+
+> **Reminder:** Preview slugs (`snapcase-app-git-*.vercel.app`) change per push, but the `dev.snapcase.ai` alias persists. Always break the protection + alias steps before sharing links intended for Printful or Squarespace integrations to avoid another EDM lockout.
+> `_vercel_share` links expire when the underlying deployment is replaced—regenerate and resend them whenever you push new commits or promote a different preview.
+
+### Post-Alias Checklist
+- [ ] `vercel alias ls` shows `dev.snapcase.ai` attached to the intended deployment.
+- [ ] Run `npm run verify -- --base https://dev.snapcase.ai` (Playwright `design-to-checkout` uses this base URL when provided).
+- [ ] Validate Printful EDM via `/design` diagnostics; copy the nonce payload snippet into `docs/Printful_EDM_InvalidOrigin.md` if support needs evidence.
+- [ ] Notify Ethan + Printful via Slack/email with the `_vercel_share` link, the alias URL, and the date/time protection was disabled.
 
 ## 📋 Prerequisites
 
@@ -99,6 +118,8 @@ vercel env add NEXT_PUBLIC_USE_EDM
 # Printful Configuration
 PRINTFUL_TOKEN=pr_live_your_live_token
 PRINTFUL_STORE_ID=your_live_store_id
+# Optional override for Printful file uploads (defaults to the production endpoint)
+PRINTFUL_FILES_ENDPOINT=https://api.printful.com/v2/files
 
 # Stripe Configuration
 STRIPE_SECRET_KEY=sk_live_your_live_secret_key
@@ -117,6 +138,7 @@ SHOW_EXPRESS_SHIPPING=true
 NEXT_PUBLIC_SHOW_EXPRESS_SHIPPING=true
 ENABLE_ANALYTICS=true
 ```
+> **Printful EDM scope:** Generate `PRINTFUL_TOKEN` only after Printful support enables the Embedded Designer API for the Snapcase store; the token must include the `product_templates/write` scope (listed as “View and manage store products”). Tokens without this scope cause `/api/edm/nonce` to return `403` and the EDM iframe will not load.
 
 #### Staging Environment
 ```env
@@ -142,6 +164,8 @@ ENABLE_ANALYTICS=false
 ```
 
 > **EDM toggle:** `/api/edm/nonce` now proxies Printful nonce requests using `PRINTFUL_TOKEN`. When the token is absent the route returns `503`, so keep `NEXT_PUBLIC_USE_EDM=false` (Fabric fallback) until staging validates the Printful handshake. Flip the flag to `true` once the iframe loads reliably with live credentials.
+>
+> **EDM file uploads:** `/api/edm/templates` now uploads EDM exports to Printful's `/v2/files` API. Missing or invalid `PRINTFUL_TOKEN` means the server falls back to storing the preview URL only, which blocks `/api/order/create` from hitting the live Printful sandbox. Always confirm the token before staging orders.
 
 #### Development Environment
 ```env
@@ -165,6 +189,43 @@ SHOW_EXPRESS_SHIPPING=true
 NEXT_PUBLIC_SHOW_EXPRESS_SHIPPING=true
 ENABLE_ANALYTICS=false
 ```
+
+### Segment Analytics Promotion (Sprint02-Task21)
+The preview + production Segment credentials now live in Segment Connections + 1Password. Use this checklist whenever you promote or rotate them:
+
+1. **Pull redacted snapshots** so nothing leaks into git: `vercel env pull .env.preview` and `vercel env pull .env.production`. These files should stay ignored but give you a safe diff.
+2. **Preview scope (safe mode):**
+   ```bash
+   vercel env add SEGMENT_WRITE_KEY preview
+   vercel env add NEXT_PUBLIC_SEGMENT_WRITE_KEY preview
+   vercel env add NEXT_PUBLIC_ANALYTICS_TEMPLATE_SALT preview
+   vercel env add NEXT_PUBLIC_ANALYTICS_SINK preview # "segment"
+   vercel env add NEXT_PUBLIC_ANALYTICS_SAMPLE_RATE preview # "1"
+   vercel env add NEXT_PUBLIC_SEGMENT_PREVIEW_ONLY preview # "1" keeps traffic local
+   ```
+   Preview deployments should always run with `NEXT_PUBLIC_SEGMENT_PREVIEW_ONLY=1` so telemetry stays in `window.__snapcaseSegmentPreview` and cannot hit Segment accidentally.
+3. **Production scope (live mode):** repeat the commands targeting `production`, using the prod write key + salt pulled from 1Password. **Do not** set `NEXT_PUBLIC_SEGMENT_PREVIEW_ONLY` (or set it to `0`) so `analytics.js` forwards events downstream.
+4. **Cross-check:** `vercel env ls` plus `vercel env diff preview` / `production` must show the same key set as `.env.preview` / `.env.production`. Any mismatch means a redeploy would ship stale keys.
+5. **Verification:** after redeploying each environment, run `/design?forceEdm=1` → `/thank-you` and capture:
+   - DevTools → Console showing `window.__snapcaseSegmentPreview` entries (preview) or Network calls to `api.segment.io/v1/track` (production).
+   - Segment Debugger screenshot highlighting `design_loaded` + `thank_you_viewed` with hashed `templateFingerprint`.
+   - Note the deployment + evidence path in the corresponding Agent Report.
+6. **Rollback / maintenance:** If analytics must pause, set `NEXT_PUBLIC_SEGMENT_PREVIEW_ONLY=1` for both scopes, redeploy, and confirm Segment stops receiving events. Rotate salts quarterly alongside the write keys; document the new alias (e.g., `snapcase-prod-salt-2026-02-01`) in `docs/MCP_Credentials.md`.
+
+### Secrets Management (PRINTFUL_TOKEN & STRIPE_SECRET_KEY)
+
+| Secret | Development | Preview | Production | Owner / Rotation | Verification |
+| --- | --- | --- | --- | --- | --- |
+| `PRINTFUL_TOKEN` | `.env.local` (test token) | Vercel → **Preview** env variable | Vercel → **Production** env variable | Ethan (Printful) rotates quarterly or on incident | `node scripts/check-printful-nonce.js` + `/design` diagnostics |
+| `STRIPE_SECRET_KEY` | `.env.local` (test key) | Vercel → **Preview** env variable (`sk_test`) | Vercel → **Production** env variable (`sk_live`) | Ethan (Stripe) rotates every 6 months | `npm run verify` (Stripe smoke) + `stripe trigger checkout.session.completed` |
+
+Management flow:
+1. Use `vercel env add PRINTFUL_TOKEN preview` / `production` (same for Stripe). Confirm via `vercel env ls`.
+2. Run `vercel env pull .env.preview` after each rotation and copy values into `.env.local` for parity (never commit files containing secrets).
+3. For previews, double-check that the **dev alias** references the deployment that already has refreshed secrets; run `vercel env diff preview` if unsure.
+4. Document every rotation (date, token nickname, allowlist domains) in `docs/Printful_EDM_InvalidOrigin.md` and `PROGRESS.md`.
+
+> **Why this matters:** Printful EDM validates the *domain* **and** the nonce signing token. A stale token + new alias will still fail with `invalidOrigin`. Stripe live/test keys must only exist in their matching Vercel environments to avoid accidental live charges during preview testing.
 
 ### Vercel Configuration
 ```json
@@ -222,6 +283,24 @@ vercel domains add app.snapcase.ai
 # Verify domain configuration
 vercel domains ls
 ```
+
+#### dev.snapcase.ai Preview Alias
+1. **DNS** (GoDaddy): `dev.snapcase.ai` → `2cceb30524b3f38d.vercel-dns-017.com` (already provisioned—only update if Vercel rotates the target).
+2. **Attach the alias**: `vercel alias set <deployment-url> dev.snapcase.ai`.
+3. **Confirm SSL + protection**: `vercel certs ls dev.snapcase.ai` should show the latest LetsEncrypt cert; in the dashboard, verify Deployment Protection lists `dev.snapcase.ai` under *Unprotected Domains*.
+4. **Regression checks**: Run `npm run verify -- --base https://dev.snapcase.ai`, load `/design` (watch the EDM diagnostics panel), and capture a screenshot for Printful if they are validating EDM postMessage flows.
+
+#### DNS Cutover Plan (app.snapcase.ai)
+| Step | Owner | Status | Notes / Checks |
+| --- | --- | --- | --- |
+| Confirm GoDaddy access + delegation | Ethan | ✅ | Account: `ethan@snapcase.ai`. MFA hardware key stored in SnapCase vault. |
+| Prep Vercel records | AI Assist | ✅ | `app.snapcase.ai` already added to `snapcase-app` project (see `vercel domains ls`). |
+| Create/verify CNAME | Ethan | 🔄 | Point `app.snapcase.ai` → `cname.vercel-dns.com`. TTL 600 recommended during cutover. |
+| Smoke test staging alias before switch | Ethan | 🔄 | Use `curl https://dev.snapcase.ai/api/health` + manual `/design` test with Printful diagnostics. |
+| Cutover window | Ethan + Printful | 🔄 | Target: Week of Nov 4. Coordinate on #infra Slack channel. |
+| Post-cutover validation | Ethan | 🔄 | `dig app.snapcase.ai`, Vercel domain status = `Ready`, Printful EDM handshake from production alias successful, Stripe test checkout hits new origin. |
+
+> **If rollback is required:** change the CNAME back to the legacy Squarespace endpoint and redeploy the previous Vercel build. Keep the updated DNS plan mirrored in `docs/TECHNICAL_ARCHITECTURE.md#🌐 Domain Configuration`.
 
 ## 🚀 Deployment Process
 
@@ -610,6 +689,15 @@ vercel env pull .env.debug
 - [ ] Monitoring for issues
 - [ ] Communication plan ready
 
+## 📌 Outstanding Infra To-Dos
+
+| Task | Owner | Status | Details / Reference |
+| --- | --- | --- | --- |
+| Verify `dev.snapcase.ai` with Printful support | Ethan | 🔄 | Provide `_vercel_share` link + alias URL, confirm EDM no longer logs `invalidOrigin`. |
+| Complete `app.snapcase.ai` DNS cutover | Ethan | 🔄 | See **DNS Cutover Plan (app.snapcase.ai)** in this guide plus `docs/TECHNICAL_ARCHITECTURE.md#🌐 Domain Configuration`. |
+| Store production `STRIPE_SECRET_KEY` in Vercel | Ethan | 🔄 | Add to `snapcase-app` project → Production env, update rotation log in `PROGRESS.md`. |
+| Align ESLint/Next versions before GA release | AI Assist | 🟡 | Blocks automated `npm run lint` gate in deployment checklist. Track progress in `PROGRESS.md`. |
+
 ## 📚 Additional Resources
 
 ### Documentation Links
@@ -627,9 +715,9 @@ vercel env pull .env.debug
 
 **Document Owner**: Ethan Trifari  
 **Deployment Lead**: AI Assistant  
-**Last Updated**: October 21, 2025
+**Last Updated**: November 3, 2025
 
 ## MCP Connectivity Checklist
-- Ensure OS-level tokens (`GITHUB_PAT`, `VERCEL_TOKEN`, `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`) align with Docs/MCP_Credentials.md.
+- Ensure OS-level tokens (`GITHUB_PAT`, `VERCEL_TOKEN`, `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`) align with docs/MCP_Credentials.md.
 - Run `npm run verify:mcp` before deploys to confirm GitHub, Vercel, and Stripe servers respond; resolve failures before promoting builds.
 - Document MCP automation gaps in PROGRESS.md so deploy runbooks stay current.

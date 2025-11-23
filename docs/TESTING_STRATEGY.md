@@ -106,6 +106,66 @@ describe('Design and Order Flow', () => {
 #### Playwright Flow Notes
 - `tests/e2e/design-to-checkout.spec.ts` drives the real `/design → /checkout → /thank-you` pages, using component `data-testid` hooks (variant cards, guardrail copy, cancel banner, thank-you summary) to cover guardrail allow/deny bands and the cancel/resume banner before validating the stored variant label clears on thank-you.
 - `npm run verify` automatically wipes the local `.next` build directory before Playwright boots its dev server, preventing OneDrive file locks from breaking repeated runs.
+- [`tests/e2e/design-to-checkout.spec.ts#L358`](../tests/e2e/design-to-checkout.spec.ts#L358) stubs Printful, forces `/design?forceEdm=1`, and asserts every EDM telemetry event (variant lock, design status, guardrail blocked/warning, pricing, template saved) fires with the documented payload shape. The captured payload reference lives in `Images/diagnostics/edm-analytics-forceEdm-sample.json`.
+
+## ✅ Current Automation Snapshot (2025-11-03)
+
+| Scenario | Layer | Status | Source |
+| --- | --- | --- | --- |
+| Redirect to `/design`, guardrail block/warn bands, and thank-you context clear | E2E | ✅ Automated | [`tests/e2e/design-to-checkout.spec.ts#L5`](../tests/e2e/design-to-checkout.spec.ts#L5) |
+| Checkout cancel/resume banner and mock Stripe fallback link | E2E | ✅ Automated | [`tests/e2e/design-to-checkout.spec.ts#L71`](../tests/e2e/design-to-checkout.spec.ts#L71) |
+| EDM create → save → edit reuse flow (initProduct vs templateId) | E2E | ✅ Automated | [`tests/e2e/design-to-checkout.spec.ts#L280`](../tests/e2e/design-to-checkout.spec.ts#L280) |
+| Session storage helpers merge, persist, and clear context safely | Integration | ✅ Automated | [`tests/integration/design-context.test.ts#L1`](../tests/integration/design-context.test.ts#L1) |
+| Printful EDM nonce route validates tokens and proxies success/error responses | Integration | ✅ Automated | [`tests/integration/edm-nonce-route.test.ts#L1`](../tests/integration/edm-nonce-route.test.ts#L1) |
+| DPI guardrail helpers enforce thresholds/safe-area collisions | Unit | ✅ Automated | [`tests/unit/guardrails.test.ts#L1`](../tests/unit/guardrails.test.ts#L1) |
+| Placeholder smoke specs (unit/integration) | Unit & Integration | ⚠️ Placeholder only | [`tests/unit/smoke.test.ts#L1`](../tests/unit/smoke.test.ts#L1), [`tests/integration/smoke.test.ts#L1`](../tests/integration/smoke.test.ts#L1) |
+
+**Coverage notes**
+- Guardrail and cancel/resume automation directly reference the UX intent spelled out in `docs/UXCX_Guidelines.MD#implementation-checklists`, so we already exercise the storyboard-critical actions Ethan wants moderators to demo.
+- `npm run check:printful-templates` now validates that every catalog entry has a backing Printful template before we flip EDM on in a new environment.
+- Playwright’s EDM regression clears `snapcase:design-context` / `snapcase:edm-template-cache`, forces EDM via `?forceEdm=1`, and captures screenshots/logs on failure so we can reproduce create-mode regressions quickly.
+- The EDM analytics hooks now have explicit coverage via [`tests/e2e/design-to-checkout.spec.ts#L358`](../tests/e2e/design-to-checkout.spec.ts#L358), but the Fabric.js fallback editor (`docs/Responsive_Blueprint.md#screen-2---design-your-case`) and checkout analytics (“Proceed to Stripe”, Fabric exports) still lack automation.
+
+## ⚠️ Gap Analysis & Risk Calls
+
+| Scenario | Gap | Risk if unaddressed | Suggested Owner |
+| --- | --- | --- | --- |
+| EDM iframe smoke test | No automated check that `/api/edm/nonce` + iframe diagnostics succeed on the allowlisted domains per `docs/Storyboard_EDM.md#scene-5-embedded-designer`. | Late discovery of invalid origins during moderated tests; EDM guardrail copy may be stale. | AI agent (automate) + Ethan (domain validation) |
+| Fabric.js fallback path | Fabric editor happy-path (upload → safe-area overlay → export) lacks unit/e2e coverage, despite requirements in `docs/Responsive_Blueprint.md#screen-2---design-your-case`. | Regression could silently break fallback while EDM tokens are unstable. | AI agent |
+| Cancel/resume loop resilience | Playwright proves one cancel/resume iteration, but we do not simulate multiple resume attempts, Stripe redirect parameters, or persistence expirations tied to `markCheckoutAttempt()` instrumentation. | Users stuck in cancel loop; analytics can't prove resume success. | AI agent (automation) |
+| Stripe payment failure + Fabric fallback to printable exports | No automated coverage for decline codes, mock `/api/checkout` errors, or the “Take me back to Fabric fallback” CTA described in `docs/SnapCase_App_Prototype.MD#checkout-flow`. | Unsupported cards or API hiccups could strand users before we observe it. | AI agent (automation) |
+| EDM + analytics instrumentation | No tests assert GA/Segment events for guardrail warnings, EDM launch, or “Proceed to Stripe,” although `docs/UXCX_Guidelines.MD#core-references` calls these out. | Hard to prove instrumentation before pilot; gaps in funnel data. | Ethan/manual QA now, automation later |
+| Cross-browser + device matrix | Current Playwright run is single-browser desktop only; blueprint expects parity across base/sm/md/desktop breakpoints. | Responsive regressions slip past until late; kiosk parity unknown. | Ethan/manual spot checks now; AI to script `projects` in Playwright later |
+
+## 🛣️ Phased Automation Plan
+
+### Now (pre-user testing)
+- **Playwright EDM smoke**: Launch `/design`, trigger the diagnostics panel, and assert nonce + origin telemetry renders without `invalidOrigin` errors (AI agent). Blocks tie-off of the EDM access workstream in `PROGRESS.md`.
+- **Checkout cancel/resume stress**: Extend `design-to-checkout.spec.ts` with a loop that cancels twice, validates banner copy, and asserts `markCheckoutAttempt()` timestamps advance (AI agent).
+- **Manual analytics checklist**: Ethan runs `docs/SELF_TEST_CHECKLIST.md` with an added step to capture analytics beacons in the browser console/Network tab; log findings back into `PROGRESS.md`.
+
+### Next (stabilizing Fabric fallback + payments)
+- **Fabric fallback integration test**: Unit-test the Fabric safe-area utilities plus a lightweight Playwright spec that selects the “Mock save template” path and verifies the exported image is cleared when switching to EDM (AI agent).
+- **Stripe failure harness**: Add Jest tests for `/api/checkout` failure branches and expand the Playwright flow to inject Stripe decline responses + confirm fallback CTA copy matches `docs/SnapCase_App_Prototype.MD#payment-processing-flow` (AI agent).
+- **EDM analytics assertions**: Introduce a telemetry spy (e.g., stub `window.analytics.track`) inside Playwright to guarantee “EDM launched,” “Guardrail blocked,” and “Proceed to Stripe” events fire (AI agent with Ethan validating event names match GTM).
+
+### Later (scale + regression hardening)
+- **Cross-browser/device matrix**: Add Playwright `projects` for WebKit + Firefox across `--viewport` presets that match the responsive blueprint breakpoints to keep kiosk parity intact (AI agent).
+- **EDM outage drills**: Script chaos-style tests that force the Printful nonce call to fail and assert the Fabric fallback helpers plus reassurance copy from `docs/Responsive_Blueprint.md#screen-2---design-your-case` display (AI agent).
+- **Analytics regression suite**: Once events land, wire a lightweight contract test that snapshots the analytics payload schema so Ethan can refactor copy without breaking dashboards (shared ownership).
+
+### Analytics Validation & Telemetry Roadmap (Sprint02-Task07)
+- **Automated coverage (current):** `tests/e2e/design-to-checkout.spec.ts` already stubs EDM and asserts each `logAnalyticsEvent(...)` fires. With the Segment stub enabled (`NEXT_PUBLIC_ANALYTICS_SINK=segment`, `NEXT_PUBLIC_SEGMENT_PREVIEW_ONLY=1`) the same test now ensures sanitized events land in `window.__snapcaseSegmentPreview`, proving the forwarding pipeline works without talking to Segment.
+- **Manual checklist:** Before shipping credentials, run `/design?forceEdm=1`, open the console, and verify both `window.__snapcaseAnalyticsEvents` (raw payload) and `window.__snapcaseSegmentPreview` (sanitized payload) contain matching timestamps. Once Ethan supplies the write key + snippet, repeat with the Network tab filtered to `api.segment.io/v1/track`.
+- **Preview verification (Sprint02-Task10):** Captured `Images/diagnostics/analytics-preview-2025-11-06T16-37-14.644Z.{json,png}` while `NEXT_PUBLIC_SEGMENT_PREVIEW_ONLY=1`. The JSON shows `/design?forceEdm=1` events mirrored into the preview queue plus a `/thank-you` run proving template IDs are hashed to `templateFingerprint` before export. Keep this runbook handy for future smoke tests.
+- **Live-mode switch:** To enable real Segment delivery, keep the keys set, flip `NEXT_PUBLIC_SEGMENT_PREVIEW_ONLY=0`, and re-run the checklist above with DevTools → Network filtering to `api.segment.io`. Roll back to preview (`=1`) immediately if sanitized payloads diverge or sampling needs tuning. `Images/diagnostics/analytics-live-verified-2025-11-06T17-26-31.656Z.{json,png}` captures the latest live dry-run, including decoded `thank_you_viewed` payloads with hashed `templateFingerprint` values.
+- **Fabric + checkout telemetry backlog:** Upcoming stories will add `fabric_asset_uploaded`, `fabric_guardrail_blocked`, `checkout_payment_started`, and `checkout_payment_result` events using the same sanitizer. Until those land, manual QA must capture console logs for Fabric fallback sessions and `/checkout` CTA interactions to prove the flow was exercised.
+- **Sampling & hashing tests:** Add a lightweight Jest test (future) that imports `src/lib/analytics.ts` in a JSDOM context, sets `NEXT_PUBLIC_ANALYTICS_SAMPLE_RATE=0.25`, and asserts only 25% of invocations reach `window.__snapcaseSegmentPreview`. Template hashing is deterministic, so snapshot the `templateFingerprint` for a known input to catch accidental salt changes.
+
+## 👥 Ownership Expectations
+- **AI agent**: Owns expanding the automated suite (`npm run verify`) and keeping the roadmap above truthful in this file whenever specs land.
+- **Ethan/manual QA**: Owns pilot-readiness sign-off by running `docs/SELF_TEST_CHECKLIST.md`, validating analytics dashboards, and flagging UX variance back in `PROGRESS.md`.
+- **Shared**: Every new UX artifact (see `docs/UXCX_Guidelines.MD#core-references`) must link its acceptance criteria to an automated scenario or a manual checklist item before we mark the story “definition of done.”
 
 ## 🔄 Testing Workflow
 

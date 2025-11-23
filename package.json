@@ -9,12 +9,14 @@
     "lint": "next lint",
     "vercel-build": "next build",
     "verify:mcp": "node scripts/verify-mcp.js",
+    "check:printful-templates": "node scripts/check-printful-templates.js",
     "test:unit": "npx --yes jest --runInBand --testPathPatterns tests/unit",
     "test:integration": "npx --yes jest --runInBand --testPathPatterns tests/integration",
     "test:e2e": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true });\" && npm run build && npx --yes playwright test",
     "verify": "npm run verify:mcp && npm run test:unit && npm run test:integration && npm run test:e2e"
   },
   "dependencies": {
+    "lightningcss": "^1.30.2",
     "next": "^14.2.33",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -27,8 +29,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.5.6",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.33",
     "mcp-client": "^1.13.1",
     "tailwindcss": "^4",
     "typescript": "^5"

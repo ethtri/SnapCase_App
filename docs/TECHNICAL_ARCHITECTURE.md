@@ -1,8 +1,8 @@
 # Technical Architecture - SnapCase App
 
 **Project**: SnapCase Custom Phone Case Platform  
-**Version**: v1.0  
-**Last Updated**: December 2024  
+**Version**: v1.1  
+**Last Updated**: November 3, 2025  
 **Owner**: Ethan Trifari  
 
 ## 🏗️ System Architecture Overview
@@ -43,9 +43,11 @@
 #### Infrastructure
 - **Hosting**: Vercel
 - **CDN**: Vercel Edge Network
-- **Domain**: app.snapcase.ai (CNAME to Vercel)
+- **Domains**: `app.snapcase.ai` (production) + `dev.snapcase.ai` (preview alias) → GoDaddy CNAME to Vercel
 - **SSL**: Automatic (Vercel)
 - **Monitoring**: Vercel Analytics + Function Logs
+- **Share Links**: Vercel `_vercel_share` tokens for stakeholder previews (protection enforced) while `dev.snapcase.ai` stays unprotected for Printful EDM validation.
+- **Secrets Management**: `PRINTFUL_TOKEN` + `STRIPE_SECRET_KEY` stored per-environment in Vercel; rotations logged in `PROGRESS.md`.
 
 ## 📊 Data Flow Architecture
 
@@ -611,6 +613,29 @@ export function trackError(error: Error, context: any) {
 - **Preview**: Vercel preview deployments for feature branches
 - **Production**: Vercel production with live APIs
 
+### Preview & Alias Flow
+1. Push a branch → Vercel builds a protected preview at `https://snapcase-app-git-<branch>.vercel.app`.
+2. From the deployment page choose **Share → Create link**. The generated `_vercel_share` URL is safe to circulate to reviewers who do not need Printful access.
+3. Disable Deployment Protection for `dev.snapcase.ai` (Vercel → Settings → Deployment Protection) before Printful requests a nonce; otherwise the EDM iframe raises `messageListener invalidOrigin`.
+4. Attach the alias with `vercel alias set <deployment-url> dev.snapcase.ai`.
+5. Validate via `curl https://dev.snapcase.ai/api/health` and by loading `/design` to confirm the diagnostics panel reports the alias origin. Record confirmations in `PROGRESS.md`.
+
+> This mirrors the runbook in `docs/DEPLOYMENT_GUIDE.md#🔁 Preview → Alias Workflow (_vercel_share + dev.snapcase.ai)` so non-technical stakeholders can coordinate DNS/Vercel work.
+
+### Secrets Scope
+
+| Secret | Development | Preview | Production | Notes |
+| --- | --- | --- | --- | --- |
+| `PRINTFUL_TOKEN` | Test token in `.env.local` | Preview env var (`vercel env add PRINTFUL_TOKEN preview`) | Production env var | Tokens include dev/prod domain allowlists; rotations logged in `PROGRESS.md`. |
+| `STRIPE_SECRET_KEY` | `sk_test` in `.env.local` | Preview env var (test) | Production env var (live) | Never reuse live key in previews; Stripe CLI tests target the preview key. |
+
+### DNS Ownership & Cutover
+- **Registrar**: GoDaddy (`ethan@snapcase.ai`, MFA hardware token stored in SnapCase vault).
+- **Production domain**: `app.snapcase.ai` → `cname.vercel-dns.com` (TTL 600 during cutover, 3600 steady-state).
+- **Preview alias**: `dev.snapcase.ai` → `2cceb30524b3f38d.vercel-dns-017.com`.
+- **Cutover checklist**: Validate Vercel `vercel domains ls`, run smoke tests on `dev.snapcase.ai`, coordinate change window with Printful (target week of Nov 4), then update GoDaddy CNAME and monitor via `dig app.snapcase.ai` + Vercel dashboard.
+- **Rollback**: revert the CNAME to the previous Squarespace/SaaS target and redeploy the last known-good Vercel build (documented in `docs/DEPLOYMENT_GUIDE.md#DNS Cutover Plan (app.snapcase.ai)`).
+
 ### Rollback Strategy
 1. **Code Rollback**: Git revert + Vercel redeploy
 2. **Database Rollback**: Vercel KV backup/restore
@@ -635,6 +660,4 @@ export function trackError(error: Error, context: any) {
 
 **Document Owner**: Ethan Trifari  
 **Technical Review**: AI Assistant  
-**Last Updated**: December 2024
-
-
+**Last Updated**: November 3, 2025

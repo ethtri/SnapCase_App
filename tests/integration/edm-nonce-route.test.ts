@@ -88,6 +88,43 @@ describe("POST /api/edm/nonce", () => {
     });
   });
 
+  it("supports the v2 Printful response shape with nested nonce payload", async () => {
+    process.env.PRINTFUL_TOKEN = "test-token";
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          code: 200,
+          result: {
+            nonce: {
+              nonce: "pf_nonce_nested",
+              template_id: null,
+              expires_at: 1_800_000_000,
+            },
+          },
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+    );
+
+    const request = new Request("http://localhost/api/edm/nonce", {
+      method: "POST",
+      body: JSON.stringify({ externalProductId: "SNAP_IPHONE15_SNAP" }),
+    });
+
+    const response = await edmNonceHandler(request);
+
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    expect(payload).toEqual({
+      nonce: "pf_nonce_nested",
+      templateId: null,
+      expiresAt: 1_800_000_000,
+    });
+  });
+
   it("returns an error payload when Printful responds with failure", async () => {
     process.env.PRINTFUL_TOKEN = "test-token";
     jest.spyOn(global, "fetch").mockResolvedValue(

@@ -2,6 +2,8 @@ import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getTemplateRecord } from "@/lib/template-registry";
+
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY ?? "";
 const stripeClient = stripeSecretKey
   ? new Stripe(stripeSecretKey, {
@@ -16,6 +18,7 @@ const requestSchema = z
   .object({
     variantId: z.number().int().positive(),
     templateId: z.string().optional(),
+    templateStoreId: z.string().max(128).optional(),
     designImage: z
       .string()
       .optional()
@@ -42,8 +45,11 @@ const requestSchema = z
       .optional(),
   })
   .refine(
-    (data) => Boolean(data.templateId) || Boolean(data.designImage),
-    "Either templateId (EDM) or designImage (Fabric export) must be provided.",
+    (data) =>
+      Boolean(data.templateStoreId) ||
+      Boolean(data.templateId) ||
+      Boolean(data.designImage),
+    "Either templateStoreId (EDM), templateId (EDM), or designImage (Fabric export) must be provided.",
   );
 
 const toBoolean = (value: string | undefined | null) =>
@@ -109,6 +115,32 @@ export async function POST(request: Request) {
     );
   }
 
+  let templateRecord = null;
+  if (payload.templateStoreId) {
+    templateRecord = await getTemplateRecord(payload.templateStoreId);
+    if (!templateRecord) {
+      return NextResponse.json(
+        {
+          error:
+            "Your saved design expired. Reopen the editor to refresh the template before checking out.",
+        },
+        { status: 400 },
+      );
+    }
+    if (templateRecord.variantId !== payload.variantId) {
+      return NextResponse.json(
+        {
+          error:
+            "The saved template does not match the selected variant. Save your design again inside the editor.",
+        },
+        { status: 409 },
+      );
+    }
+  }
+
+  const resolvedTemplateId =
+    templateRecord?.templateId ?? payload.templateId ?? null;
+
   if (!stripeClient || !stripeSecretKey) {
     const shippingOptions = buildShippingOptions();
     return NextResponse.json(
@@ -163,7 +195,8 @@ export async function POST(request: Request) {
       customer_email: payload.email,
       metadata: {
         variantId: String(payload.variantId),
-        templateId: payload.templateId ?? "",
+        templateId: resolvedTemplateId ?? "",
+        templateStoreId: payload.templateStoreId ?? "",
         hasDesignImage: payload.designImage ? "true" : "false",
         shippingOption: payload.shippingOption,
       },

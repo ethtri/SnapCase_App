@@ -12,9 +12,9 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 ## 🎨 Brand Visual Identity
 
 ### Primary Brand Elements
-- **Snap Violet**: Primary brand color (#7C3AED)
-- **Clean Typography**: Poppins for headings, Inter for body text
-- **Modern Layout**: Generous white space, subtle shadows
+- **Snap Violet**: Primary brand color (`var(--snap-violet)`)
+- **Clean Typography**: `var(--font-display)` for headings, `var(--font-body)` for body text
+- **Modern Layout**: Generous white space from the `--space-*` scale with subtle `var(--shadow-md)` accents
 - **Premium Feel**: High-quality imagery, smooth animations
 
 ### Visual Hierarchy
@@ -29,26 +29,27 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 ```css
 /* Match SnapCase.ai header styling */
 .header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 1rem 0;
+  background: color-mix(in srgb, var(--snap-white) 95%, transparent);
+  backdrop-filter: blur(calc(var(--space-1) * 2.5));
+  border-bottom: calc(var(--space-1) / 4) solid var(--snap-cloud-border);
+  padding: var(--space-4) 0;
 }
 
 .brand-logo {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 1.5rem;
-  color: #7C3AED;
+  font-family: var(--font-display);
+  font-weight: var(--font-bold);
+  font-size: var(--text-2xl);
+  color: var(--snap-violet);
   text-decoration: none;
 }
 
 .cta-button {
-  background: #7C3AED;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
+  background: var(--snap-violet);
+  color: var(--snap-white);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-semibold);
+  min-height: var(--control-height);
   transition: all 0.2s ease;
 }
 ```
@@ -57,21 +58,23 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 ```css
 :root {
   /* Exact match with SnapCase.ai */
-  --brand-primary: #7C3AED;
-  --brand-primary-light: #A78BFA;
-  --brand-primary-dark: #5B21B6;
+  --brand-primary: var(--snap-violet);
+  --brand-primary-light: var(--snap-violet-light);
+  --brand-primary-dark: var(--snap-violet-dark);
+  --brand-primary-tint: var(--snap-violet-50);
   
   /* Neutral grays matching homepage */
-  --gray-50: #F9FAFB;
-  --gray-100: #F3F4F6;
-  --gray-200: #E5E7EB;
-  --gray-300: #D1D5DB;
-  --gray-400: #9CA3AF;
-  --gray-500: #6B7280;
-  --gray-600: #4B5563;
-  --gray-700: #374151;
-  --gray-800: #1F2937;
-  --gray-900: #111827;
+  --gray-50: var(--snap-gray-50);
+  --gray-100: var(--snap-gray-100);
+  --gray-200: var(--snap-cloud-border);
+  --gray-300: var(--snap-gray-300);
+  --gray-400: var(--snap-gray-400);
+  --gray-500: var(--snap-gray-500);
+  --gray-600: var(--snap-gray-600);
+  --gray-700: var(--snap-gray-700);
+  --gray-800: var(--snap-gray-800);
+  --gray-900: var(--snap-gray-900);
+  --neutral-surface: var(--snap-cloud);
 }
 ```
 
@@ -81,27 +84,27 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
 .heading-primary {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 2.5rem;
+  font-family: var(--font-display);
+  font-weight: var(--font-bold);
+  font-size: var(--text-4xl); /* Closest token to the 2.5rem homepage hero */
   line-height: 1.2;
-  color: #111827;
+  color: var(--snap-gray-900);
 }
 
 .heading-secondary {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 1.875rem;
+  font-family: var(--font-display);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-3xl);
   line-height: 1.3;
-  color: #111827;
+  color: var(--snap-gray-900);
 }
 
 .body-text {
-  font-family: 'Inter', sans-serif;
-  font-weight: 400;
-  font-size: 1rem;
+  font-family: var(--font-body);
+  font-weight: var(--font-normal);
+  font-size: var(--text-base);
   line-height: 1.6;
-  color: #4B5563;
+  color: var(--snap-gray-600);
 }
 ```
 
@@ -119,8 +122,8 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 }
 
 .hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(calc(-0.5 * var(--space-1)));
+  box-shadow: var(--shadow-lg);
 }
 ```
 
@@ -128,27 +131,28 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 ```css
 /* Match SnapCase.ai button behavior */
 .btn-primary {
-  background: #7C3AED;
-  color: white;
+  background: var(--snap-violet);
+  color: var(--snap-white);
   border: none;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  font-size: 1rem;
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-6);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-base);
+  min-height: var(--control-height);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
-  background: #5B21B6;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  background: var(--snap-violet-dark);
+  transform: translateY(calc(-0.5 * var(--space-1)));
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-primary:active {
   transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 ```
 
@@ -158,22 +162,22 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 ```css
 /* Match SnapCase.ai layout structure */
 .container {
-  max-width: 1200px;
+  max-width: min(100%, calc(var(--space-16) * 20));
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 var(--space-4);
 }
 
 .section-padding {
-  padding: 4rem 0;
+  padding: var(--space-16) 0;
 }
 
 @media (max-width: 768px) {
   .container {
-    padding: 0 1rem;
+    padding: 0 var(--space-4);
   }
   
   .section-padding {
-    padding: 2rem 0;
+    padding: var(--space-8) 0;
   }
 }
 ```
@@ -183,7 +187,7 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 /* Match SnapCase.ai grid structure */
 .grid {
   display: grid;
-  gap: 2rem;
+  gap: var(--space-8);
 }
 
 .grid-2 {
@@ -208,17 +212,17 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 ```css
 /* Match SnapCase.ai card styling */
 .card {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  border: 1px solid #E5E7EB;
+  background: var(--snap-white);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-md);
+  border: calc(var(--space-1) / 4) solid var(--snap-cloud-border);
   transition: all 0.2s ease;
 }
 
 .card:hover {
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(calc(-0.5 * var(--space-1)));
 }
 ```
 
@@ -227,18 +231,19 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 /* Match SnapCase.ai form styling */
 .form-input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid #E5E7EB;
-  border-radius: 0.5rem;
-  font-size: 1rem;
+  padding: var(--space-3) var(--space-4);
+  border: calc(var(--space-1) / 2) solid var(--snap-cloud-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
   transition: all 0.2s ease;
-  background: white;
+  background: var(--snap-white);
+  min-height: var(--control-height);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #7C3AED;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  border-color: var(--snap-violet);
+  box-shadow: 0 0 0 calc(var(--space-1) * 0.75) var(--snap-focus-ring);
 }
 ```
 
@@ -264,11 +269,11 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 ## 📋 Visual Consistency Checklist
 
 ### ✅ Brand Elements
-- [ ] Snap Violet (#7C3AED) used consistently
-- [ ] Poppins font for headings
-- [ ] Inter font for body text
-- [ ] Consistent spacing and padding
-- [ ] Matching shadow and border radius values
+- [ ] Snap Violet (`var(--snap-violet)`) used consistently
+- [ ] Headings set in `var(--font-display)`
+- [ ] Body copy set in `var(--font-body)`
+- [ ] Spacing pulled from the `--space-*` scale
+- [ ] Shadows and radii use design tokens (`var(--shadow-*)`, `var(--radius-*)`)
 
 ### ✅ Layout Consistency
 - [ ] Container widths match homepage
@@ -300,10 +305,12 @@ This guide ensures the Next.js app (`app.snapcase.ai`) maintains visual harmony 
 ```css
 /* Define all brand values as CSS variables */
 :root {
-  --brand-primary: #7C3AED;
-  --brand-primary-light: #A78BFA;
-  --brand-primary-dark: #5B21B6;
-  /* ... other variables */
+  --brand-primary: var(--snap-violet);
+  --brand-primary-light: var(--snap-violet-light);
+  --brand-primary-dark: var(--snap-violet-dark);
+  --brand-neutral-surface: var(--snap-cloud);
+  --brand-neutral-border: var(--snap-cloud-border);
+  /* ... map additional homepage aliases to existing design tokens */
 }
 ```
 

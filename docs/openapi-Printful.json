@@ -12,7 +12,10 @@
       "url": "https://static.cdn.printful.com/dist-pf/image-assets/off-center-full-color-black.1de1e822b15b8e74075c8d1fa631d4e3.svg",
       "backgroundColor": "#FFFFFF",
       "altText": "Printful"
-    }
+    },
+    "x-snapcase-guardrail-notes": [
+      "SnapCase treats onDesignStatusUpdate as the guardrail source of truth; CTA gating, analytics, and diagnostics all follow Printful's designValid/errors payload while EDM is active."
+    ]
   },
   "servers": [
     {

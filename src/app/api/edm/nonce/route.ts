@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const PRINTFUL_NONCE_ENDPOINT =
+  process.env.PRINTFUL_NONCE_ENDPOINT ??
   "https://api.printful.com/embedded-designer/nonces";
 
 const requestSchema = z.object({
@@ -11,13 +12,23 @@ const requestSchema = z.object({
   externalCustomerId: z.string().nullish(),
 });
 
-const printfulResponseSchema = z.object({
-  code: z.number(),
-  result: z.object({
+const legacyResultSchema = z.object({
+  nonce: z.string(),
+  template_id: z.number().nullable().optional(),
+  expires_at: z.number().optional(),
+});
+
+const v2ResultSchema = z.object({
+  nonce: z.object({
     nonce: z.string(),
     template_id: z.number().nullable().optional(),
     expires_at: z.number().optional(),
   }),
+});
+
+const printfulResponseSchema = z.object({
+  code: z.number(),
+  result: z.union([legacyResultSchema, v2ResultSchema]),
 });
 
 export async function POST(request: Request) {
@@ -40,6 +51,22 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Invalid JSON body" },
       { status: 400 },
+    );
+  }
+
+  if (process.env.PRINTFUL_NONCE_MOCK === "stub") {
+    return NextResponse.json(
+      {
+        nonce: `mock-nonce-${payload.externalProductId}`,
+        templateId: null,
+        expiresAt: Math.floor(Date.now() / 1000) + 300,
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
     );
   }
 
@@ -123,14 +150,43 @@ export async function POST(request: Request) {
     );
   }
 
+  const result = parsed.result;
+
+  const resolved =
+    "nonce" in result && typeof result.nonce === "object"
+      ? result.nonce
+      : (result as z.infer<typeof legacyResultSchema>);
+
+  const nonceValue =
+    typeof (resolved as { nonce?: unknown }).nonce === "string"
+      ? (resolved as { nonce: string }).nonce
+      : null;
+
+  if (!nonceValue) {
+    return NextResponse.json(
+      {
+        error: "Printful response missing nonce value.",
+        details: parsed,
+      },
+      { status: 502 },
+    );
+  }
+
+  const templateIdValue =
+    typeof (resolved as { template_id?: unknown }).template_id === "number"
+      ? (resolved as { template_id: number }).template_id
+      : null;
+
+  const expiresAtValue =
+    typeof (resolved as { expires_at?: unknown }).expires_at === "number"
+      ? (resolved as { expires_at: number }).expires_at
+      : null;
+
   return NextResponse.json(
     {
-      nonce: parsed.result.nonce,
-      templateId:
-        typeof parsed.result.template_id === "number"
-          ? parsed.result.template_id
-          : null,
-      expiresAt: parsed.result.expires_at ?? null,
+      nonce: nonceValue,
+      templateId: templateIdValue,
+      expiresAt: expiresAtValue,
     },
     {
       status: 200,

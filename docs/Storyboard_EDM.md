@@ -5,7 +5,7 @@ _Last updated: October 24, 2025_
 ## Purpose
 - Visual walkthrough of the Snapcase web flow for Printful EDM stakeholders and the product/dev team.
 - Aligns with the live PRD flow (`/design → /checkout → /thank-you → /order/:id`) and highlights guardrails, security, and fulfillment handoffs.
-- Serves as a storyboard + requirements companion; use alongside `Docs/SnapCase_App_Prototype.MD` for authoritative specs.
+- Serves as a storyboard + requirements companion; use alongside `docs/SnapCase_App_Prototype.MD` for authoritative specs.
 
 ### Quick Facts
 - **Audience**: Printful EDM team, Snapcase dev/design, CX reviewers.

@@ -1,23 +1,36 @@
-# Snapcase - Delta Doc (Flow 2 Screen 5: Order History)
+﻿# Snapcase - Delta Doc (Flow 2 Screen 5: Order History)
 
 **Viewport:** Mobile 390x844 (baseline)  
 **Executive intent:** Provide guests with a trustworthy, self-serve ledger of their recent Snapcase purchases, help them jump back into live tracking (Flow 2 Screens 1-2), and surface clear affordances to reorder without requiring an account.
+
+> **Section Status**
+>
+> | Section | Status | Notes |
+> | --- | --- | --- |
+> | A) Visual & Content Hierarchy | Authoritative | Aligns with Flow 2 navigation + Printful status chips. |
+> | B) Interaction & Behavior | Authoritative | Matches tokenized order-history flows + Printful status mapping. |
+> | C) Data, States, and Edge Cases | Authoritative | Describes merged Printful data + token governance. |
+> | D) Copy & Tone | Authoritative | Maintains CX commitments. |
+> | E) Accessibility | Authoritative | Required for compliance. |
+> | F) Analytics | Authoritative | Telemetry spec still accurate. |
+> | G) Acceptance Criteria | Authoritative | QA gating remains valid. |
+> | Responsive Notes | Authoritative | Aligns with Responsive Blueprint. |
 
 ## What to change vs Stitch baseline
 
 ### A) Visual & Content Hierarchy
 1. **Top bar & context**
-   - Title: `Order history` (sentence case). Subline under title (Inter 14px, text-color/70) reads `Last 6 months of orders sent to {{email}}`.
+   - Title: `Order history` (sentence case). Subline under title (`var(--font-body)` `--text-sm`, `var(--snap-gray-700)` at 70%) reads `Last 6 months of orders sent to {{email}}`.
    - Back button returns to the last flow context (prefer `/order/{{id}}` if navigated from tracking; otherwise `/thank-you`). Add `aria-label="Back to order status"`.
 
 2. **Search + filters row**
    - Convert the static sort row into a two-tier control:
      - First row: search input as shown (placeholder `Search by order # or item`). Add inline results count badge (`{{result_count}} results`) that updates live.
-     - Second row: pill filters (`All statuses`, `In production`, `Shipped`, `Delivered`, `Issue`). Add a `Last 30 days` dropdown (options: 30 days, 6 months, 12 months, All time) and a `Sort` segmented control (Newest, Oldest, Total, Status A-Z). Each pill uses `--radius-full`, 1px border token, 44px height.
+     - Second row: pill filters (`All statuses`, `In production`, `Shipped`, `Delivered`, `Issue`). Add a `Last 30 days` dropdown (options: 30 days, 6 months, 12 months, All time) and a `Sort` segmented control (Newest, Oldest, Total, Status A-Z). Each pill uses `--radius-full`, border `calc(var(--space-1) / 4)`, height `var(--control-height)`.
    - Include a `Download CSV` icon button right-aligned on row two (label `Export history`). Hide on base view until user scrolls (show inside kebab menu) to reduce clutter.
 
 3. **Order card anatomy**
-   - Wrap each card in `Card` component (radius `--radius-xl`, `--shadow-md`). Card header: include a 48px thumbnail (latest case render) left of order title `Order #SC-12345`.
+   - Wrap each card in `Card` component (radius `--radius-xl`, `--shadow-md`). Card header: include a `--space-12` thumbnail (latest case render) left of order title `Order #SC-12345`.
    - Sub-header lines:
      - `Ordered {{order_date}} at {{order_time}} {{timezone}}`.
      - `Total {{total}} - {{shipping_method}}`.
@@ -31,7 +44,7 @@
    - On delivered orders expose a tertiary inline link `Download receipt` (opens Stripe receipt in new tab).
 
 5. **Section dividers**
-   - When orders span multiple calendar years, add year dividers (`2024`, `2023`) using the subtle separator component (text-color/60, uppercase Inter 12px, `--space-3` padding).
+   - When orders span multiple calendar years, add year dividers (`2024`, `2023`) using the subtle separator component (`var(--snap-gray-600)` at 60%, uppercase `var(--font-body)` `--text-xs`, `--space-3` padding).
 
 6. **Empty and zero-results states**
    - Default empty (no orders at all): illustration icon + headline `No orders yet` + copy `Design your first custom case to see it here.` Primary CTA `Start a design` linking to Flow 1 Screen 1 (`/design`).
@@ -87,7 +100,7 @@
 
 ### E) Accessibility
 1. Search input uses `aria-label="Search order history"` and updates results count via `aria-live="polite"` region.
-2. Status filters are toggle buttons with `aria-pressed`. Ensure 44px touch target and 4.5:1 contrast in both themes.
+2. Status filters are toggle buttons with `aria-pressed`. Ensure `var(--control-height)` touch target and 4.5:1 contrast in both themes.
 3. Card acts as listitem inside `role="list"`. `View status` and `Reorder` remain explicit buttons (do not rely on entire card click alone) to avoid ambiguity.
 4. Focus trap not needed, but maintain logical order: Back > Title > Search > Filters > Export > List items (status, actions) > Load More.
 5. CSV export button announces progress with `aria-busy` on the button and provides downloadable file description when ready.
@@ -112,8 +125,9 @@
 - Empty, zero-results, offline, and error states render with appropriate copy and accessible controls.
 
 ## Responsive Notes
-- **Base (<640px):** Maintain stacked cards with 16px gutters. Search occupies full width; filters and export collapse into horizontal scroll pill tray under search. Inline action buttons sit stacked (`View status` primary, `Reorder` secondary) with shared 8px gap.
-- **sm (>=640px):** Filters row can wrap into two columns: status pills grid and dropdowns on the right. Order cards switch to two-column layout inside (`thumbnail + details` left, status & actions right) while keeping 16px padding.
-- **md (>=768px tablets/landscape):** Promote layout to split view: left column (min 420px) holds filters stacked vertically; right column displays order list. Card actions align horizontally with icon buttons for `View status` and `Reorder`.
-- **lg (>=1024px desktop):** Transform list into responsive table with columns `Order`, `Placed`, `Total`, `Status`, `Actions`. Preserve card styling for small widths via CSS container queries. Filters sit in a sticky left rail (max 320px) with export button surfaced as primary.
-- **xl+ (>=1280px):** Allow simultaneous view of table and selected order preview (Flow 2 Screen 1 summary) in a two-pane layout. Keep table rows 56px tall min and ensure hover states follow design tokens.
+- **Base (<640px):** Maintain stacked cards with `--space-4` gutters. Search occupies full width; filters and export collapse into horizontal scroll pill tray under search. Inline action buttons sit stacked (`View status` primary, `Reorder` secondary) with shared `--space-2` gap.
+- **sm (>=640px):** Filters row can wrap into two columns: status pills grid and dropdowns on the right. Order cards switch to two-column layout inside (`thumbnail + details` left, status & actions right) while keeping `--space-4` padding.
+- **md (>=768px tablets/landscape):** Promote layout to split view: left column (min ~`6.5 * --space-16`) holds filters stacked vertically; right column displays order list. Card actions align horizontally with icon buttons for `View status` and `Reorder`.
+- **lg (>=1024px desktop):** Transform list into responsive table with columns `Order`, `Placed`, `Total`, `Status`, `Actions`. Preserve card styling for small widths via CSS container queries. Filters sit in a sticky left rail (max `5 * --space-16`) with export button surfaced as primary.
+- **xl+ (>=1280px):** Allow simultaneous view of table and selected order preview (Flow 2 Screen 1 summary) in a two-pane layout. Keep table rows `--space-14` tall min and ensure hover states follow design tokens.
+
