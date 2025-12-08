@@ -18,6 +18,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Current Blockers
 
+- **Sprint03-Task43 DevReview (2025-12-31):** Dynamic Printful catalog pivot reviewed on branch `task/Sprint03-Task43-DevReview`; verdict = needs plan changes before approval. See docs/AgentReports/Sprint03-Task43-DevReview.md for risks and required adjustments.
 - **Printful webhook registration (Task44):** Dashboard verification/secret rotation blocked without Printful credentials; handler enforces signatures + store scoping but dev/prod webhook settings still need confirmation. Working tree is dirty; clean/stash before handoff.
 - **Task43 live smoke:** Dev env (`https://dev.snapcase.ai`) is up, but live reruns still return non-catalog `selectedVariantIds` + `Please add a design!`, so CTA stays locked. Latest run (2025-12-08T17:52Z) with extended timeouts also failed to find supported variant buttons. New artifacts: `Images/diagnostics/task43-design-{desktop,mobile}-2025-12-08T17-52-14-609Z.png`, `Images/diagnostics/task43-edm-live-2025-12-08T17-52-14-609Z.json` (prior 07-12Z/07-14Z captures remain). AgentReport updated at `docs/AgentReports/Sprint03-Task43.md`. Next: diagnose why Printful picker is exposing non-catalog variants and not rendering the supported set (632/631/642/641/712/711/710); rerun once fixed to unlock CTA.
 - (None noted for Task42; monitor Printful live-token runs post-mask.)
