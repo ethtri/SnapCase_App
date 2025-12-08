@@ -6,6 +6,8 @@ const baseUrl = (process.env.SNAPCASE_BASE_URL || 'https://dev.snapcase.ai').rep
 const designUrl = `${baseUrl}/design`;
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const diagnosticsDir = path.resolve('Images', 'diagnostics');
+const NAV_TIMEOUT_MS = 120_000;
+const ACTION_PAUSE_MS = 10_000;
 
 const SUPPORTED_VARIANTS = [
   { label: 'iPhone 15 Pro/Glossy', variantId: 632 },
@@ -65,15 +67,27 @@ async function captureScenario(browser, label, contextOptions) {
   });
 
   const page = await context.newPage();
-  await page.goto(designUrl, { waitUntil: 'networkidle' });
-  await page.waitForSelector('[data-testid="design-helper-pill"]', { timeout: 60000 });
+  page.setDefaultTimeout(NAV_TIMEOUT_MS);
+  await page.goto(designUrl, { waitUntil: 'networkidle', timeout: NAV_TIMEOUT_MS });
+  await page.waitForSelector('[data-testid="design-helper-pill"]', { timeout: NAV_TIMEOUT_MS });
 
   const continueButton = page.locator('[data-testid="continue-button"]');
-  await continueButton.waitFor({ timeout: 60000 });
-  await page.waitForSelector('iframe#design-maker-embed', { timeout: 60000 }).catch(() => {});
-  await page.waitForTimeout(6000);
+  await continueButton.waitFor({ timeout: NAV_TIMEOUT_MS });
+  await page.waitForSelector('iframe#design-maker-embed', { timeout: NAV_TIMEOUT_MS }).catch(() => {});
+  await page.waitForTimeout(ACTION_PAUSE_MS);
 
-  const printfulFrame = page.frames().find((f) => f.url().includes('printful.com'));
+  const printfulFrame =
+    page.frames().find((f) => f.url().includes('printful.com')) ??
+    (await new Promise((resolve) => {
+      const start = Date.now();
+      const timer = setInterval(() => {
+        const frame = page.frames().find((f) => f.url().includes('printful.com'));
+        if (frame || Date.now() - start > NAV_TIMEOUT_MS) {
+          clearInterval(timer);
+          resolve(frame ?? null);
+        }
+      }, 500);
+    }));
   let variantAttempted = null;
   let variantClickResult = null;
   if (printfulFrame) {
@@ -81,7 +95,7 @@ async function captureScenario(browser, label, contextOptions) {
       variantAttempted = candidate;
       variantClickResult = await selectVariant(printfulFrame, candidate.label);
       if (variantClickResult.clicked) {
-        await page.waitForTimeout(6000);
+        await page.waitForTimeout(ACTION_PAUSE_MS);
         if (await continueButton.isEnabled()) {
           break;
         }
