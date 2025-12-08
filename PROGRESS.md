@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: December 9, 2025
+**Last Updated**: November 24, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -18,10 +18,8 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Current Blockers
 
-- **Sprint03-Task43 PO Review (2025-12-08):** Decision = Alternate (conditional Go, with simplified MVP path that lets Printful own variants/pricing). See docs/AgentReports/Sprint03-Task43-PO-Review.md.
-- **Sprint03-Task43 DevReview (2025-12-31):** Dynamic Printful catalog pivot reviewed on branch `task/Sprint03-Task43-DevReview`; verdict = needs plan changes before approval. See docs/AgentReports/Sprint03-Task43-DevReview.md for risks and required adjustments.
-- **Printful webhook registration (Task44):** Dashboard verification/secret rotation blocked without Printful credentials; handler enforces signatures + store scoping but dev/prod webhook settings still need confirmation. Working tree is dirty; clean/stash before handoff.
-- **Task43 live smoke (2025-12-09):** `npm run build` passed, deployed `snapcase-nb0bhjauq-snapcase.vercel.app` and aliased `dev.snapcase.ai`. Automated Playwright uploads (including WebGL/GPU flags) still leave CTA locked (`designValid=false`, "Please add a design!", 27 non-catalog `selectedVariantIds`); latest captures `Images/diagnostics/task43-design-{desktop,mobile}-2025-12-09T03-36-42-931Z.png`, `Images/diagnostics/task43-edm-live-2025-12-09T03-36-42-931Z.json` (prior `01-41-41-880Z` set also locked). Manual browser upload works and CTA unlocks—see `Images/diagnostics/task43-design-desktop-2025-12-09T20-08-25-user.png` and checkout proof `Images/diagnostics/task43-checkout-desktop-2025-12-09T20-08-25-user.png` (variant 16888 / SNAP_IP15PRO_SNAP, $34.99 + $4.99 shipping). Sponsor approved closing Task43 with desktop evidence; mobile unlock + unlocked-session JSON are deferred to later full E2E. Console logs include Segment CSP warnings (expected). AgentReport updated at `docs/AgentReports/Sprint03-Task43.md`.
+- **Printful webhook registration (Task44):** Store webhook now points to `https://app.snapcase.ai/api/webhooks/printful` (events: order_created/updated/failed/package_shipped/package_returned); `PRINTFUL_WEBHOOK_ARCHIVE_DIR=Images/diagnostics/printful` set in preview/prod with the folder created. `PRINTFUL_WEBHOOK_SECRET` remains unset, so production webhooks currently bypass signature validation until a signing key is added.
+- **Task43 live smoke:** Reran masked `/design` on `https://dev.snapcase.ai` with explicit supported-variant clicks in Printful; CTA still locked (“Select a supported device”) because live `design_status` returned non-catalog `selectedVariantIds` + error “Please add a design!”. New artifacts: `Images/diagnostics/task43-design-{desktop,mobile}-2025-11-23T07-12-41-975Z.png`, `Images/diagnostics/task43-edm-live-2025-11-23T07-12-41-975Z.json` (plus 07-14-48-942Z set). AgentReport updated at `docs/AgentReports/Sprint03-Task43.md`. Next: fix live variant lock so Printful emits a single supported variant ID and CTA can unlock.
 - (None noted for Task42; monitor Printful live-token runs post-mask.)
 
 - **Printful EDM Access (2025-11-04 update)**: `ensureEdmScript()` now loads `embed.js` as a plain `<script>` (no `crossOrigin`) with a 15s watchdog so diagnostics capture script failures, and create-mode always passes Printful�s SUBLIMATION technique + a fallback reboot when PF returns `Template not found`. `npm run vercel-build` (Nov 4 @ 19:14Z) succeeded aside from pre-existing lint warnings, `vercel deploy --yes` published preview `https://snapcase-fbtuk9oqr-snapcase.vercel.app`, and `"/mnt/c/Program Files/nodejs/node.exe" scripts/collect-edm-diagnostics.js` logged the healthy session (`Images/diagnostics/edm-diagnostics-2025-11-04T19-17-46-144Z.png`) showing `setProductOK` / `designerLoadedOK`. **Update 2025-11-10:** EDM saves now hit `/api/edm/templates`, which caches the template ID server-side so `/api/checkout` + `/api/order/create` can trust server tokens; next diagnostics will focus on keeping Printful�s allowlist + dev alias in sync.
@@ -36,7 +34,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Recently Resolved
 
-- **Sprint03-Task44 - Printful webhook hardening (2025-11-24):** Webhook receiver now enforces HMAC signatures when configured, gates events to `PRINTFUL_STORE_ID`, archives idempotently under `PRINTFUL_WEBHOOK_ARCHIVE_DIR/printful`, and has new Jest coverage (`tests/integration/printful-webhook-route.test.ts`). Printful dashboard verification remains pending until credentials are available.
+- **Sprint03-Task44 - Printful webhook hardening (2025-11-24):** Webhook receiver enforces HMAC signatures when configured (documented fallback when unset), archives payloads idempotently under `PRINTFUL_WEBHOOK_ARCHIVE_DIR` (now `Images/diagnostics/printful` in preview/prod), and has Jest coverage (`tests/integration/printful-webhook-route.test.ts`). Sample capture: `Images/diagnostics/printful-webhook-2025-11-23T22-37-57-192Z-evt_local_capture.json`. Integration test rerun: `npx --yes jest --runInBand tests/integration/printful-webhook-route.test.ts` (pass). Webhook set via `scripts/printful-webhook-setup.js set https://app.snapcase.ai/api/webhooks/printful` with events order_created/updated/failed/package_shipped/package_returned; `PRINTFUL_WEBHOOK_SECRET` still pending, so production payloads currently bypass signature validation until the secret is provisioned.
 - **Sprint03-Task42 - SnapCase-first picker & EDM stub (2025-11-23):** SnapCase copy/picker now leads /design, Printful picker chrome is masked and variant-locked via host config, and the Playwright EDM stub hooks/guardrails are updated. `npx playwright test tests/e2e/design-to-checkout.spec.ts --project=chromium` passes; diagnostic captures at `Images/diagnostics/design-task42-desktop-2025-11-23T03-44-53-352Z.png` and `Images/diagnostics/design-task42-mobile-2025-11-23T03-44-53-352Z.png`; AgentReport refreshed.
 - **Sprint03-Task41 - sponsor readiness sweep (2025-11-22)**: dev.snapcase.ai HEAD 200 (`X-Vercel-Id: sfo1::j5nqw-1763854932269-ce745ad0a85e`); captured sponsor screenshots across design/checkout/thank-you desktop+mobile (`Images/diagnostics/design-sponsor-2025-11-22T23-43-11-433Z.png`, `checkout-sponsor-2025-11-22T23-43-11-433Z.png`, `thank-you-sponsor-2025-11-22T23-43-11-433Z.png` + mobile counterparts) plus analytics JSON (`Images/diagnostics/sponsor-readiness-2025-11-22T23-43-11-433Z.json`). Segment debugger harness logged 17 `api.segment.io` requests (design 11, thank-you 6) in `Images/diagnostics/segment-task34-2025-11-22T23-44-25-911Z.{json,png}`. `docs/UserTesting/Sprint02_Sponsor_Script.md` now references the new artifacts/timestamp for the sponsor walk-through.
 - **Sprint03-Task40 - Stripe prod secret (2025-11-24)**: Confirmed Vercel holds live `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, and `STRIPE_SHIPPING_RATE_STANDARD` across Development/Preview/Production via `vercel env ls --scope snapcase` (all present, updated ~18h ago). Exercised `/api/checkout` on `https://snapcase-4pbc17d3l-snapcase.vercel.app` and received live session `cs_live_b1nwyFwooz1C2tKaeWfhUXlEIBhPMWTq2NoqPW8y5IcKnfotuSimDinauc`; blocker cleared.
@@ -671,13 +669,11 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Immediate (This Week)
 
-1. Implement Printful variant-selection disablement per `docs/EDM_VARIANT_SELECTION_SOLUTION.md`, aligning with feasibility + UX notes in `docs/EDM_FEASIBILITY_CONFIRMATION.md` and `docs/UX_RECOMMENDATIONS_EDM_CASE_SELECTION.md`.
+1. Begin EDM nonce handshake spike, capturing guardrail expectations and iframe notes in `PROGRESS.md`.
 
-2. Begin EDM nonce handshake spike, capturing guardrail expectations and iframe notes in `PROGRESS.md`.
+2. Inventory CX/UX follow-ups (Stripe button asset, animation specs, desktop mockups) and spin tickets aligned to `docs/Responsive_Blueprint.md`.
 
-3. Inventory CX/UX follow-ups (Stripe button asset, animation specs, desktop mockups) and spin tickets aligned to `docs/Responsive_Blueprint.md`.
-
-4. Schedule Printful sandbox order dry run and document webhook expectations ahead of Sprint 2 delivery.
+3. Schedule Printful sandbox order dry run and document webhook expectations ahead of Sprint 2 delivery.
 
 ### Short Term (Next 2 Weeks)
 

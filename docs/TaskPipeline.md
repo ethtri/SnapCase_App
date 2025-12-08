@@ -4,7 +4,8 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 **Preflight (every prompt):**
 - `git status` must be clean (commit or stash).
-- Check out the prompt’s branch (e.g., `task/Sprint03-Task43-edm-live-smoke`).
+- `git pull` from the task branch before starting so you have the latest TaskPipeline and docs.
+- Check out the prompt's branch (e.g., `task/Sprint03-Task43-edm-live-smoke`).
 - Keep changes scoped. Update `PROGRESS.md` and the relevant `docs/AgentReports/` file before handoff. Leave the tree clean.
 
 **Definition of Done (DoD) for all prompts:**
@@ -17,7 +18,11 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Goal (Sponsor Language) | Prep & References | Agent Kickoff |
 | --- | --- | --- | --- |
+<<<<<<< HEAD
 | Sprint03-Task44 | Harden Printful webhooks: add signature verification (if available), idempotent payload storage, and tests; confirm dev/prod registrations are correct. **DoD:** (1) `src/app/api/webhooks/printful/route.ts` enforces signature or documented fallback; (2) payloads persisted/archived with ids/timestamps; (3) integration/unit test added; (4) dev + prod webhook registrations verified/captured; (5) AgentReport + `PROGRESS.md` updated; (6) tree clean. | `src/app/api/webhooks/printful/route.ts`, `docs/AgentReports/Sprint03-Task36.md`, `Images/diagnostics/printful-webhook-*.json`, Printful dashboard webhook settings. Branch `task/Sprint03-Task44-webhook-hardening`. | “Run Sprint03-Task44 using docs/TaskPipeline.md instructions.” |
+=======
+| Sprint03-Task43 | Smoke-test the masked-picker `/design` in a live Printful session to ensure the overlay and SnapCase-first copy don’t break real embeds; capture diagnostics/screenshots. **DoD:** (1) Live `/design` load with real Printful token succeeds; (2) screenshots + diagnostics JSON saved to `Images/diagnostics/` with paths in AgentReport; (3) no regression to variant lock or guardrail messaging; (4) AgentReport + `PROGRESS.md` updated; (5) tree clean. | `src/app/design/page.tsx`, `src/components/editor/edm-editor.tsx`, `src/components/editor/printful-config.ts`, `scripts/collect-edm-diagnostics.js`, existing masked-picker screenshots. Branch `task/Sprint03-Task43-edm-live-smoke`. | “Run Sprint03-Task43 using docs/TaskPipeline.md instructions.” |
+>>>>>>> e756dff (Task44: add Printful webhook handler and docs)
 | Sprint03-Task45 | Refresh sponsor-ready captures with a real design (no “Please add a design!” guardrail), updating docs and Segment evidence. **DoD:** (1) New desktop+mobile screenshots for design/checkout/thank-you with a valid design saved to `Images/diagnostics/`; (2) Segment debugger evidence saved; (3) `docs/UserTesting/Sprint02_Sponsor_Script.md` + AgentReport + `PROGRESS.md` updated; (4) tree clean. | `docs/UserTesting/Sprint02_Sponsor_Script.md`, `Images/diagnostics/`, `tests/e2e/design-to-checkout.spec.ts`, `docs/Responsive_Blueprint.md`. Branch `task/Sprint03-Task45-sponsor-refresh`. | “Run Sprint03-Task45 using docs/TaskPipeline.md instructions.” |
 
 > These prompts are ready to run in parallel; each owns its branch and AgentReport. Keep sponsor updated via `PROGRESS.md`.
@@ -50,6 +55,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 | Sprint03-Task37 | DONE | Lint + telemetry refresh complete; see `docs/AgentReports/Sprint03-Task37.md`. |
 | Sprint03-Task38 | DONE | Printful v2 order flow implemented; see `docs/AgentReports/Sprint03-Task38.md`. |
 | Sprint03-Task39 | DONE | Webhook route registered for store `17088301`; sandbox order + payload captures logged in `docs/AgentReports/Sprint03-Task36.md` and `Images/diagnostics/printful-webhook-2025-11-23T08-37-22-000Z-*.json`. |
+| Sprint03-Task44 | DONE | Webhook now points to `https://app.snapcase.ai/api/webhooks/printful`, archive dir set to `Images/diagnostics/printful` (preview/prod), integration test rerun; `PRINTFUL_WEBHOOK_SECRET` still pending. See `docs/AgentReports/Sprint03-Task44.md` and `Images/diagnostics/printful-webhook-2025-11-23T22-37-57-192Z-evt_local_capture.json`. |
 | Sprint03-Task40 | DONE | Stripe prod secrets verified across scopes; live `/api/checkout` session captured. See `docs/AgentReports/Sprint03-Task40.md`. |
 | Sprint03-Task41 | DONE | Sponsor readiness sweep complete with fresh screenshots + Segment debugger evidence. See `docs/AgentReports/Sprint03-Task41.md`. |
 | Sprint03-Task42 | DONE | SnapCase-first picker with masked Printful row; Playwright e2e passing; new `/design` screenshots captured. See `docs/AgentReports/Sprint03-Task42.md`. |

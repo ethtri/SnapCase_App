@@ -1,0 +1,17 @@
+{
+  "receivedAt": "2025-11-23T22:37:57.192Z",
+  "eventId": "evt_local_capture",
+  "signature": null,
+  "signatureValidated": false,
+  "headers": {
+    "content-type": "application/json",
+    "x-pf-event-id": "evt_local_capture"
+  },
+  "payload": {
+    "id": "evt_local_capture",
+    "type": "test.ping",
+    "data": {
+      "note": "local diagnostic capture"
+    }
+  }
+}
