@@ -4,6 +4,9 @@
 **Owner:** Codex (AI)  
 **Scope:** Run a live Printful session against masked `/design` to ensure the overlay + SnapCase-first copy do not break the embedded designer; capture diagnostics/screenshots.
 
+## PO decision (2025-12-08)
+- Product Owner chose the simplified MVP path: Printful owns variant selection and pricing, CTA gates only on `designValid`, and the Printful price passes through checkout/Stripe. Details live in `docs/AgentReports/Sprint03-Task43-PO-Review.md`; this supersedes prior allowlist/curated-pricing assumptions.
+
 ## What happened
 - Initial live smoke (2025-11-23T05:13Z): Loaded `/design` on `https://dev.snapcase.ai` (desktop + iPhone 14 Pro emulation). Printful iframe rendered with live nonces; CTA stayed locked on "Select a supported device" because no variant selection was completed. Guardrail cards stayed null in diagnostics.
 - Rerun live smoke with explicit variant selection (2025-11-23T07:12Z & 07:14Z): Pre-seeded SnapCase with iPhone 15 Pro and attempted to click supported variants (iPhone 15/14, Galaxy S24 family) inside the masked Printful picker. Printful acknowledged `setStyleOK/setFeatureConfigOK/setProductOK` but emitted `design_status` payloads with large `selectedVariantIds` lists outside our catalog plus error `Please add a design!`. Guardrail copy surfaced "This device is not in the beta catalog yet" and the CTA remained disabled ("Select a supported device") on both desktop and mobile.
