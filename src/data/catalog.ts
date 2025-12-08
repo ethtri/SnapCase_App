@@ -77,3 +77,8 @@ export function getDeviceCatalog(): DeviceCatalogEntry[] {
   return DEVICE_CATALOG;
 }
 
+export function findDeviceCatalogEntryByVariantId(
+  variantId: number,
+): DeviceCatalogEntry | undefined {
+  return DEVICE_CATALOG.find((entry) => entry.variantId === variantId);
+}

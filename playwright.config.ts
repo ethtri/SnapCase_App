@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const webServerPort = Number(process.env.PLAYWRIGHT_PORT ?? 3000);
+const webServerUrl = `http://127.0.0.1:${webServerPort}`;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 60_000,
@@ -7,16 +10,27 @@ export default defineConfig({
     timeout: 10_000,
   },
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: webServerUrl,
     trace: "on-first-retry",
+    bypassCSP: true,
+    screenshot: "only-on-failure",
   },
   webServer: {
-    command: "npm run dev -- --hostname 127.0.0.1 --port 3000",
-    url: "http://127.0.0.1:3000",
-    reuseExistingServer: !process.env.CI,
+    command: `node ./scripts/run-playwright-server.mjs --hostname 127.0.0.1 --port ${webServerPort}`,
+    url: webServerUrl,
+    reuseExistingServer: false,
     env: {
-      NEXT_PUBLIC_E2E_MODE: "true",
-      USE_EDM: "false",
+      PLAYWRIGHT_SKIP_BUILD: "0",
+      PORT: String(webServerPort),
+      USE_EDM: "true",
+      NEXT_PUBLIC_USE_EDM: "true",
+      STRIPE_SHIPPING_RATE_STANDARD: "rate_mock_standard",
+      STRIPE_SECRET_KEY: "",
+      STRIPE_WEBHOOK_SECRET: "",
+      PRINTFUL_NONCE_MOCK: "stub",
+      PRINTFUL_TOKEN: "stub-token",
+      PRINTFUL_TEMPLATE_MOCK: "always-missing",
+      PRINTFUL_TEMPLATE_MOCK_FILE: "tests/fixtures/printful-template-mock.json",
     },
   },
   projects: [
@@ -27,3 +41,4 @@ export default defineConfig({
   ],
   reporter: [["list"]],
 });
+

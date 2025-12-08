@@ -6,7 +6,9 @@ const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 
 const stripe =
   STRIPE_SECRET_KEY !== ""
-    ? new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" })
+    ? new Stripe(STRIPE_SECRET_KEY, {
+        apiVersion: "2024-06-20" as Stripe.LatestApiVersion,
+      })
     : null;
 
 export async function POST(request: Request) {

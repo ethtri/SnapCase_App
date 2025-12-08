@@ -1,3 +1,18 @@
+const isProduction = process.env.NODE_ENV === "production";
+const scriptSrcDirectives = [
+  "script-src 'self'",
+  "'unsafe-inline'",
+  "https://js.stripe.com",
+  "https://files.cdn.printful.com",
+  "https://cdn.segment.com",
+  // Allow Vercel Live preview tooling (injected on preview builds).
+  "https://vercel.live",
+];
+
+if (!isProduction) {
+  scriptSrcDirectives.push("'unsafe-eval'");
+}
+
 const securityHeaders = [
   {
     key: "X-DNS-Prefetch-Control",
@@ -27,11 +42,12 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' https://js.stripe.com",
+      // TODO(security): tighten script-src once nonce-based bootstrapping is wired to satisfy Next inline needs.
+      scriptSrcDirectives.join(" "),
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://files.cdn.printful.com https://cdn.snapcase.ai",
-      "frame-src 'self' https://checkout.stripe.com https://*.printful.com",
-      "connect-src 'self' https://api.stripe.com https://api.printful.com https://embed.printful.com",
+      "frame-src 'self' https://checkout.stripe.com https://*.printful.com https://vercel.live",
+      "connect-src 'self' https://api.stripe.com https://api.printful.com https://embed.printful.com https://api.segment.io https://cdn-settings.segment.com https://vercel.live wss://vercel.live",
       "font-src 'self' https://fonts.gstatic.com",
       "object-src 'none'",
       "base-uri 'self'",
@@ -41,22 +57,13 @@ const securityHeaders = [
   },
 ];
 
-const resolveSecurityHeaders = () => {
-  if (process.env.NEXT_PUBLIC_E2E_MODE === "true") {
-    return securityHeaders.filter(
-      (header) => header.key !== "Content-Security-Policy",
-    );
-  }
-  return securityHeaders;
-};
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
     return [
       {
         source: "/(.*)",
-        headers: resolveSecurityHeaders(),
+        headers: securityHeaders,
       },
     ];
   },

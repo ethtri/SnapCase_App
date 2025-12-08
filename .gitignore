@@ -29,6 +29,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+next-dev.log
+next-dev.err.log
+tmp_*.js
+node_modules_win_backup/
 
 # env files (can opt-in for committing if needed)
 .env*
@@ -39,3 +43,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel

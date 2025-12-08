@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Snapcase Order Tracking</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#4B3ACB",
+            "background-light": "#F5F7FA",
+            "background-dark": "#0D0B21",
+            "text-primary": "#0D0B21",
+            "text-secondary": "#5C5A66",
+            "text-on-primary": "#FFFFFF"
+          },
+          fontFamily: {
+            "display": ["Poppins", "sans-serif"],
+            "body": ["Inter", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "1rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-body text-text-primary dark:text-white">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<!-- Top App Bar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between">
+<div class="flex size-12 shrink-0 items-center">
+<span class="material-symbols-outlined text-text-primary dark:text-white text-2xl">arrow_back</span>
+</div>
+<h1 class="text-text-primary dark:text-white text-lg font-display font-semibold leading-tight tracking-[-0.015em] flex-1 text-center">Order Overview</h1>
+<div class="flex w-12 items-center justify-end">
+</div>
+</div>
+<!-- Section Header -->
+<h2 class="text-text-primary dark:text-white text-[28px] font-display font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-center">Order #SC-12345</h2>
+<!-- Timeline -->
+<div class="px-6 py-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col items-center gap-2 text-center w-1/4 relative">
+<div class="flex items-center justify-center rounded-full bg-primary text-text-on-primary size-8">
+<span class="material-symbols-outlined text-lg">check</span>
+</div>
+<p class="text-primary text-sm font-semibold font-body">Created</p>
+<div class="absolute top-4 left-1/2 w-full h-0.5 bg-primary -z-10"></div>
+</div>
+<div class="flex flex-col items-center gap-2 text-center w-1/4 relative">
+<div aria-current="step" class="flex items-center justify-center rounded-full bg-primary text-text-on-primary size-8">
+<span class="material-symbols-outlined text-lg">check</span>
+</div>
+<p class="text-primary text-sm font-semibold font-body">In production</p>
+<div class="absolute top-4 left-1/2 w-full h-0.5 bg-primary -z-10"></div>
+<div class="absolute top-4 right-1/2 w-full h-0.5 bg-primary -z-10"></div>
+</div>
+<div class="flex flex-col items-center gap-2 text-center w-1/4 relative">
+<div class="flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 size-8">
+<span class="material-symbols-outlined text-lg">check</span>
+</div>
+<p class="text-text-secondary dark:text-gray-400 text-sm font-medium font-body">Shipped</p>
+<div class="absolute top-4 right-1/2 w-full h-0.5 bg-gray-200 dark:bg-gray-700 -z-10"></div>
+</div>
+<div class="flex flex-col items-center gap-2 text-center w-1/4">
+<div class="flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 size-8">
+<span class="material-symbols-outlined text-lg">check</span>
+</div>
+<p class="text-text-secondary dark:text-gray-400 text-sm font-medium font-body">Delivered</p>
+</div>
+</div>
+</div>
+<!-- Card -->
+<div class="p-4 @container">
+<div class="flex flex-col items-stretch justify-start rounded-lg bg-white dark:bg-background-dark shadow-sm">
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-4 p-4">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-12 rounded-lg bg-gray-100 dark:bg-gray-800">
+<img class="h-6" data-alt="FedEx Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAVAKhUXdOrLYt50vO0e3_ekaOWtCk8_WzszBCB-QHIJT8oGZ3aQq9cJmP0BI7rqsOCjP-NxW-jNxJsinfI7TCGRlKu1SzzqCYDDb9wkUTYp-2lgtqli0OzMDrQ7cnkRa_a9j7FFIdTtz5f_5r6vL7BrCFB_pP8qwJFGdN-Eag2LcY7_-BE8uFlBSz7lDVr893cG-mhWXBL224r4kaSGN7YlrJ5-V7JZCL9FOPs4ouTKfeW2ZxQYM8MIsihYpdwVrMrQ1ZZBaYkms"/>
+</div>
+<div>
+<p class="text-text-primary dark:text-white text-lg font-display font-semibold leading-tight">FedEx</p>
+<p class="text-text-secondary dark:text-gray-400 text-sm font-body">Tracking Code: 1234567890</p>
+</div>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-text-on-primary text-base font-body font-semibold leading-normal">
+<span class="truncate">Track package</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Single Button -->
+<div class="flex px-4 pb-3">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 flex-1 bg-gray-200 dark:bg-gray-800 text-text-primary dark:text-white text-base font-body font-semibold leading-normal">
+<span class="truncate">Contact support</span>
+</button>
+</div>
+<!-- Informational Note -->
+<div class="px-4 py-3">
+<p class="text-text-secondary dark:text-gray-400 text-xs font-body text-center">
+        If you receive a defective or poor-quality case, please contact support for a free reprint.
+      </p>
+</div>
+<div class="h-5"></div>
+</div>
+</body></html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Placed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4a24e0",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#141121",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-white">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="flex flex-col items-center justify-center pt-12 pb-8 px-4 text-center">
+<div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary" style="font-size: 40px;">check</span>
+</div>
+<h1 class="text-[#131117] dark:text-white tracking-light text-[32px] font-bold leading-tight pb-2">Order Placed!</h1>
+<p class="text-[#6b6487] dark:text-gray-400 text-base font-normal leading-normal">Your Order ID is #1234567</p>
+</div>
+<div class="px-4 py-6 bg-white dark:bg-background-dark">
+<div class="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center w-full max-w-sm mx-auto">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-size: 20px;">check</span>
+</div>
+<p class="text-xs text-primary font-medium mt-1">Created</p>
+</div>
+<div class="h-0.5 bg-primary/30 dark:bg-primary/50"></div>
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400" style="font-size: 20px;">factory</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">In Production</p>
+</div>
+<div class="h-0.5 bg-gray-200 dark:bg-gray-700"></div>
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400" style="font-size: 20px;">local_shipping</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Shipped</p>
+</div>
+</div>
+</div>
+<div class="p-4 space-y-4">
+<div class="flex flex-col items-stretch justify-start rounded-xl bg-white dark:bg-background-dark/50 shadow-[0_0_4px_rgba(0,0,0,0.1)]">
+<div class="flex w-full grow flex-col items-stretch justify-center gap-1 p-4">
+<p class="text-[#131117] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Order summary</p>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-16 h-16 bg-center bg-no-repeat bg-cover rounded-lg" data-alt="A custom phone case with an abstract design" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCi-S_BjpGOdwDp4PClg1ACfCBmQriJh8zLScxFsv38OAPKXEAwhM-HVZdA505D3i_qEmqgX3KoUkjPH0_fVqJCHL3mEr_xh3u61k7scvFAtIrfbVJmKCakGBNqfkTEqigTF9NDMgWHfU6RIZhk2BpHQdQfRJsUcRyS0E0LbFHkI_XYXsSnc5aqfVscWzy_LIiLRijWhvQG8r1LVnIHQSkUrMWQAJGbNUakkgxEfvjiatQOqNA8sLszaANz8gyA097xRj6eevQPO4LC");'></div>
+<div class="flex flex-col">
+<p class="text-[#131117] dark:text-white text-base font-medium leading-normal">iPhone 15 Pro Case</p>
+<p class="text-[#6b6487] dark:text-gray-400 text-sm font-normal leading-normal">Quantity: 1</p>
+</div>
+</div>
+<p class="text-[#131117] dark:text-white font-bold">$35.00</p>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-stretch justify-start rounded-xl bg-white dark:bg-background-dark/50 shadow-[0_0_4px_rgba(0,0,0,0.1)]">
+<div class="flex w-full grow flex-col items-stretch justify-center gap-2 p-4">
+<p class="text-[#131117] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Ship-to</p>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-[#6b6487] dark:text-gray-400 mt-1">home</span>
+<div class="flex flex-col">
+<p class="text-[#6b6487] dark:text-gray-400 text-base font-normal leading-normal">123 Design St, Creative City, CA 90210</p>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-stretch justify-start rounded-xl bg-white dark:bg-background-dark/50 shadow-[0_0_4px_rgba(0,0,0,0.1)]">
+<div class="flex w-full grow flex-col items-stretch justify-center gap-2 p-4">
+<p class="text-[#131117] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Payment</p>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#6b6487] dark:text-gray-400">credit_card</span>
+<p class="text-[#6b6487] dark:text-gray-400 text-base font-normal leading-normal">Visa ending in 1234</p>
+</div>
+</div>
+</div>
+</div>
+<div class="p-4 space-y-3 mt-auto">
+<button class="w-full bg-primary text-white font-bold py-3 rounded-lg text-base">Track order</button>
+<button class="w-full bg-primary/20 text-primary dark:bg-primary/30 dark:text-white font-bold py-3 rounded-lg text-base">Design another</button>
+</div>
+</div>
+</body></html>
