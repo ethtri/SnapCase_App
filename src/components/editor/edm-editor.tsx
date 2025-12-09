@@ -34,6 +34,7 @@ type EdmEditorProps = {
     source: TemplateSource | null;
   }) => void;
   onDesignStatusChange?: (snapshot: EdmGuardrailSnapshot | null) => void;
+  onPricingChange?: (pricing: PrintfulPricingDetails | null) => void;
 };
 
 type GuardrailMode = "snapcase" | "printful";
@@ -166,6 +167,14 @@ type EdmDiagnostics = {
   configSnapshot?: PrintfulConfigDiagnosticsSnapshot | null;
   designStatus?: DesignStatusSnapshot | null;
   guardrailMode?: GuardrailMode;
+};
+
+export type PrintfulPricingDetails = {
+  amountCents: number | null;
+  currency: string | null;
+  source: "pricing_status" | "catalog" | "unknown";
+  rawPayload: string | null;
+  updatedAt: string;
 };
 
 declare global {
@@ -503,6 +512,48 @@ function formatDiagnosticsRecord(
     .join(", ");
 }
 
+function parsePrintfulPricing(payload: unknown): PrintfulPricingDetails | null {
+  const updatedAt = new Date().toISOString();
+  const candidates = Array.isArray(payload) ? payload : [payload];
+  for (const entry of candidates) {
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+    const record = entry as Record<string, unknown>;
+    const totalCandidate =
+      record.total ?? record.price ?? record.amount ?? record.subtotal;
+    let amountCents: number | null = null;
+    if (typeof totalCandidate === "number" && Number.isFinite(totalCandidate)) {
+      amountCents =
+        totalCandidate > 1000 && Number.isInteger(totalCandidate)
+          ? Math.round(totalCandidate)
+          : Math.round(totalCandidate * 100);
+    } else if (typeof totalCandidate === "string") {
+      const parsed = Number(totalCandidate);
+      if (!Number.isNaN(parsed)) {
+        amountCents =
+          parsed > 1000 && Number.isInteger(parsed)
+            ? Math.round(parsed)
+            : Math.round(parsed * 100);
+      }
+    }
+    const currency =
+      typeof record.currency === "string" && record.currency.trim()
+        ? record.currency
+        : null;
+    if (amountCents != null || currency) {
+      return {
+        amountCents,
+        currency,
+        source: "pricing_status",
+        rawPayload: safeSerialize(payload),
+        updatedAt,
+      };
+    }
+  }
+  return null;
+}
+
 function normalizeDesignStatus(
   payload: unknown,
   options: { expectedVariantId: number; detectVariantMismatch: boolean },
@@ -655,6 +706,7 @@ export function EdmEditor({
   onTemplateSaved,
   onTemplateHydrated,
   onDesignStatusChange,
+  onPricingChange,
 }: EdmEditorProps): JSX.Element {
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
@@ -670,6 +722,14 @@ export function EdmEditor({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const designerRef = useRef<PFDesignMakerInstance | null>(null);
   const latestDesignSnapshotRef = useRef<DesignStatusSnapshot | null>(null);
+  const onTemplateSavedRef =
+    useRef<EdmEditorProps["onTemplateSaved"] | null>(null);
+  const onTemplateHydratedRef =
+    useRef<EdmEditorProps["onTemplateHydrated"] | null>(null);
+  const onDesignStatusChangeRef =
+    useRef<EdmEditorProps["onDesignStatusChange"] | null>(null);
+  const onPricingChangeRef =
+    useRef<EdmEditorProps["onPricingChange"] | null>(null);
   const templateTelemetry = useMemo(() => {
     const mode =
       templateId != null
@@ -741,6 +801,22 @@ export function EdmEditor({
   }, []);
 
   useEffect(() => {
+    onTemplateSavedRef.current = onTemplateSaved;
+  }, [onTemplateSaved]);
+
+  useEffect(() => {
+    onTemplateHydratedRef.current = onTemplateHydrated;
+  }, [onTemplateHydrated]);
+
+  useEffect(() => {
+    onDesignStatusChangeRef.current = onDesignStatusChange;
+  }, [onDesignStatusChange]);
+
+  useEffect(() => {
+    onPricingChangeRef.current = onPricingChange;
+  }, [onPricingChange]);
+
+  useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
@@ -751,6 +827,10 @@ export function EdmEditor({
     }
     setTemplateId(null);
   }, [externalProductId]);
+
+  useEffect(() => {
+    onPricingChangeRef.current?.(null);
+  }, [variantId]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -786,6 +866,15 @@ export function EdmEditor({
 
       const catalogEntry = findPrintfulCatalogEntry(externalProductId);
       let printfulProductId = catalogEntry?.printfulProductId ?? null;
+      if (catalogEntry?.retailPriceCents) {
+        onPricingChangeRef.current?.({
+          amountCents: catalogEntry.retailPriceCents,
+          currency: catalogEntry.currency,
+          source: "catalog",
+          rawPayload: null,
+          updatedAt: new Date().toISOString(),
+        });
+      }
       const cachedTemplate = getCachedTemplate(externalProductId);
       const cacheHit = Boolean(cachedTemplate?.templateId);
       let templateIdForDesigner = cachedTemplate?.templateId ?? null;
@@ -935,7 +1024,7 @@ export function EdmEditor({
       });
       if (templateIdForDesigner) {
         setTemplateId(templateIdForDesigner);
-        onTemplateHydrated?.({
+        onTemplateHydratedRef.current?.({
           templateId: templateIdForDesigner,
           variantId,
           source: templateSource ?? null,
@@ -979,7 +1068,7 @@ export function EdmEditor({
         printfulProductId,
         shouldInitProduct: Boolean(requiresInitProduct && printfulProductId),
         technique: PRINTFUL_DEFAULT_TECHNIQUE,
-        lockVariant: true,
+        lockVariant: false,
         theme: SNAPCASE_EMBED_THEME,
         hooks: {
           onDesignStatusUpdate: (payload: unknown) => {
@@ -1226,7 +1315,7 @@ export function EdmEditor({
           const resolvedVariantId =
             latestDesignSnapshotRef.current?.selectedVariantIds?.[0] ??
             variantId;
-          onTemplateSaved?.({
+          onTemplateSavedRef.current?.({
             templateId: resolved,
             variantId: resolvedVariantId,
             previewUrl,
@@ -1239,7 +1328,7 @@ export function EdmEditor({
           configHooks.onDesignStatusUpdate(payload);
           const snapshot = normalizeDesignStatus(payload, {
             expectedVariantId: variantId,
-            detectVariantMismatch: true,
+            detectVariantMismatch: false,
           });
           latestDesignSnapshotRef.current = snapshot;
           const guardrailSnapshot: EdmGuardrailSnapshot = {
@@ -1252,7 +1341,7 @@ export function EdmEditor({
             updatedAt: snapshot.at,
             rawPayload: snapshot.rawPayload,
           };
-          onDesignStatusChange?.(guardrailSnapshot);
+          onDesignStatusChangeRef.current?.(guardrailSnapshot);
           const analyticsBase = getAnalyticsBasePayload(snapshot, snapshot.at);
           logAnalyticsEvent("edm_design_status", {
             ...analyticsBase,
@@ -1297,6 +1386,10 @@ export function EdmEditor({
             return;
           }
           configHooks.onPricingStatusUpdate(payload);
+          const parsedPricing = parsePrintfulPricing(payload);
+          if (parsedPricing) {
+            onPricingChangeRef.current?.(parsedPricing);
+          }
           logAnalyticsEvent("edm_pricing_update", {
             ...getAnalyticsBasePayload(),
             pricingPayload: payload,
@@ -1450,10 +1543,7 @@ export function EdmEditor({
     canvasId,
     variantId,
     retryToken,
-    onTemplateSaved,
-    onTemplateHydrated,
     forceInitProduct,
-    onDesignStatusChange,
     getAnalyticsBasePayload,
     debug,
   ]);
@@ -1465,7 +1555,7 @@ export function EdmEditor({
     setError(null);
     setBootstrapPhase("idle");
     setForceInitProduct(false);
-    onDesignStatusChange?.(null);
+    onDesignStatusChangeRef.current?.(null);
   };
 
   useEffect(() => {

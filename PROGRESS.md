@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: November 24, 2025
+**Last Updated**: December 9, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -19,7 +19,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 ### Current Blockers
 
 - **Printful webhook registration (Task44):** Dashboard verification/secret rotation blocked without Printful credentials; handler enforces signatures + store scoping but dev/prod webhook settings still need confirmation. Working tree is dirty; clean/stash before handoff.
-- **Task43 live smoke:** Dev env (`https://dev.snapcase.ai`) is up, but live reruns still return non-catalog `selectedVariantIds` + `Please add a design!`, so CTA stays locked. Latest run (2025-12-08T17:52Z) with extended timeouts also failed to find supported variant buttons. New artifacts: `Images/diagnostics/task43-design-{desktop,mobile}-2025-12-08T17-52-14-609Z.png`, `Images/diagnostics/task43-edm-live-2025-12-08T17-52-14-609Z.json` (prior 07-12Z/07-14Z captures remain). AgentReport updated at `docs/AgentReports/Sprint03-Task43.md`. Next: diagnose why Printful picker is exposing non-catalog variants and not rendering the supported set (632/631/642/641/712/711/710); rerun once fixed to unlock CTA.
+- **Task43 live smoke (2025-12-09):** `npm run build` passed, deployed `snapcase-nb0bhjauq-snapcase.vercel.app` and aliased `dev.snapcase.ai`. Live `/design` loads the Printful embed but CTA stays locked because Printful reports `designValid=false` (“Please add a design!”). Captures: `Images/diagnostics/task43-design-{desktop,mobile}-2025-12-09T00-25-44-907Z.png`, `Images/diagnostics/task43-edm-live-2025-12-09T00-25-44-907Z.json`. Console logs include Segment CSP warnings (blocked `cdn.segment.com`). AgentReport updated at `docs/AgentReports/Sprint03-Task43.md`. Next: seed a design/interaction that flips `designValid` to true and re-run to capture unlocked CTA; optionally relax CSP for Analytics.js v2 if desired.
 - (None noted for Task42; monitor Printful live-token runs post-mask.)
 
 - **Printful EDM Access (2025-11-04 update)**: `ensureEdmScript()` now loads `embed.js` as a plain `<script>` (no `crossOrigin`) with a 15s watchdog so diagnostics capture script failures, and create-mode always passes Printful�s SUBLIMATION technique + a fallback reboot when PF returns `Template not found`. `npm run vercel-build` (Nov 4 @ 19:14Z) succeeded aside from pre-existing lint warnings, `vercel deploy --yes` published preview `https://snapcase-fbtuk9oqr-snapcase.vercel.app`, and `"/mnt/c/Program Files/nodejs/node.exe" scripts/collect-edm-diagnostics.js` logged the healthy session (`Images/diagnostics/edm-diagnostics-2025-11-04T19-17-46-144Z.png`) showing `setProductOK` / `designerLoadedOK`. **Update 2025-11-10:** EDM saves now hit `/api/edm/templates`, which caches the template ID server-side so `/api/checkout` + `/api/order/create` can trust server tokens; next diagnostics will focus on keeping Printful�s allowlist + dev alias in sync.

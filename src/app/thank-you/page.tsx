@@ -133,6 +133,22 @@ function ThankYouScreen(): JSX.Element {
               typeof parsed.designFileUrl === "string"
                 ? parsed.designFileUrl
                 : null,
+            unitPriceCents:
+              typeof parsed.unitPriceCents === "number"
+                ? parsed.unitPriceCents
+                : null,
+            unitPriceCurrency:
+              typeof parsed.unitPriceCurrency === "string"
+                ? parsed.unitPriceCurrency
+                : null,
+            pricingSource:
+              typeof parsed.pricingSource === "string"
+                ? parsed.pricingSource
+                : null,
+            printfulProductId:
+              typeof parsed.printfulProductId === "number"
+                ? parsed.printfulProductId
+                : null,
           };
 
           const restored = saveDesignContext(sanitized);

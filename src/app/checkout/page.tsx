@@ -88,6 +88,10 @@ const encodeDesignHandoff = (
     designFileUrl: context.designFileUrl ?? null,
     exportedImage: context.exportedImage ?? null,
     variantLabel: context.variantLabel ?? null,
+    unitPriceCents: context.unitPriceCents ?? null,
+    unitPriceCurrency: context.unitPriceCurrency ?? null,
+    pricingSource: context.pricingSource ?? null,
+    printfulProductId: context.printfulProductId ?? null,
   };
 
   try {
@@ -108,30 +112,15 @@ const formatCurrency = (
   }).format(value);
 };
 
-const getVariantAdjustment = (variantId: number | null): number => {
-  if (variantId == null) {
-    return 0;
-  }
-  const numericVariant = Number(variantId);
-  if (!Number.isFinite(numericVariant)) {
-    return 0;
-  }
-  const map = Math.abs(numericVariant) % 3;
-  if (map === 1) {
-    return 2;
-  }
-  if (map === 2) {
-    return 4;
-  }
-  return 0;
-};
-
 const calculatePricingSnapshot = (
   context: DesignContext | null,
   shippingOption: ShippingOption,
 ): PricingSnapshot => {
-  const variantAdjustment = getVariantAdjustment(context?.variantId ?? null);
-  const basePrice = CHECKOUT_BASE_PRICE + variantAdjustment;
+  const unitPriceCents =
+    context?.unitPriceCents != null
+      ? context.unitPriceCents
+      : Math.round(CHECKOUT_BASE_PRICE * 100);
+  const basePrice = unitPriceCents / 100;
   const subtotal = Number(
     (basePrice * CHECKOUT_QUANTITY).toFixed(2),
   );
@@ -139,6 +128,10 @@ const calculatePricingSnapshot = (
   const taxBase = subtotal + shipping;
   const tax = Number((taxBase * CHECKOUT_TAX_RATE).toFixed(2));
   const total = Number((subtotal + shipping + tax).toFixed(2));
+  const currency =
+    (context?.unitPriceCurrency &&
+      context.unitPriceCurrency.toUpperCase()) ||
+    "USD";
 
   return {
     quantity: CHECKOUT_QUANTITY,
@@ -146,7 +139,7 @@ const calculatePricingSnapshot = (
     shipping,
     tax,
     total,
-    currency: "USD",
+    currency,
   };
 };
 
@@ -411,7 +404,12 @@ export default function CheckoutPage(): JSX.Element {
           designImage: contextForRequest.exportedImage ?? undefined,
           quantity: 1,
           shippingOption,
-          pricing: pricingSnapshot,
+          pricing: {
+            ...pricingSnapshot,
+            source: contextForRequest.pricingSource ?? "printful",
+          },
+          unitPriceCents: Math.round(pricingSnapshot.subtotal * 100),
+          currency: pricingSnapshot.currency,
           ...(handoffToken ? { handoffToken } : {}),
         }),
       });

@@ -9,6 +9,10 @@ export type DesignContext = {
   designFileUrl: string | null;
   variantLabel?: string | null;
   lastCheckoutAttemptAt: number | null;
+  unitPriceCents: number | null;
+  unitPriceCurrency: string | null;
+  pricingSource: string | null;
+  printfulProductId?: number | null;
   timestamp: number;
 };
 
@@ -26,6 +30,10 @@ function createEmptyContext(): DesignContext {
     designFileUrl: null,
     variantLabel: null,
     lastCheckoutAttemptAt: null,
+    unitPriceCents: null,
+    unitPriceCurrency: null,
+    pricingSource: null,
+    printfulProductId: null,
     timestamp: Date.now(),
   };
 }
@@ -101,6 +109,10 @@ export function loadDesignContext(): DesignContext | null {
       designFileUrl: parsed.designFileUrl ?? null,
       variantLabel: parsed.variantLabel ?? null,
       lastCheckoutAttemptAt: parsed.lastCheckoutAttemptAt ?? null,
+      unitPriceCents: parsed.unitPriceCents ?? null,
+      unitPriceCurrency: parsed.unitPriceCurrency ?? null,
+      pricingSource: parsed.pricingSource ?? null,
+      printfulProductId: parsed.printfulProductId ?? null,
       timestamp: parsed.timestamp ?? Date.now(),
     };
   } catch (error) {

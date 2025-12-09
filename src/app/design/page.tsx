@@ -13,8 +13,10 @@ import {
 import {
   EdmEditor,
   type EdmGuardrailSnapshot,
+  type PrintfulPricingDetails,
 } from "@/components/editor/edm-editor";
 import { type DeviceCatalogEntry, getDeviceCatalog } from "@/data/catalog";
+import { findPrintfulCatalogEntryByVariantId } from "@/data/printful-catalog";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import {
   loadDesignContext,
@@ -39,11 +41,9 @@ type GuardrailSummary = {
 
 type DesignCtaStateId =
   | "select-device"
-  | "variant-mismatch"
   | "printful-blocked"
   | "printful-validating"
-  | "printful-ready"
-  | "unsupported-variant";
+  | "printful-ready";
 
 type DesignCtaState = {
   id: DesignCtaStateId;
@@ -56,21 +56,21 @@ type DesignCtaState = {
 const SCENE_HIGHLIGHTS = [
   {
     id: "Scene 1",
-    title: "SnapCase device lock",
+    title: "SnapCase defaults",
     description:
-      "Pick once inside SnapCase. We lock the Printful picker to your catalog variant so checkout never drifts.",
+      "We preload our recommended device, then hand control to Printful so you can pick any available finish.",
   },
   {
     id: "Scene 2",
     title: "Embedded designer",
     description:
-      "EDM handles guardrails, DPI, and template saves. We listen for its status updates inside this shell.",
+      "Printful handles guardrails, DPI, pricing, and template saves. We echo its status inside this shell.",
   },
   {
     id: "Scene 3",
     title: "Route to checkout",
     description:
-      "Once Printful clears the banner we push you into /checkout with the captured template metadata.",
+      "Once Printful clears the banner we push you into /checkout with the captured variant, price, and template.",
   },
 ] as const;
 
@@ -79,6 +79,28 @@ function formatDeviceLabel(device: DeviceCatalogEntry | null): string | null {
     return null;
   }
   return `${device.brand.toUpperCase()} - ${device.model}`;
+}
+
+function formatPrice(
+  amountCents: number | null | undefined,
+  currency: string | null | undefined = "USD",
+): string | null {
+  if (amountCents == null || Number.isNaN(amountCents)) {
+    return null;
+  }
+  const normalizedCurrency =
+    typeof currency === "string" && currency.trim().length
+      ? currency.toUpperCase()
+      : "USD";
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: normalizedCurrency,
+      minimumFractionDigits: 2,
+    }).format(amountCents / 100);
+  } catch {
+    return `$${(amountCents / 100).toFixed(2)}`;
+  }
 }
 
 export default function DesignPage(): JSX.Element {
@@ -102,6 +124,8 @@ export default function DesignPage(): JSX.Element {
     useState<EdmGuardrailSnapshot | null>(null);
   const [designSummary, setDesignSummary] = useState<DesignContext | null>(null);
   const [lastTemplateId, setLastTemplateId] = useState<string | null>(null);
+  const [pricingDetails, setPricingDetails] =
+    useState<PrintfulPricingDetails | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [didHydrateContext, setDidHydrateContext] = useState(false);
   const [designerResetToken, setDesignerResetToken] = useState(0);
@@ -173,36 +197,86 @@ export default function DesignPage(): JSX.Element {
   }, [seedDevice]);
 
   useEffect(() => {
-    if (!edmSnapshot?.selectedVariantIds?.length) {
-      return;
+    if (
+      designSummary &&
+      pricingDetails == null &&
+      designSummary.unitPriceCents != null
+    ) {
+      const normalizedSource: PrintfulPricingDetails["source"] =
+        designSummary.pricingSource === "pricing_status"
+          ? "pricing_status"
+          : designSummary.pricingSource === "catalog"
+            ? "catalog"
+            : "unknown";
+      setPricingDetails({
+        amountCents: designSummary.unitPriceCents,
+        currency: designSummary.unitPriceCurrency ?? "USD",
+        source: normalizedSource,
+        rawPayload: null,
+        updatedAt: new Date().toISOString(),
+      });
     }
-    const lockedVariantId = seedDevice?.variantId ?? null;
-    const variantFromPrintful = edmSnapshot.selectedVariantIds[0];
+  }, [designSummary, pricingDetails]);
+
+  useEffect(() => {
+    const variantFromPrintful = edmSnapshot?.selectedVariantIds?.[0];
     if (!variantFromPrintful) {
       return;
     }
-    if (lockedVariantId && variantFromPrintful !== lockedVariantId) {
-      return;
-    }
-    const entry = deviceLookup.get(variantFromPrintful) ?? null;
-    if (entry) {
+    const catalogMatch = findPrintfulCatalogEntryByVariantId(variantFromPrintful);
+    const deviceMatch = deviceLookup.get(variantFromPrintful) ?? null;
+    const derivedDevice: DeviceCatalogEntry | null =
+      deviceMatch ??
+      (catalogMatch
+        ? {
+            brand: catalogMatch.brand,
+            model: catalogMatch.model,
+            caseType: catalogMatch.caseType,
+            variantId: variantFromPrintful,
+            externalProductId: catalogMatch.externalProductId,
+            productId: catalogMatch.printfulProductId,
+          }
+        : seedDevice);
+
+    if (derivedDevice) {
       setActiveDevice((previous) =>
-        previous?.variantId === entry.variantId ? previous : entry,
+        previous?.variantId === derivedDevice.variantId ? previous : derivedDevice,
       );
     }
-    if (lastPersistedVariantRef.current === variantFromPrintful) {
+    const hasVariantChanged = lastPersistedVariantRef.current !== variantFromPrintful;
+    const nextUnitPriceCents =
+      pricingDetails?.amountCents ?? designSummary?.unitPriceCents ?? null;
+    const nextUnitPriceCurrency =
+      pricingDetails?.currency ?? designSummary?.unitPriceCurrency ?? null;
+    const nextPricingSource =
+      pricingDetails?.source ?? designSummary?.pricingSource ?? null;
+    const priceChanged =
+      pricingDetails != null &&
+      ((pricingDetails.amountCents ?? null) !== (designSummary?.unitPriceCents ?? null) ||
+        (pricingDetails.currency ?? null) !== (designSummary?.unitPriceCurrency ?? null) ||
+        (pricingDetails.source ?? null) !== (designSummary?.pricingSource ?? null));
+    if (!hasVariantChanged && !priceChanged) {
       return;
     }
     lastPersistedVariantRef.current = variantFromPrintful;
     const context = saveDesignContext({
       variantId: variantFromPrintful,
-      externalProductId: entry?.externalProductId ?? null,
-      variantLabel: formatDeviceLabel(entry ?? null),
+      externalProductId:
+        derivedDevice?.externalProductId ?? designSummary?.externalProductId ?? null,
+      variantLabel: formatDeviceLabel(derivedDevice ?? null),
+      unitPriceCents: nextUnitPriceCents,
+      unitPriceCurrency: nextUnitPriceCurrency,
+      pricingSource: nextPricingSource,
+      printfulProductId:
+        (catalogMatch?.printfulProductId ??
+          derivedDevice?.productId ??
+          designSummary?.printfulProductId ??
+          null) ?? null,
     });
     if (context) {
       setDesignSummary(context);
     }
-  }, [deviceLookup, edmSnapshot, seedDevice]);
+  }, [deviceLookup, designSummary, edmSnapshot, pricingDetails, seedDevice]);
 
   const handleDeviceSelected = useCallback(
     (entry: DeviceCatalogEntry) => {
@@ -210,6 +284,7 @@ export default function DesignPage(): JSX.Element {
       setActiveDevice(entry);
       setEdmSnapshot(null);
       setLastTemplateId(null);
+      setPricingDetails(null);
       setDesignerResetToken((token) => token + 1);
       lastPersistedVariantRef.current = entry.variantId;
       const context = saveDesignContext({
@@ -222,6 +297,10 @@ export default function DesignPage(): JSX.Element {
         exportedImage: null,
         designFileId: null,
         designFileUrl: null,
+        unitPriceCents: null,
+        unitPriceCurrency: null,
+        pricingSource: null,
+        printfulProductId: null,
       });
       if (context) {
         setDesignSummary(context);
@@ -234,16 +313,6 @@ export default function DesignPage(): JSX.Element {
     [],
   );
 
-  const handleResetDesigner = useCallback(() => {
-    setEdmSnapshot(null);
-    setLastTemplateId(null);
-    setDesignerResetToken((token) => token + 1);
-    logAnalyticsEvent("design_designer_reset", {
-      variantId: seedDevice?.variantId ?? null,
-      reason: "variant_mismatch",
-    });
-  }, [seedDevice]);
-
   const persistTemplateForVariant = useCallback(
     async (
       variantId: number,
@@ -253,6 +322,16 @@ export default function DesignPage(): JSX.Element {
       const entry = deviceLookup.get(variantId) ?? activeDevice ?? seedDevice;
       const externalProductId = entry?.externalProductId ?? null;
       const variantLabel = formatDeviceLabel(entry ?? null);
+      const priceCents =
+        pricingDetails?.amountCents ?? designSummary?.unitPriceCents ?? null;
+      const priceCurrency =
+        pricingDetails?.currency ?? designSummary?.unitPriceCurrency ?? "USD";
+      const pricingSource = pricingDetails?.source ?? designSummary?.pricingSource ?? null;
+      const printfulProductId =
+        designSummary?.printfulProductId ??
+        entry?.productId ??
+        seedDevice?.productId ??
+        null;
 
       const persistLocally = (overrides: Partial<DesignContext> = {}) => {
         const context = saveDesignContext({
@@ -263,6 +342,10 @@ export default function DesignPage(): JSX.Element {
           designFileId: null,
           designFileUrl: null,
           variantLabel,
+          unitPriceCents: priceCents,
+          unitPriceCurrency: priceCurrency,
+          pricingSource,
+          printfulProductId,
           ...overrides,
         });
         if (context) {
@@ -337,7 +420,7 @@ export default function DesignPage(): JSX.Element {
         setSeedDevice((previous) => previous ?? entry);
       }
     },
-    [activeDevice, deviceLookup, seedDevice],
+    [activeDevice, designSummary, deviceLookup, pricingDetails, seedDevice],
   );
 
   const handleTemplateSaved = useCallback(
@@ -368,7 +451,7 @@ export default function DesignPage(): JSX.Element {
 
   const helperLabel =
     formatDeviceLabel(activeDevice ?? seedDevice) ??
-    "Select your device to lock the designer";
+    "SnapCase sets defaults; Printful owns the picker";
 
   const currentVariantId =
     edmSnapshot?.selectedVariantIds?.[0] ??
@@ -376,43 +459,17 @@ export default function DesignPage(): JSX.Element {
     seedDevice?.variantId ??
     null;
 
-  const variantMismatch = Boolean(
-    seedDevice &&
-      edmSnapshot?.selectedVariantIds?.length &&
-      !edmSnapshot.selectedVariantIds.includes(seedDevice.variantId),
+  const priceLabel = formatPrice(
+    pricingDetails?.amountCents ?? designSummary?.unitPriceCents ?? null,
+    pricingDetails?.currency ?? designSummary?.unitPriceCurrency ?? undefined,
   );
 
-  const unsupportedVariantSelected = Boolean(
-    edmSnapshot?.selectedVariantIds?.length &&
-      edmSnapshot.selectedVariantIds.some(
-        (variantId) => !deviceLookup.has(variantId),
-      ),
-  );
+  const ownershipHelper =
+    priceLabel != null
+      ? `Printful owns the picker; SnapCase sets defaults. Live price ${priceLabel}.`
+      : "Printful owns the picker; SnapCase sets defaults.";
 
   const guardrailSummary = useMemo<GuardrailSummary>(() => {
-    if (!seedDevice) {
-      return {
-        tone: "neutral",
-        message: "Pick your device in SnapCase before opening the designer.",
-        source: "snapcase",
-      };
-    }
-    if (variantMismatch) {
-      return {
-        tone: "warn",
-        message:
-          "Printful reported a different device. Restart the designer to re-lock to your SnapCase pick.",
-        source: "snapcase",
-      };
-    }
-    if (unsupportedVariantSelected) {
-      return {
-        tone: "error",
-        message:
-          "This device is not in the beta catalog yet. Pick an iPhone 14-15 or Galaxy S24 inside Printful to continue.",
-        source: "system",
-      };
-    }
     if (!edmSnapshot) {
       return {
         tone: "neutral",
@@ -452,64 +509,10 @@ export default function DesignPage(): JSX.Element {
       message: "Waiting for Printful to finish validating the design.",
       source: "printful",
     };
-  }, [edmSnapshot, seedDevice, unsupportedVariantSelected, variantMismatch]);
-
-  const printfulBlocking = Boolean(
-    edmSnapshot &&
-      (edmSnapshot.designValid === false ||
-        edmSnapshot.blockingIssues.length > 0),
-  );
+  }, [edmSnapshot]);
 
   const ctaState = useMemo<DesignCtaState>(() => {
-    if (!seedDevice) {
-      return {
-        id: "select-device",
-        label: "Select your device to start",
-        helperText:
-          "SnapCase owns the picker. Choose a device to launch the designer.",
-        disabled: true,
-        source: "snapcase",
-      };
-    }
-    if (variantMismatch) {
-      return {
-        id: "variant-mismatch",
-        label: "Restart to re-lock device",
-        helperText:
-          "Printful must match your SnapCase selection. Reload the designer to continue.",
-        disabled: true,
-        source: "snapcase",
-      };
-    }
-    if (unsupportedVariantSelected) {
-      return {
-        id: "unsupported-variant",
-        label: "Select a supported device",
-        helperText:
-          "SnapCase beta currently supports iPhone 14-15 and Galaxy S24 models inside Printful.",
-        disabled: true,
-        source: "system",
-      };
-    }
-    if (!edmSnapshot) {
-      return {
-        id: "printful-validating",
-        label: "Waiting on Printful...",
-        helperText: guardrailSummary.message,
-        disabled: true,
-        source: "printful",
-      };
-    }
-    if (printfulBlocking) {
-      return {
-        id: "printful-blocked",
-        label: "Resolve the Printful banner",
-        helperText: guardrailSummary.message,
-        disabled: true,
-        source: "printful",
-      };
-    }
-    if (edmSnapshot.designValid !== true) {
+    if (!edmSnapshot || edmSnapshot.designValid !== true) {
       return {
         id: "printful-validating",
         label: "Waiting on Printful...",
@@ -521,17 +524,14 @@ export default function DesignPage(): JSX.Element {
     return {
       id: "printful-ready",
       label: "Continue to checkout",
-      helperText: guardrailSummary.message,
+      helperText: ownershipHelper,
       disabled: false,
-      source: guardrailSummary.source,
+      source: "printful",
     };
   }, [
     edmSnapshot,
-    guardrailSummary,
-    printfulBlocking,
-    seedDevice,
-    variantMismatch,
-    unsupportedVariantSelected,
+    guardrailSummary.message,
+    ownershipHelper,
   ]);
 
   useEffect(() => {
@@ -548,42 +548,38 @@ export default function DesignPage(): JSX.Element {
   }, [ctaState, currentVariantId]);
 
   const guardrailTitle = useMemo(() => {
-    if (!seedDevice) {
-      return "Select your device";
+    if (guardrailSummary.tone === "error") {
+      return "Printful requires changes";
     }
-    if (variantMismatch) {
-      return "Device mismatch detected";
+    if (guardrailSummary.tone === "warn") {
+      return "Heads up from Printful";
     }
-    if (unsupportedVariantSelected) {
-      return "Select a supported device";
+    if (guardrailSummary.tone === "success") {
+      return "Printful cleared your design";
     }
-    if (guardrailSummary.source === "printful") {
-      if (guardrailSummary.tone === "error") {
-        return "Resolve the Printful banner above";
-      }
-      if (guardrailSummary.tone === "warn") {
-        return "Heads up from Printful";
-      }
-      if (guardrailSummary.tone === "success") {
-        return "Printful approved your design";
-      }
-      return "Printful is validating";
-    }
-    return "Design status";
-  }, [guardrailSummary, unsupportedVariantSelected, variantMismatch, seedDevice]);
+    return "Printful is validating";
+  }, [guardrailSummary]);
 
   const handleContinueToCheckout = useCallback(() => {
     if (ctaState.disabled) {
       return;
     }
     const entry = activeDevice ?? seedDevice;
-    if (!entry) {
-      return;
-    }
+    const variantIdForCheckout =
+      currentVariantId ?? entry?.variantId ?? designSummary?.variantId ?? null;
     const context = markCheckoutAttempt({
-      variantId: entry.variantId,
-      externalProductId: entry.externalProductId,
-      variantLabel: formatDeviceLabel(entry) ?? undefined,
+      variantId: variantIdForCheckout,
+      externalProductId: entry?.externalProductId ?? designSummary?.externalProductId ?? null,
+      variantLabel:
+        formatDeviceLabel(entry ?? null) ?? designSummary?.variantLabel ?? undefined,
+      unitPriceCents:
+        designSummary?.unitPriceCents ?? pricingDetails?.amountCents ?? null,
+      unitPriceCurrency:
+        designSummary?.unitPriceCurrency ?? pricingDetails?.currency ?? null,
+      pricingSource:
+        designSummary?.pricingSource ?? pricingDetails?.source ?? null,
+      printfulProductId:
+        designSummary?.printfulProductId ?? entry?.productId ?? null,
     });
     if (context) {
       setDesignSummary(context);
@@ -593,6 +589,7 @@ export default function DesignPage(): JSX.Element {
 
   const checkoutVariantLabel =
     formatDeviceLabel(activeDevice ?? seedDevice) ??
+    designSummary?.variantLabel ??
     "Pick a supported device in SnapCase";
 
   const templateSummaryLabel = lastTemplateId
@@ -627,12 +624,12 @@ export default function DesignPage(): JSX.Element {
             </div>
             <div className="space-y-3">
               <h1 className="text-3xl font-semibold text-gray-900">
-                SnapCase owns the picker. Printful stays locked to your choice.
+                Printful owns the picker; SnapCase sets defaults.
               </h1>
               <p className="text-base text-gray-600">
-                Pick your device once in SnapCase. We preload Printful with that variant, hide its
-                picker chrome, and keep template + pricing telemetry in sync so the Scene 3 checkout
-                route stays accurate without Fabric-era rails.
+                SnapCase preloads a recommended device, then Printful drives selection, guardrails,
+                and pricing. We sync whatever you choose straight into checkout with the live
+                template data.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -659,15 +656,15 @@ export default function DesignPage(): JSX.Element {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="space-y-1">
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Scene 1 / SnapCase picker
+                      Scene 1 / SnapCase defaults
                     </p>
                     <p className="text-sm text-gray-700">
-                      SnapCase locks the Printful designer to the device you pick here. We hide the
-                      Printful picker row and keep it read-only behind the scenes.
+                      SnapCase suggests a starting device, then Printful takes over variant and
+                      finish selection inside the designer.
                     </p>
                   </div>
                   <span className="rounded-full border border-gray-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
-                    Single selection
+                    Printful managed
                   </span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -719,8 +716,8 @@ export default function DesignPage(): JSX.Element {
                   {helperLabel}
                 </span>
                 <p className="text-sm text-gray-600">
-                  SnapCase preloads your pick into Printful and suppresses their picker row. Change
-                  devices above; we mirror the locked variant once the designer confirms it.
+                  SnapCase preloads your pick into Printful and lets you adjust inside their picker.
+                  Change devices above; we mirror whatever Printful reports.
                 </p>
               </div>
 
@@ -733,6 +730,7 @@ export default function DesignPage(): JSX.Element {
                     onTemplateSaved={handleTemplateSaved}
                     onTemplateHydrated={handleTemplateHydrated}
                     onDesignStatusChange={setEdmSnapshot}
+                    onPricingChange={setPricingDetails}
                   />
                 ) : (
                   <div className="rounded-2xl border border-gray-200 bg-gray-50 p-8 text-center text-sm text-gray-600">
@@ -769,17 +767,6 @@ export default function DesignPage(): JSX.Element {
                 <p className="text-xs text-gray-500" data-testid="guardrail-footnote">
                   {ctaState.helperText}
                 </p>
-                {variantMismatch ? (
-                  <div className="pt-2">
-                    <button
-                      type="button"
-                      onClick={handleResetDesigner}
-                      className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-gray-900 transition hover:border-gray-400"
-                    >
-                      Restart designer
-                    </button>
-                  </div>
-                ) : null}
               </div>
             </section>
 
@@ -790,7 +777,7 @@ export default function DesignPage(): JSX.Element {
                 </p>
                 <p className="text-sm text-gray-600">
                   Once Printful clears the banner, Continue unlocks and routes you to /checkout with
-                  your variant and template preserved.
+                  your variant, price, and template preserved.
                 </p>
               </div>
 
@@ -801,6 +788,14 @@ export default function DesignPage(): JSX.Element {
                   </dt>
                   <dd className="text-right text-base font-semibold text-gray-900">
                     {checkoutVariantLabel}
+                  </dd>
+                </div>
+                <div className="flex items-start justify-between gap-3">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Printful price
+                  </dt>
+                  <dd className="text-right text-base font-semibold text-gray-900">
+                    {priceLabel ?? "Waiting on Printful"}
                   </dd>
                 </div>
                 <div className="flex items-start justify-between gap-3">

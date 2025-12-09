@@ -1,32 +1,43 @@
 # Sprint03-Task43 - Live masked `/design` smoke (Printful)
 
-**Date:** 2025-12-08  
+**Date:** 2025-12-09  
 **Owner:** Codex (AI)  
 **Scope:** Run a live Printful session against masked `/design` to ensure the overlay + SnapCase-first copy do not break the embedded designer; capture diagnostics/screenshots.
 
 ## What happened
-- Initial live smoke (2025-11-23T05:13Z): Loaded `/design` on `https://dev.snapcase.ai` (desktop + iPhone 14 Pro emulation). Printful iframe rendered with live nonces; CTA stayed locked on "Select a supported device" because no variant selection was completed. Guardrail cards stayed null in diagnostics.
-- Rerun live smoke with explicit variant selection (2025-11-23T07:12Z & 07:14Z): Pre-seeded SnapCase with iPhone 15 Pro and attempted to click supported variants (iPhone 15/14, Galaxy S24 family) inside the masked Printful picker. Printful acknowledged `setStyleOK/setFeatureConfigOK/setProductOK` but emitted `design_status` payloads with large `selectedVariantIds` lists outside our catalog plus error `Please add a design!`. Guardrail copy surfaced "This device is not in the beta catalog yet" and the CTA remained disabled ("Select a supported device") on both desktop and mobile.
-- Rerun with longer waits (2025-12-08T17:52Z): Updated `tmp/task43-capture.js` (120s timeouts, longer pauses). Live `/design` still reports `design_status` with non-catalog `selectedVariantIds` (starts `[16888, 16890, 16892, 16894, 16898, ...]`), no supported-variant buttons were found (`button-not-found`), and the CTA stayed disabled.
+- 2025-12-09: Rehydrated the Printful catalog/config/template registry helpers into the branch, rebuilt successfully, and deployed `snapcase-nb0bhjauq-snapcase.vercel.app` (aliased to `https://dev.snapcase.ai`). Live smoke now loads the Printful embed but keeps the CTA locked with the Printful guardrail message “Please add a design!” (designValid=false); captured desktop/mobile screenshots and diagnostics JSON plus console logs (Segment CSP warnings, Printful status events).
+- 2025-12-08: Fixed the `/design` max-update-depth loop by only persisting design context when variant/pricing change, moved EDM callbacks to stable refs, and let `/api/checkout` fall back to `templateId` when `templateStoreId` cache entries are missing. CTA gating now mirrors Printful `designValid` only while carrying variant/pricing/template into checkout/order.
+- 2025-12-08: `npm run build` and `npx playwright test tests/e2e/design-to-checkout.spec.ts` (via `scripts/run-playwright-server.mjs`) pass; new e2e captures land under the `23-04-14-215Z` timestamp set.
+- 2025-12-08 live dev smoke (`https://dev.snapcase.ai/design`): Dev alias still serves the legacy build. Even after injecting test-hook design/pricing/template events, the guardrail shows the unsupported-variant copy and the CTA stays locked. Captured desktop/mobile screenshots plus diagnostics JSON for the legacy state.
 
 ## Artifacts
-- Desktop screenshot (initial): `Images/diagnostics/task43-design-desktop-2025-11-23T05-13-27-262Z.png`
-- Mobile screenshot (initial): `Images/diagnostics/task43-design-mobile-2025-11-23T05-13-27-262Z.png`
-- Diagnostics JSON (initial): `Images/diagnostics/task43-edm-live-2025-11-23T05-13-27-262Z.json`
-- Desktop screenshot (rerun 1): `Images/diagnostics/task43-design-desktop-2025-11-23T07-12-41-975Z.png`
-- Mobile screenshot (rerun 1): `Images/diagnostics/task43-design-mobile-2025-11-23T07-12-41-975Z.png`
-- Diagnostics JSON (rerun 1): `Images/diagnostics/task43-edm-live-2025-11-23T07-12-41-975Z.json`
-- Desktop screenshot (rerun 2): `Images/diagnostics/task43-design-desktop-2025-11-23T07-14-48-942Z.png`
-- Mobile screenshot (rerun 2): `Images/diagnostics/task43-design-mobile-2025-11-23T07-14-48-942Z.png`
-- Diagnostics JSON (rerun 2): `Images/diagnostics/task43-edm-live-2025-11-23T07-14-48-942Z.json`
-- Desktop screenshot (rerun 3): `Images/diagnostics/task43-design-desktop-2025-12-08T17-52-14-609Z.png`
-- Mobile screenshot (rerun 3): `Images/diagnostics/task43-design-mobile-2025-12-08T17-52-14-609Z.png`
-- Diagnostics JSON (rerun 3): `Images/diagnostics/task43-edm-live-2025-12-08T17-52-14-609Z.json`
+- Live dev (2025-12-09 redeploy: `https://snapcase-nb0bhjauq-snapcase.vercel.app` via `dev.snapcase.ai`; CTA locked on Printful “Please add a design!”):
+  - `Images/diagnostics/task43-design-desktop-2025-12-09T00-25-44-907Z.png`
+  - `Images/diagnostics/task43-design-mobile-2025-12-09T00-25-44-907Z.png`
+  - `Images/diagnostics/task43-edm-live-2025-12-09T00-25-44-907Z.json`
+- Live dev (legacy build still locked):
+  - `Images/diagnostics/task43-design-desktop-2025-12-08T23-15-05-385Z.png`
+  - `Images/diagnostics/task43-design-mobile-2025-12-08T23-15-05-385Z.png`
+  - `Images/diagnostics/task43-edm-live-2025-12-08T23-15-05-385Z.json`
+- Latest e2e pass (guardrail/checkout/thank-you):
+  - `Images/diagnostics/design-messaging-2025-12-08T23-04-14-215Z.png`
+  - `Images/diagnostics/design-messaging-mobile-2025-12-08T23-04-14-215Z.png`
+  - `Images/diagnostics/checkout-cancel-banner-2025-12-08T23-04-14-215Z.png`
+  - `Images/diagnostics/checkout-desktop-review-2025-12-08T23-04-14-215Z.png`
+  - `Images/diagnostics/checkout-mobile-review-2025-12-08T23-04-14-215Z.png`
+  - `Images/diagnostics/thank-you-desktop-2025-12-08T23-04-14-215Z.png`
+  - `Images/diagnostics/thank-you-mobile-2025-12-08T23-04-14-215Z.png`
+- Prior live runs (CTA locked on non-catalog variants):
+  - `Images/diagnostics/task43-design-desktop-2025-12-08T17-52-14-609Z.png`
+  - `Images/diagnostics/task43-design-mobile-2025-12-08T17-52-14-609Z.png`
+  - `Images/diagnostics/task43-edm-live-2025-12-08T17-52-14-609Z.json`
+  - Earlier 07-12Z/07-14Z/05-13Z captures remain in the diagnostics folder for reference.
 
 ## Verification
-- Manual Playwright harness (`tmp/task43-capture.js`) in headless Chromium against live `/design`; no automated Jest/Playwright test suite executed.
-- PostMessage capture shows Printful config acknowledgments followed by `design_status` events that include non-catalog `selectedVariantIds` and blocking error `Please add a design!`, leaving CTA disabled. Latest run still lacks supported-variant buttons in the Printful frame.
+- `npm run build`
+- Playwright e2e remained green from the 2025-12-08 run; not re-run during this smoke.
+- Live dev snapshot shows CTA locked on the latest deployment because the Printful embed reports `designValid=false` (“Please add a design!”) even after the iframe loads.
 
 ## Notes / next steps
-- Investigate why live `design_status` events report unsupported variant IDs despite SnapCase mask; ensure Printful picker is constrained to catalog variants (632/631/642/641/712/711/710) and emits a single supported ID so CTA can unlock.
-- Once variant lock works in live mode, rerun to capture "Printful-ready" CTA state plus new screenshots/diagnostics, then update `PROGRESS.md` and ensure the task branch `task/Sprint03-Task43-edm-live-smoke` is clean.
+- Resolve why the Printful embed is not returning `designValid=true`/a saved template (likely needs a seeded design or picker interaction); re-run smoke to capture an unlocked CTA with real Printful telemetry.
+- Segment CSP is blocking `cdn.segment.com` in the live capture; confirm CSP allows loading Analytics.js v2 or intentionally disable if not needed for smoke.
