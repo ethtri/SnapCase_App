@@ -1,17 +1,16 @@
 # Sprint03-Task44 - Printful webhook hardening
 
 ## Summary
-- Added a Printful webhook receiver that validates `X-PF-Signature`/`X-Printful-Signature` with HMAC-SHA256 when `PRINTFUL_WEBHOOK_SECRET` is set and documents the explicit fallback when it is not.
-- Incoming payloads now resolve an event id (header value, payload id, or body hash), skip duplicates, and archive JSON with timestamps/headers under `PRINTFUL_WEBHOOK_ARCHIVE_DIR` (default `Images/diagnostics`).
-- New Jest coverage exercises signature enforcement, idempotent archival, and the unverified fallback path; stored a local diagnostic payload for reference.
+- Re-ran the webhook integration suite to confirm HMAC signature enforcement and event-idempotent archiving remain intact (no code changes needed).
+- Confirmed `PRINTFUL_STORE_ID="17088301"` is present in `.env.preview`/`.env.production`; no `PRINTFUL_WEBHOOK_SECRET` or `PRINTFUL_WEBHOOK_ARCHIVE_DIR` is configured yet (handler currently falls back to `Images/diagnostics`), so recommend `PRINTFUL_WEBHOOK_ARCHIVE_DIR=Images/diagnostics/printful`.
+- Printful dashboard access was unavailable; dev/prod webhook registration and secret rotation for the Snapcase store remain pending.
 
 ## Verification
 - `npx --yes jest --runInBand tests/integration/printful-webhook-route.test.ts` (pass).
-- Manual handler invocation captured `Images/diagnostics/printful-webhook-2025-11-23T22-37-57-192Z-evt_local_capture.json`.
 
 ## Webhook registrations
-- `.env.preview`/`.env.production` list `PRINTFUL_STORE_ID=17088301` but no `PRINTFUL_WEBHOOK_SECRET`.
-- Printful dashboard access/verification was not available; dev/prod webhook endpoint and signing secret still need confirmation/rotation for store `17088301`.
+- `.env.preview` and `.env.production` list `PRINTFUL_STORE_ID=17088301`; neither defines `PRINTFUL_WEBHOOK_SECRET` nor `PRINTFUL_WEBHOOK_ARCHIVE_DIR` (handler default is `Images/diagnostics`).
+- No Printful dashboard access in this session; need owner to confirm dev/prod endpoints are scoped to store `17088301`, set `PRINTFUL_WEBHOOK_SECRET`, and point archives at `Images/diagnostics/printful`.
 
 ## Artifacts
 - `Images/diagnostics/printful-webhook-2025-11-23T22-37-57-192Z-evt_local_capture.json`

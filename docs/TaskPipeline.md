@@ -18,12 +18,9 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Goal (Sponsor Language) | Prep & References | Agent Kickoff |
 | --- | --- | --- | --- |
-<<<<<<< HEAD
-| Sprint03-Task44 | Harden Printful webhooks: add signature verification (if available), idempotent payload storage, and tests; confirm dev/prod registrations are correct. **DoD:** (1) `src/app/api/webhooks/printful/route.ts` enforces signature or documented fallback; (2) payloads persisted/archived with ids/timestamps; (3) integration/unit test added; (4) dev + prod webhook registrations verified/captured; (5) AgentReport + `PROGRESS.md` updated; (6) tree clean. | `src/app/api/webhooks/printful/route.ts`, `docs/AgentReports/Sprint03-Task36.md`, `Images/diagnostics/printful-webhook-*.json`, Printful dashboard webhook settings. Branch `task/Sprint03-Task44-webhook-hardening`. | “Run Sprint03-Task44 using docs/TaskPipeline.md instructions.” |
-=======
-| Sprint03-Task43 | Smoke-test the masked-picker `/design` in a live Printful session to ensure the overlay and SnapCase-first copy don’t break real embeds; capture diagnostics/screenshots. **DoD:** (1) Live `/design` load with real Printful token succeeds; (2) screenshots + diagnostics JSON saved to `Images/diagnostics/` with paths in AgentReport; (3) no regression to variant lock or guardrail messaging; (4) AgentReport + `PROGRESS.md` updated; (5) tree clean. | `src/app/design/page.tsx`, `src/components/editor/edm-editor.tsx`, `src/components/editor/printful-config.ts`, `scripts/collect-edm-diagnostics.js`, existing masked-picker screenshots. Branch `task/Sprint03-Task43-edm-live-smoke`. | “Run Sprint03-Task43 using docs/TaskPipeline.md instructions.” |
->>>>>>> e756dff (Task44: add Printful webhook handler and docs)
-| Sprint03-Task45 | Refresh sponsor-ready captures with a real design (no “Please add a design!” guardrail), updating docs and Segment evidence. **DoD:** (1) New desktop+mobile screenshots for design/checkout/thank-you with a valid design saved to `Images/diagnostics/`; (2) Segment debugger evidence saved; (3) `docs/UserTesting/Sprint02_Sponsor_Script.md` + AgentReport + `PROGRESS.md` updated; (4) tree clean. | `docs/UserTesting/Sprint02_Sponsor_Script.md`, `Images/diagnostics/`, `tests/e2e/design-to-checkout.spec.ts`, `docs/Responsive_Blueprint.md`. Branch `task/Sprint03-Task45-sponsor-refresh`. | “Run Sprint03-Task45 using docs/TaskPipeline.md instructions.” |
+| Sprint03-Task43 | Smoke-test the masked-picker `/design` in a live Printful session to ensure the overlay and SnapCase-first copy don't break real embeds; capture diagnostics/screenshots. **DoD:** (1) Live `/design` load with real Printful token succeeds; (2) screenshots + diagnostics JSON saved to `Images/diagnostics/` with paths in AgentReport; (3) no regression to variant lock or guardrail messaging; (4) AgentReport + `PROGRESS.md` updated; (5) tree clean. | `src/app/design/page.tsx`, `src/components/editor/edm-editor.tsx`, `src/components/editor/printful-config.ts`, `scripts/collect-edm-diagnostics.js`, existing masked-picker screenshots. Branch `task/Sprint03-Task43-edm-live-smoke`. | "Run Sprint03-Task43 using docs/TaskPipeline.md instructions." |
+| Sprint03-Task45 | Refresh sponsor-ready captures with a real design (no "Please add a design!" guardrail), updating docs and Segment evidence. **DoD:** (1) New desktop+mobile screenshots for design/checkout/thank-you with a valid design saved to `Images/diagnostics/`; (2) Segment debugger evidence saved; (3) `docs/UserTesting/Sprint02_Sponsor_Script.md` + AgentReport + `PROGRESS.md` updated; (4) tree clean. | `docs/UserTesting/Sprint02_Sponsor_Script.md`, `Images/diagnostics/`, `tests/e2e/design-to-checkout.spec.ts`, `docs/Responsive_Blueprint.md`. Branch `task/Sprint03-Task45-sponsor-refresh`. | "Run Sprint03-Task45 using docs/TaskPipeline.md instructions." |
+| Sprint03-TaskXX-variant-lock | Disable the Printful variant picker per EDM recommendations: set `isVariantSelectionDisabled=true` and `lockVariant=true`, update helper text to "Device locked to your selection. Change in Step 1 above.", verify in dev, capture evidence, and update docs. **DoD:** (1) Config flags shipped per `docs/EDM_VARIANT_SELECTION_SOLUTION.md`, `docs/EDM_FEASIBILITY_CONFIRMATION.md`, `docs/UX_RECOMMENDATIONS_EDM_CASE_SELECTION.md`; (2) helper copy adjusted; (3) dev verification + artifacts saved; (4) AgentReport + `PROGRESS.md` updated; (5) tree clean. | `docs/EDM_VARIANT_SELECTION_SOLUTION.md`, `docs/EDM_FEASIBILITY_CONFIRMATION.md`, `docs/UX_RECOMMENDATIONS_EDM_CASE_SELECTION.md`, `src/components/editor/printful-config.ts`, `/design` UX helpers. Branch `task/Sprint03-TaskXX-variant-lock`. | "Run Sprint03-TaskXX-variant-lock using docs/TaskPipeline.md instructions." |
 
 > These prompts are ready to run in parallel; each owns its branch and AgentReport. Keep sponsor updated via `PROGRESS.md`.
 
@@ -31,15 +28,15 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Status | Notes |
 | --- | --- | --- |
-| Sprint03-Task29 | Blocked | Hold until Tasks 31–34 land; sponsor walkthrough requires a complete Design + Checkout flow. |
-| Sprint03-Task30 | Blocked | Resume once `/design` stops using the Fabric layout so downstream polish isn’t wasted. |
+| Sprint03-Task29 | Blocked | Hold until Tasks 31-34 land; sponsor walkthrough requires a complete Design + Checkout flow. |
+| Sprint03-Task30 | Blocked | Resume once `/design` stops using the Fabric layout so downstream polish isn't wasted. |
 
-> **Sponsor shortcut:** Just tell Codex “Please run Sprint02-Task15 and Sprint02-Task22B in parallel.” The agents already know to open this file for the detailed plan.
+> **Sponsor shortcut:** Just tell Codex "Please run Sprint02-Task15 and Sprint02-Task22B in parallel." The agents already know to open this file for the detailed plan.
 
 ## Archive
+
 | Task ID | Status | Notes |
 | --- | --- | --- |
-| Sprint03-Task43 | DONE (desktop unlock only) | Manual live upload unlocked CTA and reached checkout (`task43-design-desktop-2025-12-09T20-08-25-user.png`, `task43-checkout-desktop-2025-12-09T20-08-25-user.png`). Automated runs remain locked (`designValid=false`); sponsor approved deferring mobile/unlocked JSON to later full E2E. Branch `task/Sprint03-Task43-edm-live-smoke` deployed to `dev.snapcase.ai` -> `snapcase-nb0bhjauq-snapcase.vercel.app`. |
 | Sprint02-Task15 | DONE | Lockfile regenerated on WSL; see `docs/AgentReports/Sprint02-Task15.md`. |
 | Sprint02-Task16 | DONE | New slug deployed + diagnostics captured; see `docs/AgentReports/Sprint02-Task16.md`. |
 | Sprint02-Task22B | DONE | Production Segment vars promoted; see `docs/AgentReports/Sprint02-Task22B.md`. |
