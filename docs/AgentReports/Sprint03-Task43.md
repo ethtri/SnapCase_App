@@ -18,6 +18,7 @@
   - `Images/diagnostics/task43-edm-live-2025-12-09T01-41-41-880Z.json` (actions include PNG upload; Printful designStatus: `designValid=false`, errors `["Please add a design!"]`, `selectedVariantIds` length 27; PFUploader init errors + Segment CSP warnings)
 - Live dev manual evidence (user upload in real browser):
   - `Images/diagnostics/task43-design-desktop-2025-12-09T20-08-25-user.png` (user-reported: image upload succeeded and rendering looks correct; CTA state not captured in this asset)
+  - `Images/diagnostics/task43-checkout-desktop-2025-12-09T20-08-25-user.png` (user walked through to checkout with variant 16888 / SNAP_IP15PRO_SNAP; CTA unlocked in browser, price $34.99 + $4.99 shipping)
 - Live dev (2025-12-09 redeploy: `https://snapcase-nb0bhjauq-snapcase.vercel.app` via `dev.snapcase.ai`; CTA locked on Printful “Please add a design!”):
   - `Images/diagnostics/task43-design-desktop-2025-12-09T00-25-44-907Z.png`
   - `Images/diagnostics/task43-design-mobile-2025-12-09T00-25-44-907Z.png`
@@ -43,7 +44,7 @@
 ## Verification
 - `npm run build`
 - Playwright e2e remained green from the 2025-12-08 run; not re-run during this smoke.
-- Live dev snapshots (including the live upload attempt) show CTA locked on the latest deployment because the Printful embed reports `designValid=false` with the guardrail “Please add a design!” and non-catalog `selectedVariantIds`, even after uploading a PNG into the embed.
+- Live dev snapshots (including the Playwright upload attempt) show CTA locked with `designValid=false`, but manual browser run (user) successfully placed a design and reached checkout with CTA unlocked; still need reproducible automated evidence and pricing/template capture from the designer.
 
 ## Notes / next steps
 - Diagnose why Printful returns `designValid=false` after uploads (PFUploader init errors, 27 non-catalog variants) and how to force a valid placement/template save; re-run once a design can be placed so CTA unlocks.
