@@ -16,6 +16,8 @@
   - `Images/diagnostics/task43-design-desktop-2025-12-09T01-41-41-880Z.png`
   - `Images/diagnostics/task43-design-mobile-2025-12-09T01-41-41-880Z.png`
   - `Images/diagnostics/task43-edm-live-2025-12-09T01-41-41-880Z.json` (actions include PNG upload; Printful designStatus: `designValid=false`, errors `["Please add a design!"]`, `selectedVariantIds` length 27; PFUploader init errors + Segment CSP warnings)
+- Live dev manual evidence (user upload in real browser):
+  - `Images/diagnostics/task43-design-desktop-2025-12-09T20-08-25-user.png` (user-reported: image upload succeeded and rendering looks correct; CTA state not captured in this asset)
 - Live dev (2025-12-09 redeploy: `https://snapcase-nb0bhjauq-snapcase.vercel.app` via `dev.snapcase.ai`; CTA locked on Printful “Please add a design!”):
   - `Images/diagnostics/task43-design-desktop-2025-12-09T00-25-44-907Z.png`
   - `Images/diagnostics/task43-design-mobile-2025-12-09T00-25-44-907Z.png`
