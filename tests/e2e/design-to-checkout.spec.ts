@@ -257,7 +257,7 @@ test("design guardrails enforce block/warn flows and checkout cancel/resume", as
   });
   await page.waitForTimeout(50);
 
-  await expect(guardrailTitle).toHaveText("Resolve the Printful banner above");
+  await expect(guardrailTitle).toHaveText("Printful requires changes");
   await expect(guardrailDescription).toContainText("Mock Printful blocking issue");
   await expect(guardrailFootnote).toContainText("Printful");
   await expect(continueButton).toBeDisabled();
@@ -289,9 +289,9 @@ test("design guardrails enforce block/warn flows and checkout cancel/resume", as
     });
   });
   await page.waitForTimeout(50);
-  await expect(guardrailTitle).toHaveText("Printful approved your design");
+  await expect(guardrailTitle).toHaveText("Printful cleared your design");
   await expect(guardrailDescription).toContainText("Printful approved this design");
-  await expect(guardrailFootnote).toContainText("Printful");
+  await expect(guardrailFootnote).toContainText("Printful owns the picker");
   await expect(continueButton).toBeEnabled();
 
   await page.evaluate(() => {

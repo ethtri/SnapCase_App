@@ -12,7 +12,7 @@ const stripeClient = stripeSecretKey
   : null;
 
 const MAX_BODY_SIZE_BYTES = 50_000; // 50 KB is plenty for metadata payloads.
-const DEFAULT_UNIT_AMOUNT_CENTS = 3_499; // TODO: Replace with real pricing lookup per variant.
+const DEFAULT_UNIT_AMOUNT_CENTS = 3_499;
 
 const requestSchema = z
   .object({
@@ -42,6 +42,19 @@ const requestSchema = z
     handoffToken: z
       .string()
       .max(2048)
+      .optional(),
+    unitPriceCents: z.number().int().positive().optional(),
+    currency: z.string().optional(),
+    pricing: z
+      .object({
+        subtotal: z.number().optional(),
+        shipping: z.number().optional(),
+        tax: z.number().optional(),
+        total: z.number().optional(),
+        quantity: z.number().optional(),
+        currency: z.string().optional(),
+        source: z.string().optional(),
+      })
       .optional(),
   })
   .refine(
@@ -118,16 +131,10 @@ export async function POST(request: Request) {
   let templateRecord = null;
   if (payload.templateStoreId) {
     templateRecord = await getTemplateRecord(payload.templateStoreId);
-    if (!templateRecord) {
-      return NextResponse.json(
-        {
-          error:
-            "Your saved design expired. Reopen the editor to refresh the template before checking out.",
-        },
-        { status: 400 },
-      );
-    }
-    if (templateRecord.variantId !== payload.variantId) {
+    if (
+      templateRecord &&
+      templateRecord.variantId !== payload.variantId
+    ) {
       return NextResponse.json(
         {
           error:
@@ -141,6 +148,20 @@ export async function POST(request: Request) {
   const resolvedTemplateId =
     templateRecord?.templateId ?? payload.templateId ?? null;
 
+  const currency =
+    (payload.currency ??
+      payload.pricing?.currency ??
+      "usd")
+      .toString()
+      .toLowerCase();
+
+  const unitAmountCents =
+    payload.unitPriceCents ??
+    (payload.pricing?.subtotal != null
+      ? Math.max(1, Math.round(payload.pricing.subtotal * 100))
+      : null) ??
+    DEFAULT_UNIT_AMOUNT_CENTS;
+
   if (!stripeClient || !stripeSecretKey) {
     const shippingOptions = buildShippingOptions();
     return NextResponse.json(
@@ -150,6 +171,8 @@ export async function POST(request: Request) {
           "Stripe secret key missing. Returning mock checkout session for local development.",
         url: "https://dashboard.stripe.com/test/payments",
         shippingOptions,
+        unitAmountCents,
+        currency,
       },
       { status: 200 },
     );
@@ -178,12 +201,14 @@ export async function POST(request: Request) {
       line_items: [
         {
           price_data: {
-            currency: "usd",
-            unit_amount: DEFAULT_UNIT_AMOUNT_CENTS,
+            currency,
+            unit_amount: unitAmountCents,
             product_data: {
               name: "Custom phone case",
               metadata: {
                 variantId: String(payload.variantId),
+                pricingSource: payload.pricing?.source ?? "printful",
+                unitPriceCents: String(unitAmountCents),
               },
             },
           },
@@ -199,6 +224,8 @@ export async function POST(request: Request) {
         templateStoreId: payload.templateStoreId ?? "",
         hasDesignImage: payload.designImage ? "true" : "false",
         shippingOption: payload.shippingOption,
+        unitPriceCents: String(unitAmountCents),
+        currency,
       },
       shipping_options: shippingOptions.length ? shippingOptions : undefined,
       shipping_address_collection: {

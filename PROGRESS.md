@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: November 24, 2025
+**Last Updated**: December 9, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -21,7 +21,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - **Sprint03-Task43 PO Review (2025-12-08):** Decision = Alternate (conditional Go, with simplified MVP path that lets Printful own variants/pricing). See docs/AgentReports/Sprint03-Task43-PO-Review.md.
 - **Sprint03-Task43 DevReview (2025-12-31):** Dynamic Printful catalog pivot reviewed on branch `task/Sprint03-Task43-DevReview`; verdict = needs plan changes before approval. See docs/AgentReports/Sprint03-Task43-DevReview.md for risks and required adjustments.
 - **Printful webhook registration (Task44):** Dashboard verification/secret rotation blocked without Printful credentials; handler enforces signatures + store scoping but dev/prod webhook settings still need confirmation. Working tree is dirty; clean/stash before handoff.
-- **Task43 live smoke:** Dev env (`https://dev.snapcase.ai`) is up, but live reruns still return non-catalog `selectedVariantIds` + `Please add a design!`, so CTA stays locked. Latest run (2025-12-08T17:52Z) with extended timeouts also failed to find supported variant buttons. New artifacts: `Images/diagnostics/task43-design-{desktop,mobile}-2025-12-08T17-52-14-609Z.png`, `Images/diagnostics/task43-edm-live-2025-12-08T17-52-14-609Z.json` (prior 07-12Z/07-14Z captures remain). AgentReport updated at `docs/AgentReports/Sprint03-Task43.md`. Next: diagnose why Printful picker is exposing non-catalog variants and not rendering the supported set (632/631/642/641/712/711/710); rerun once fixed to unlock CTA.
+- **Task43 live smoke (2025-12-09):** `npm run build` passed, deployed `snapcase-nb0bhjauq-snapcase.vercel.app` and aliased `dev.snapcase.ai`. Automated Playwright uploads (including WebGL/GPU flags) still leave CTA locked (`designValid=false`, "Please add a design!", 27 non-catalog `selectedVariantIds`); latest captures `Images/diagnostics/task43-design-{desktop,mobile}-2025-12-09T03-36-42-931Z.png`, `Images/diagnostics/task43-edm-live-2025-12-09T03-36-42-931Z.json` (prior `01-41-41-880Z` set also locked). Manual browser upload works and CTA unlocks—see `Images/diagnostics/task43-design-desktop-2025-12-09T20-08-25-user.png` and checkout proof `Images/diagnostics/task43-checkout-desktop-2025-12-09T20-08-25-user.png` (variant 16888 / SNAP_IP15PRO_SNAP, $34.99 + $4.99 shipping). Sponsor approved closing Task43 with desktop evidence; mobile unlock + unlocked-session JSON are deferred to later full E2E. Console logs include Segment CSP warnings (expected). AgentReport updated at `docs/AgentReports/Sprint03-Task43.md`.
 - (None noted for Task42; monitor Printful live-token runs post-mask.)
 
 - **Printful EDM Access (2025-11-04 update)**: `ensureEdmScript()` now loads `embed.js` as a plain `<script>` (no `crossOrigin`) with a 15s watchdog so diagnostics capture script failures, and create-mode always passes Printful�s SUBLIMATION technique + a fallback reboot when PF returns `Template not found`. `npm run vercel-build` (Nov 4 @ 19:14Z) succeeded aside from pre-existing lint warnings, `vercel deploy --yes` published preview `https://snapcase-fbtuk9oqr-snapcase.vercel.app`, and `"/mnt/c/Program Files/nodejs/node.exe" scripts/collect-edm-diagnostics.js` logged the healthy session (`Images/diagnostics/edm-diagnostics-2025-11-04T19-17-46-144Z.png`) showing `setProductOK` / `designerLoadedOK`. **Update 2025-11-10:** EDM saves now hit `/api/edm/templates`, which caches the template ID server-side so `/api/checkout` + `/api/order/create` can trust server tokens; next diagnostics will focus on keeping Printful�s allowlist + dev alias in sync.
@@ -671,11 +671,13 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Immediate (This Week)
 
-1. Begin EDM nonce handshake spike, capturing guardrail expectations and iframe notes in `PROGRESS.md`.
+1. Implement Printful variant-selection disablement per `docs/EDM_VARIANT_SELECTION_SOLUTION.md`, aligning with feasibility + UX notes in `docs/EDM_FEASIBILITY_CONFIRMATION.md` and `docs/UX_RECOMMENDATIONS_EDM_CASE_SELECTION.md`.
 
-2. Inventory CX/UX follow-ups (Stripe button asset, animation specs, desktop mockups) and spin tickets aligned to `docs/Responsive_Blueprint.md`.
+2. Begin EDM nonce handshake spike, capturing guardrail expectations and iframe notes in `PROGRESS.md`.
 
-3. Schedule Printful sandbox order dry run and document webhook expectations ahead of Sprint 2 delivery.
+3. Inventory CX/UX follow-ups (Stripe button asset, animation specs, desktop mockups) and spin tickets aligned to `docs/Responsive_Blueprint.md`.
+
+4. Schedule Printful sandbox order dry run and document webhook expectations ahead of Sprint 2 delivery.
 
 ### Short Term (Next 2 Weeks)
 

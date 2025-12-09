@@ -1,0 +1,275 @@
+{
+  "baseUrl": "https://dev.snapcase.ai",
+  "deployment": "snapcase-nb0bhjauq-snapcase.vercel.app",
+  "alias": "dev.snapcase.ai",
+  "capturedAt": "2025-12-09T00:27:59.697Z",
+  "runs": [
+    {
+      "label": "desktop",
+      "helper": "APPLE - iPhone 15 Pro",
+      "guardrail": "Please add a design!",
+      "footnote": "Please add a design!",
+      "errorBanner": null,
+      "ctaEnabled": false,
+      "ctaText": "Waiting on Printful...",
+      "screenshot": "Images\\diagnostics\\task43-design-desktop-2025-12-09T00-25-44-907Z.png",
+      "frames": [
+        {
+          "url": "https://dev.snapcase.ai/design",
+          "name": ""
+        },
+        {
+          "url": "https://www.printful.com/embedded-designer?nonce=K1BZb1LUB4fQjYIIqlv7TarCGoGOZAxd",
+          "name": "design-maker-embed"
+        }
+      ],
+      "consoleLogs": [
+        {
+          "type": "log",
+          "text": "analytics.design_cta_state_change {state: printful-validating, variantId: 632, source: printful}"
+        },
+        {
+          "type": "error",
+          "text": "Refused to connect to 'https://cdn.segment.com/v1/projects/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/settings' because it violates the following Content Security Policy directive: \"connect-src 'self' https://api.stripe.com https://api.printful.com https://embed.printful.com https://api.segment.io https://cdn-settings.segment.com https://vercel.live wss://vercel.live\".\n"
+        },
+        {
+          "type": "error",
+          "text": "Fetch API cannot load https://cdn.segment.com/v1/projects/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/settings. Refused to connect because it violates the document's Content Security Policy."
+        },
+        {
+          "type": "error",
+          "text": "Failed to fetch"
+        },
+        {
+          "type": "error",
+          "text": "[analytics.js] Failed to load Analytics.js TypeError: Failed to fetch\n    at o (https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:23763)\n    at https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:104024\n    at https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:33689\n    at Object.next (https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:33794)\n    at https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:32710\n    at new Promise (<anonymous>)\n    at u (https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:32455)\n    at re (https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:103415)\n    at https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:105362"
+        },
+        {
+          "type": "warning",
+          "text": "Your CSP policy is missing permissions required in order to run Analytics.js 2.0 https://segment.com/docs/connections/sources/catalog/libraries/website/javascript/upgrade-to-ajs2/#using-a-strict-content-security-policy-on-the-page"
+        },
+        {
+          "type": "warning",
+          "text": "Reverting to Analytics.js 1.0"
+        },
+        {
+          "type": "log",
+          "text": "analytics.edm_variant_locked {variantId: 632, designValid: null, errorSummaries: Object, timestamp: 2025-12-09T00:25:45.890Z, lockFlags: Object}"
+        },
+        {
+          "type": "info",
+          "text": "https://www.printful.com/embedded-designer?nonce=K1BZb1LUB4fQjYIIqlv7TarCGoGOZAxd"
+        },
+        {
+          "type": "log",
+          "text": "%cHold up — be sure what you're doing here! font-size: 28px;font-weight: bold;color: #E40F0A;"
+        },
+        {
+          "type": "log",
+          "text": "%cThis browser feature is for developers. Don't enter or paste here anything that you don't understand. Doing so could lead to attackers acquiring your info or taking over your account. font-size: 16px;"
+        },
+        {
+          "type": "log",
+          "text": "%cStay safe. font-size: 16px;"
+        },
+        {
+          "type": "log",
+          "text": "messageListener iframeLoadedOK"
+        },
+        {
+          "type": "log",
+          "text": "messageListener setStyleOK"
+        },
+        {
+          "type": "log",
+          "text": "styleChanged"
+        },
+        {
+          "type": "log",
+          "text": "messageListener setFeatureConfigOK"
+        },
+        {
+          "type": "log",
+          "text": "messageListener setGenericConfigOK"
+        },
+        {
+          "type": "log",
+          "text": "messageListener setProductOK"
+        },
+        {
+          "type": "log",
+          "text": "messageListener designerLoadedOK"
+        },
+        {
+          "type": "log",
+          "text": "messageListener designStatus"
+        },
+        {
+          "type": "log",
+          "text": "analytics.printful_design_status_raw {variantId: 632, externalProductId: SNAP_IP15PRO_SNAP, payload: Object}"
+        },
+        {
+          "type": "log",
+          "text": "analytics.edm_design_status {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-09T00:25:48.147Z, guardrailMode: printful}"
+        },
+        {
+          "type": "log",
+          "text": "analytics.edm_guardrail_summary_update {variantId: 632, guardrailMode: printful, designValid: false, blockingIssues: 1, warningCount: 0}"
+        },
+        {
+          "type": "log",
+          "text": "analytics.edm_guardrail_blocked {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-09T00:25:48.147Z, blockingIssues: Array(1)}"
+        },
+        {
+          "type": "log",
+          "text": "analytics.design_cta_state_change {state: printful-validating, variantId: 16888, source: printful}"
+        }
+      ],
+      "requestFailures": []
+    },
+    {
+      "label": "mobile",
+      "helper": "APPLE - iPhone 15 Pro",
+      "guardrail": "Please add a design!",
+      "footnote": "Please add a design!",
+      "errorBanner": null,
+      "ctaEnabled": false,
+      "ctaText": "Waiting on Printful...",
+      "screenshot": "Images\\diagnostics\\task43-design-mobile-2025-12-09T00-25-44-907Z.png",
+      "frames": [
+        {
+          "url": "https://dev.snapcase.ai/design",
+          "name": ""
+        },
+        {
+          "url": "https://vercel.live/_next-live/feedback/feedback.html?dpl=dpl_Dk2jqnsce4rNZm7f3m79DsnzHz9E",
+          "name": ""
+        },
+        {
+          "url": "https://www.printful.com/embedded-designer?nonce=5c3S7rKbhKIFHsfEkv1TdtieEhJkT0bl",
+          "name": "design-maker-embed"
+        }
+      ],
+      "consoleLogs": [
+        {
+          "type": "log",
+          "text": "analytics.design_cta_state_change {state: printful-validating, variantId: 632, source: printful}"
+        },
+        {
+          "type": "error",
+          "text": "Refused to connect to 'https://cdn.segment.com/v1/projects/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/settings' because it violates the following Content Security Policy directive: \"connect-src 'self' https://api.stripe.com https://api.printful.com https://embed.printful.com https://api.segment.io https://cdn-settings.segment.com https://vercel.live wss://vercel.live\".\n"
+        },
+        {
+          "type": "error",
+          "text": "Fetch API cannot load https://cdn.segment.com/v1/projects/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/settings. Refused to connect because it violates the document's Content Security Policy."
+        },
+        {
+          "type": "error",
+          "text": "Failed to fetch"
+        },
+        {
+          "type": "error",
+          "text": "[analytics.js] Failed to load Analytics.js TypeError: Failed to fetch\n    at o (https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:23763)\n    at https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:104024\n    at https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:33689\n    at Object.next (https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:33794)\n    at https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:32710\n    at new Promise (<anonymous>)\n    at u (https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:32455)\n    at re (https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:103415)\n    at https://cdn.segment.com/analytics.js/v1/LHrkjbPPG2cQtLuIarVW38kdHbuBpAqK/analytics.min.js:1:105362"
+        },
+        {
+          "type": "warning",
+          "text": "Your CSP policy is missing permissions required in order to run Analytics.js 2.0 https://segment.com/docs/connections/sources/catalog/libraries/website/javascript/upgrade-to-ajs2/#using-a-strict-content-security-policy-on-the-page"
+        },
+        {
+          "type": "warning",
+          "text": "Reverting to Analytics.js 1.0"
+        },
+        {
+          "type": "log",
+          "text": "analytics.edm_variant_locked {variantId: 632, designValid: null, errorSummaries: Object, timestamp: 2025-12-09T00:26:53.175Z, lockFlags: Object}"
+        },
+        {
+          "type": "info",
+          "text": "https://www.printful.com/embedded-designer?nonce=5c3S7rKbhKIFHsfEkv1TdtieEhJkT0bl"
+        },
+        {
+          "type": "log",
+          "text": "%cHold up — be sure what you're doing here! font-size: 28px;font-weight: bold;color: #E40F0A;"
+        },
+        {
+          "type": "log",
+          "text": "%cThis browser feature is for developers. Don't enter or paste here anything that you don't understand. Doing so could lead to attackers acquiring your info or taking over your account. font-size: 16px;"
+        },
+        {
+          "type": "log",
+          "text": "%cStay safe. font-size: 16px;"
+        },
+        {
+          "type": "log",
+          "text": "messageListener iframeLoadedOK"
+        },
+        {
+          "type": "log",
+          "text": "messageListener setStyleOK"
+        },
+        {
+          "type": "log",
+          "text": "styleChanged"
+        },
+        {
+          "type": "log",
+          "text": "messageListener setFeatureConfigOK"
+        },
+        {
+          "type": "log",
+          "text": "messageListener setGenericConfigOK"
+        },
+        {
+          "type": "log",
+          "text": "messageListener setProductOK"
+        },
+        {
+          "type": "log",
+          "text": "messageListener designerLoadedOK"
+        },
+        {
+          "type": "log",
+          "text": "messageListener designStatus"
+        },
+        {
+          "type": "log",
+          "text": "analytics.printful_design_status_raw {variantId: 632, externalProductId: SNAP_IP15PRO_SNAP, payload: Object}"
+        },
+        {
+          "type": "log",
+          "text": "analytics.edm_design_status {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-09T00:26:55.550Z, guardrailMode: printful}"
+        },
+        {
+          "type": "log",
+          "text": "analytics.edm_guardrail_summary_update {variantId: 632, guardrailMode: printful, designValid: false, blockingIssues: 1, warningCount: 0}"
+        },
+        {
+          "type": "log",
+          "text": "analytics.edm_guardrail_blocked {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-09T00:26:55.550Z, blockingIssues: Array(1)}"
+        },
+        {
+          "type": "log",
+          "text": "analytics.design_cta_state_change {state: printful-validating, variantId: 16888, source: printful}"
+        }
+      ],
+      "requestFailures": [
+        {
+          "url": "https://dev.snapcase.ai/.well-known/vercel/jwe",
+          "method": "GET",
+          "resourceType": "fetch",
+          "failure": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        },
+        {
+          "url": "https://dev.snapcase.ai/design",
+          "method": "OPTIONS",
+          "resourceType": "fetch",
+          "failure": {
+            "errorText": "net::ERR_ABORTED"
+          }
+        }
+      ]
+    }
+  ]
+}
