@@ -49,8 +49,8 @@
 ## Verification
 - `npm run build`
 - Playwright e2e remained green from the 2025-12-08 run; not re-run during this smoke.
-- Live dev snapshots (including the Playwright upload attempts) show CTA locked with `designValid=false`; manual browser run (user) successfully placed a design and reached checkout with CTA unlocked, but we lack a diagnostics JSON from that unlocked session.
+- Live dev snapshots (including the Playwright upload attempts) show CTA locked with `designValid=false`; manual browser run (user) successfully placed a design and reached checkout with CTA unlocked. Sponsor approved skipping mobile and unlocked-session diagnostics JSON for Task43 closure (to be covered in later full E2E).
 
 ## Notes / next steps
-- Diagnose why Printful returns `designValid=false` after uploads in automation (PFUploader init errors, 27 non-catalog variants) and how to force a valid placement/template save; capture diagnostics JSON from an unlocked session to close DoD.
+- Sponsor-approved closure with desktop unlock evidence; mobile unlock and unlocked-session diagnostics JSON are deferred. If automation is required later, investigate PFUploader init errors/non-catalog variants in headless + WebGL and capture a live unlocked JSON.
 - Segment CSP is blocking `cdn.segment.com` in the live capture (expected for this host); no change unless analytics is required for validation.
