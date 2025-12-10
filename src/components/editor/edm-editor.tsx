@@ -1680,19 +1680,11 @@ export function EdmEditor({
         data-testid="edm-designer-shell"
       >
         <div
-          className="absolute left-0 top-0 z-[4] h-12 w-32"
+          className="absolute left-0 top-0 z-[3] h-16 w-36 rounded-br-3xl bg-white"
           aria-hidden="true"
           data-testid="printful-product-guard"
           title="Product tab disabled"
         />
-        <div
-          className="pointer-events-none absolute left-3 top-3 z-[3] inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700 shadow-sm ring-1 ring-gray-200/70"
-          aria-hidden="true"
-          title="Device locked"
-        >
-          <span className="h-2 w-2 rounded-full bg-gray-900" aria-hidden="true" />
-          <span>Locked</span>
-        </div>
         <div
           id={canvasId}
           ref={containerRef}
