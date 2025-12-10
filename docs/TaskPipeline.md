@@ -34,6 +34,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Status | Notes |
 | --- | --- | --- |
+| Sprint03-Task48 | DONE | Product-tab overlay hardened (clamped size/max width, border, shadow), CTA gating intact; deployed `snapcase-eopqpujyk-snapcase.vercel.app` aliased to `dev.snapcase.ai`. See `docs/AgentReports/Sprint03-Task48-overlay-hardening.md` and `Images/diagnostics/2025-12-10T175354781Z-after-*.png/json`. Known: mobile Playwright automation can fail to unlock CTA; manual upload succeeds. |
 | Sprint03-Task47 | DONE | CX refresh: Product tab guarded/hidden, mask height lowered, Flow/Scene + Printful/variant IDs removed, Snapcase voice applied. See `docs/AgentReports/Sprint03-Task47-CX-refresh.md` and `Images/diagnostics/20251210T034229Z-after-design-{desktop,mobile}.png`. |
 | Sprint03-Task45 | DONE | Sponsor refresh with Printful variant lock + relaxed checkout validation; see `docs/AgentReports/Sprint03-Task45.md` and `Images/diagnostics/20251210T012645-*`. |
 | Sprint03-TaskXX-variant-lock | DONE | Folded into Task45; variant locking shipped per `docs/EDM_VARIANT_SELECTION_SOLUTION.md`. |
