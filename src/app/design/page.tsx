@@ -53,27 +53,6 @@ type DesignCtaState = {
   source: GuardrailCopySource;
 };
 
-const SCENE_HIGHLIGHTS = [
-  {
-    id: "Scene 1",
-    title: "SnapCase defaults",
-    description:
-      "We preload our recommended device, then hand control to Printful so you can pick any available finish.",
-  },
-  {
-    id: "Scene 2",
-    title: "Embedded designer",
-    description:
-      "Printful handles guardrails, DPI, pricing, and template saves. We echo its status inside this shell.",
-  },
-  {
-    id: "Scene 3",
-    title: "Route to checkout",
-    description:
-      "Once Printful clears the banner we push you into /checkout with the captured variant, price, and template.",
-  },
-] as const;
-
 function formatDeviceLabel(device: DeviceCatalogEntry | null): string | null {
   if (!device) {
     return null;
@@ -449,9 +428,11 @@ export default function DesignPage(): JSX.Element {
     [persistTemplateForVariant],
   );
 
+  const deviceLabel = formatDeviceLabel(activeDevice ?? seedDevice);
   const helperLabel =
-    formatDeviceLabel(activeDevice ?? seedDevice) ??
-    "SnapCase sets defaults; Printful owns the picker";
+    deviceLabel != null
+      ? `Device locked: ${deviceLabel}`
+      : "Device locked to your Snapcase pick";
 
   const currentVariantId =
     edmSnapshot?.selectedVariantIds?.[0] ??
@@ -466,15 +447,14 @@ export default function DesignPage(): JSX.Element {
 
   const ownershipHelper =
     priceLabel != null
-      ? `Printful owns the picker; SnapCase sets defaults. Live price ${priceLabel}.`
-      : "Printful owns the picker; SnapCase sets defaults.";
+      ? `Designer ready. Live price ${priceLabel}.`
+      : "Designer is validating your upload.";
 
   const guardrailSummary = useMemo<GuardrailSummary>(() => {
     if (!edmSnapshot) {
       return {
         tone: "neutral",
-        message:
-          "Printful is loading the designer. Guardrails appear once it finishes.",
+        message: "Designer is loading. Checks will appear once it finishes.",
         source: "printful",
       };
     }
@@ -486,7 +466,7 @@ export default function DesignPage(): JSX.Element {
         tone: "error",
         message:
           edmSnapshot.blockingIssues[0] ??
-          "Printful is blocking this design until you resolve the banner above.",
+          "This design is blocked until you resolve the banner above.",
         source: "printful",
       };
     }
@@ -500,13 +480,13 @@ export default function DesignPage(): JSX.Element {
     if (edmSnapshot.designValid) {
       return {
         tone: "success",
-        message: "Printful approved this design. Continue when you are ready.",
+        message: "Looks good. Continue when you are ready.",
         source: "printful",
       };
     }
     return {
       tone: "neutral",
-      message: "Waiting for Printful to finish validating the design.",
+      message: "Waiting for the designer to finish validating.",
       source: "printful",
     };
   }, [edmSnapshot]);
@@ -515,7 +495,7 @@ export default function DesignPage(): JSX.Element {
     if (!edmSnapshot || edmSnapshot.designValid !== true) {
       return {
         id: "printful-validating",
-        label: "Waiting on Printful...",
+        label: "Validating design...",
         helperText: guardrailSummary.message,
         disabled: true,
         source: "printful",
@@ -549,15 +529,15 @@ export default function DesignPage(): JSX.Element {
 
   const guardrailTitle = useMemo(() => {
     if (guardrailSummary.tone === "error") {
-      return "Printful requires changes";
+      return "Needs changes";
     }
     if (guardrailSummary.tone === "warn") {
-      return "Heads up from Printful";
+      return "Heads up";
     }
     if (guardrailSummary.tone === "success") {
-      return "Printful cleared your design";
+      return "Design cleared";
     }
-    return "Printful is validating";
+    return "Design checks running";
   }, [guardrailSummary]);
 
   const handleContinueToCheckout = useCallback(() => {
@@ -594,7 +574,7 @@ export default function DesignPage(): JSX.Element {
 
   const templateSummaryLabel = lastTemplateId
     ? `Template #${lastTemplateId}`
-    : "Save inside Printful to capture a template ID";
+    : "Save in the designer to capture a template ID";
 
   const lastAttemptLabel = designSummary?.lastCheckoutAttemptAt
     ? new Date(designSummary.lastCheckoutAttemptAt).toLocaleString("en-US", {
@@ -613,40 +593,27 @@ export default function DesignPage(): JSX.Element {
 
       <div className="px-safe-area">
         <div className="mx-auto w-full max-w-[1400px] space-y-10 px-4 sm:px-5 md:px-6 lg:px-8 xl:px-10">
-          <header className="space-y-6">
-            <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
-              <span className="rounded-full border border-gray-300 px-3 py-1 text-xs">
-                Flow 1 / Scenes 1-3
+          <header className="space-y-4">
+            <h1 className="text-3xl font-semibold text-gray-900">
+              Design your Snapcase. We keep the device locked.
+            </h1>
+            <p className="text-base text-gray-600">
+              Pick a device, upload your design, and continue once the checks clear. Checkout always
+              matches what you see here.
+            </p>
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+              <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1">
+                <span className="h-2 w-2 rounded-full bg-gray-900" aria-hidden="true" />
+                Device locked
               </span>
-              <span className="rounded-full border border-gray-300 px-3 py-1 text-xs">
-                docs/Responsive_Blueprint.md
+              <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1">
+                <span className="h-2 w-2 rounded-full bg-gray-900" aria-hidden="true" />
+                Live price + template
               </span>
-            </div>
-            <div className="space-y-3">
-              <h1 className="text-3xl font-semibold text-gray-900">
-                Printful owns the picker; SnapCase sets defaults.
-              </h1>
-              <p className="text-base text-gray-600">
-                SnapCase preloads a recommended device, then Printful drives selection, guardrails,
-                and pricing. We sync whatever you choose straight into checkout with the live
-                template data.
-              </p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {SCENE_HIGHLIGHTS.map((scene) => (
-                <div
-                  key={scene.id}
-                  className="rounded-3xl border border-gray-200 bg-white/80 p-4 shadow-sm"
-                >
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                    {scene.id}
-                  </p>
-                  <p className="mt-1 text-base font-semibold text-gray-900">
-                    {scene.title}
-                  </p>
-                  <p className="mt-1 text-sm text-gray-600">{scene.description}</p>
-                </div>
-              ))}
+              <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1">
+                <span className="h-2 w-2 rounded-full bg-gray-900" aria-hidden="true" />
+                Checkout stays in sync
+              </span>
             </div>
           </header>
 
@@ -656,15 +623,15 @@ export default function DesignPage(): JSX.Element {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="space-y-1">
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Scene 1 / SnapCase defaults
+                      Device
                     </p>
                     <p className="text-sm text-gray-700">
-                      SnapCase suggests a starting device, then Printful takes over variant and
-                      finish selection inside the designer.
+                      Pick the device you want to print. We keep the designer locked to this pick so
+                      checkout matches.
                     </p>
                   </div>
                   <span className="rounded-full border border-gray-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
-                    Printful managed
+                    Locked in designer
                   </span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -688,7 +655,7 @@ export default function DesignPage(): JSX.Element {
                           </p>
                           <p className="text-base font-semibold">{entry.model}</p>
                           <p className="text-xs text-gray-500">
-                            Catalog ID {entry.variantId} / {entry.caseType} case
+                            Snapcase snap case · ready to print
                           </p>
                         </div>
                         <span
@@ -716,8 +683,8 @@ export default function DesignPage(): JSX.Element {
                   {helperLabel}
                 </span>
                 <p className="text-sm text-gray-600">
-                  SnapCase preloads your pick into Printful and lets you adjust inside their picker.
-                  Change devices above; we mirror whatever Printful reports.
+                  Snapcase loads your pick into the designer and keeps it locked. Swap devices above
+                  to change what is handed to checkout.
                 </p>
               </div>
 
@@ -773,11 +740,11 @@ export default function DesignPage(): JSX.Element {
             <aside className="space-y-5 rounded-[32px] border border-gray-200 bg-white/95 p-6 shadow-xl">
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Scene 3 / Checkout preview
+                  Checkout preview
                 </p>
                 <p className="text-sm text-gray-600">
-                  Once Printful clears the banner, Continue unlocks and routes you to /checkout with
-                  your variant, price, and template preserved.
+                  Continue unlocks after the designer clears your upload. We carry the locked device,
+                  price, and template straight into checkout.
                 </p>
               </div>
 
@@ -792,10 +759,10 @@ export default function DesignPage(): JSX.Element {
                 </div>
                 <div className="flex items-start justify-between gap-3">
                   <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Printful price
+                    Price
                   </dt>
                   <dd className="text-right text-base font-semibold text-gray-900">
-                    {priceLabel ?? "Waiting on Printful"}
+                    {priceLabel ?? "Waiting on designer"}
                   </dd>
                 </div>
                 <div className="flex items-start justify-between gap-3">
@@ -843,14 +810,6 @@ export default function DesignPage(): JSX.Element {
                   {ctaState.label}
                 </button>
                 <p className="text-xs text-gray-500">{ctaState.helperText}</p>
-              </div>
-
-              <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/80 p-4 text-xs text-gray-600">
-                <p className="font-semibold text-gray-900">Blueprint callout</p>
-                <p className="mt-1">
-                  Mirrors Responsive_Blueprint Scenes 2-3: Printful guardrails drive the CTA without
-                  any Fabric rails, so checkout inherits live template data.
-                </p>
               </div>
             </aside>
           </div>

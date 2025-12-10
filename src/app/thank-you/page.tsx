@@ -50,7 +50,7 @@ const TIMELINE_LABELS: Record<
   },
   print_files: {
     label: "Print files",
-    helper: "Printful is generating production files.",
+    helper: "We are generating production files.",
   },
   in_production: {
     label: "In production",
@@ -365,7 +365,7 @@ function ThankYouScreen(): JSX.Element {
                 </h1>
                 <p className="text-base text-gray-700">
                   Your custom case is officially in motion. We&rsquo;ll email
-                  tracking details as Printful moves from print files to
+                  tracking details as your order moves from print files to
                   shipping.
                 </p>
                 <p className="text-sm text-gray-600">
@@ -392,11 +392,11 @@ function ThankYouScreen(): JSX.Element {
                 </h2>
               </div>
               <span className="text-xs font-mono uppercase tracking-wide text-gray-400">
-                Printful feed
+                Production feed
               </span>
             </div>
             <p className="mt-2 text-sm text-gray-600">
-              Statuses update as Printful processes your order. Refresh or visit
+              Statuses update as your order moves through production. Refresh or visit
               tracking for the latest milestones.
             </p>
             <div className="mt-6 space-y-6 lg:hidden">
@@ -534,7 +534,7 @@ function ThankYouScreen(): JSX.Element {
                   </dd>
                 </div>
                 <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-600">
-                  Printful
+                  Production
                 </span>
               </div>
               <div className="flex items-start justify-between gap-3">

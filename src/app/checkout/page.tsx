@@ -470,17 +470,13 @@ export default function CheckoutPage(): JSX.Element {
       style={{ backgroundColor: "var(--snap-gray-50, #f9fafb)" }}
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
-        <header className="space-y-3">
-          <p className="text-sm uppercase tracking-wide text-gray-500">
-            Flow 1 / Screen 3
-          </p>
+        <header className="space-y-2">
           <h1 className="text-3xl font-semibold text-gray-900">
             Review &amp; Shipping
           </h1>
           <p className="text-base text-gray-600">
-            Double-check your design, shipping speed, and totals before handing
-            off to Stripe. The reassurance banner below mirrors the same promise
-            customers see on help-center replies.
+            Confirm your design, shipping speed, and totals before handing off
+            to Stripe. Everything shown here stays locked to your saved design.
           </p>
         </header>
 
@@ -515,21 +511,13 @@ export default function CheckoutPage(): JSX.Element {
               {designContext ? (
                 <div className="space-y-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-700">
                   <div className="flex items-start justify-between gap-3">
-                    <span className="font-medium">Variant</span>
+                    <span className="font-medium">Device</span>
                     <div className="flex flex-col items-end text-right">
-                      {designContext.variantLabel ? (
-                        <span
-                          className="text-xs font-semibold text-gray-900"
-                          data-testid="checkout-variant-label"
-                        >
-                          {designContext.variantLabel}
-                        </span>
-                      ) : null}
-                      <span className="font-mono text-xs text-gray-600">
-                        {designContext.variantId ?? "—"}
-                        {designContext.externalProductId
-                          ? ` / ${designContext.externalProductId}`
-                          : ""}
+                      <span
+                        className="text-xs font-semibold text-gray-900"
+                        data-testid="checkout-variant-label"
+                      >
+                        {designContext.variantLabel ?? "Locked to your Snapcase pick"}
                       </span>
                     </div>
                   </div>
@@ -546,7 +534,7 @@ export default function CheckoutPage(): JSX.Element {
                   {designContext.exportedImage ? (
                     <div className="space-y-2">
                       <span className="text-xs font-medium text-gray-600">
-                        Fabric export preview
+                        Design preview
                       </span>
                       <Image
                         src={designContext.exportedImage}
@@ -637,14 +625,14 @@ export default function CheckoutPage(): JSX.Element {
             <section className="space-y-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Ship to
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    Address capture wires up to Printful order creation in a
-                    later milestone.
-                  </p>
-                </div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Ship to
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Address capture connects to order creation in a later
+                  milestone.
+                </p>
+              </div>
                 <button
                   type="button"
                   className="text-sm font-semibold text-gray-700 underline"
@@ -654,7 +642,7 @@ export default function CheckoutPage(): JSX.Element {
                 </button>
               </div>
               <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
-                Shipping address syncs with your Printful-ready details once the
+                Shipping address will sync with your saved details once the
                 backend order draft is active.
               </div>
             </section>
@@ -720,9 +708,8 @@ export default function CheckoutPage(): JSX.Element {
                   Stripe handoff
                 </p>
                 <p className="text-xs text-gray-600">
-                  We charge your card once Printful confirms your design is
-                  production-ready. The Quality Promise covers free reprints if
-                  anything slips.
+                  We charge your card after production checks clear. The Quality
+                  Promise covers free reprints if anything slips.
                 </p>
               </div>
               <div className="space-y-3">
@@ -790,22 +777,6 @@ export default function CheckoutPage(): JSX.Element {
             ) : null}
           </div>
         </div>
-
-        <footer className="flex flex-wrap items-center justify-between gap-4 text-sm text-gray-600">
-          <span>
-            `/checkout` references{" "}
-            <code className="rounded bg-gray-100 px-1 py-0.5 text-xs">
-              docs/Responsive_Blueprint.md
-            </code>{" "}
-            Screen 3 tokens.
-          </span>
-          <span>
-            Thank-you page:{" "}
-            <code className="rounded bg-gray-100 px-1 py-0.5 text-xs">
-              /thank-you
-            </code>
-          </span>
-        </footer>
       </div>
     </div>
   );

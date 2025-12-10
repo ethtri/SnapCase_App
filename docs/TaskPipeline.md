@@ -18,7 +18,6 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Goal (Sponsor Language) | Prep & References | Agent Kickoff |
 | --- | --- | --- | --- |
-| Sprint03-Task43 | Smoke-test the masked-picker `/design` in a live Printful session to ensure the overlay and SnapCase-first copy don't break real embeds; capture diagnostics/screenshots. **DoD:** (1) Live `/design` load with real Printful token succeeds; (2) screenshots + diagnostics JSON saved to `Images/diagnostics/` with paths in AgentReport; (3) no regression to variant lock or guardrail messaging; (4) AgentReport + `PROGRESS.md` updated; (5) tree clean. | `src/app/design/page.tsx`, `src/components/editor/edm-editor.tsx`, `src/components/editor/printful-config.ts`, `scripts/collect-edm-diagnostics.js`, existing masked-picker screenshots. Branch `task/Sprint03-Task43-edm-live-smoke`. | "Run Sprint03-Task43 using docs/TaskPipeline.md instructions." |
 
 > These prompts are ready to run in parallel; each owns its branch and AgentReport. Keep sponsor updated via `PROGRESS.md`.
 
@@ -35,6 +34,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Status | Notes |
 | --- | --- | --- |
+| Sprint03-Task47 | DONE | CX refresh: Product tab guarded/hidden, mask height lowered, Flow/Scene + Printful/variant IDs removed, Snapcase voice applied. See `docs/AgentReports/Sprint03-Task47-CX-refresh.md` and `Images/diagnostics/20251210T034229Z-after-design-{desktop,mobile}.png`. |
 | Sprint03-Task45 | DONE | Sponsor refresh with Printful variant lock + relaxed checkout validation; see `docs/AgentReports/Sprint03-Task45.md` and `Images/diagnostics/20251210T012645-*`. |
 | Sprint03-TaskXX-variant-lock | DONE | Folded into Task45; variant locking shipped per `docs/EDM_VARIANT_SELECTION_SOLUTION.md`. |
 | Sprint02-Task15 | DONE | Lockfile regenerated on WSL; see `docs/AgentReports/Sprint02-Task15.md`. |
@@ -49,6 +49,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 | Sprint03-Task32 | DONE | `/design` now boots directly into Printful EDM; see `docs/AgentReports/Sprint03-Task32.md`. |
 | Sprint03-Task33 | DONE* | DNS/alias flipped; Stripe secret still pending sponsor handoff. See `docs/AgentReports/Sprint03-Task33.md`. |
 | Sprint03-Task34 | DONE | Segment QA + production promotion finished; see `docs/AgentReports/Sprint03-Task34.md`. |
+| Sprint03-Task43 | DONE | Live masked-picker smoke with Printful; CTA gating/pricing simplified per PO decision; see `docs/AgentReports/Sprint03-Task43.md`. |
 | Sprint03-Task37 | DONE | Lint + telemetry refresh complete; see `docs/AgentReports/Sprint03-Task37.md`. |
 | Sprint03-Task38 | DONE | Printful v2 order flow implemented; see `docs/AgentReports/Sprint03-Task38.md`. |
 | Sprint03-Task39 | DONE | Webhook route registered for store `17088301`; sandbox order + payload captures logged in `docs/AgentReports/Sprint03-Task36.md` and `Images/diagnostics/printful-webhook-2025-11-23T08-37-22-000Z-*.json`. |

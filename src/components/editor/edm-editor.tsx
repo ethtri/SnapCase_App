@@ -1680,12 +1680,23 @@ export function EdmEditor({
         data-testid="edm-designer-shell"
       >
         <div
+          className="absolute left-0 top-0 z-[3] h-14 w-[220px] rounded-br-3xl bg-white/85 shadow-sm ring-1 ring-gray-200/70 backdrop-blur-sm"
+          aria-hidden="true"
+          data-testid="printful-product-guard"
+          title="Device locked. Product tab disabled."
+        >
+          <div className="flex h-full items-center gap-2 px-4 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
+            <span className="h-2 w-2 rounded-full bg-gray-900" aria-hidden="true" />
+            <span>Device locked</span>
+          </div>
+        </div>
+        <div
           id={canvasId}
           ref={containerRef}
           className="h-[min(90vh,900px)] min-h-[640px] w-full bg-gray-900/5"
         />
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-20 bg-gradient-to-b from-white via-white to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-14 bg-gradient-to-b from-white via-white/90 to-transparent"
           aria-hidden="true"
           data-testid="printful-picker-mask"
         />
