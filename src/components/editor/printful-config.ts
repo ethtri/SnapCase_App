@@ -42,11 +42,12 @@ function buildVariantLockFlags(
   variantId: number,
   lockVariant: boolean | undefined,
 ) {
+  const enableLock = Boolean(lockVariant);
   return {
-    allowOnlyOneColorToBeSelected: lockVariant ?? false,
-    allowOnlyOneSizeToBeSelected: lockVariant ?? false,
-    isVariantSelectionDisabled: false,
-    preselectedSizes: lockVariant ? [String(variantId)] : undefined,
+    allowOnlyOneColorToBeSelected: enableLock,
+    allowOnlyOneSizeToBeSelected: enableLock,
+    isVariantSelectionDisabled: enableLock,
+    preselectedSizes: enableLock ? [String(variantId)] : undefined,
   };
 }
 
@@ -115,11 +116,11 @@ export function buildPrintfulConfig({
       navigation: navigationOverrides,
     },
     disabledPlacements: [],
-    isVariantSelectionDisabled: false,
+    isVariantSelectionDisabled: variantLockFlags.isVariantSelectionDisabled,
     allowOnlyOneColorToBeSelected: variantLockFlags.allowOnlyOneColorToBeSelected,
     allowOnlyOneSizeToBeSelected: variantLockFlags.allowOnlyOneSizeToBeSelected,
     preselectedColors: undefined,
-    preselectedSizes: lockVariant ? [String(variantId)] : undefined,
+    preselectedSizes: variantLockFlags.preselectedSizes,
     useUserConfirmationErrors: false,
     iframeClassName: "snapcase-edm-frame",
     ...(initProduct ? { initProduct } : {}),

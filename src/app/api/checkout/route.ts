@@ -56,14 +56,7 @@ const requestSchema = z
         source: z.string().optional(),
       })
       .optional(),
-  })
-  .refine(
-    (data) =>
-      Boolean(data.templateStoreId) ||
-      Boolean(data.templateId) ||
-      Boolean(data.designImage),
-    "Either templateStoreId (EDM), templateId (EDM), or designImage (Fabric export) must be provided.",
-  );
+  });
 
 const toBoolean = (value: string | undefined | null) =>
   value?.toLowerCase() === "true";
@@ -161,6 +154,21 @@ export async function POST(request: Request) {
       ? Math.max(1, Math.round(payload.pricing.subtotal * 100))
       : null) ??
     DEFAULT_UNIT_AMOUNT_CENTS;
+
+  const hasDesignArtifact =
+    Boolean(payload.templateStoreId) ||
+    Boolean(payload.templateId) ||
+    Boolean(payload.designImage);
+
+  if (!hasDesignArtifact) {
+    // Keep the flow unblocked, but log the missing artifact so we can
+    // backfill or request a re-save if Printful does not return a template.
+    console.warn("[checkout] Missing design artifact for checkout payload", {
+      variantId: payload.variantId,
+      templateStoreId: payload.templateStoreId,
+      templateId: payload.templateId,
+    });
+  }
 
   if (!stripeClient || !stripeSecretKey) {
     const shippingOptions = buildShippingOptions();
