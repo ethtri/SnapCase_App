@@ -18,6 +18,8 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Current Blockers
 
+- **2025-12-10 Live smoke (dev.snapcase.ai)**: Design->checkout->thank-you passed after uploading `tmp/task45-design.png`; CTA unlocked on designValid=true with the variant locked (17726). Artifacts: `Images/diagnostics/20251210T021337-design-desktop.png`, `Images/diagnostics/20251210T021337-checkout-desktop.png`, `Images/diagnostics/20251210T021337-thankyou-desktop.png`, `Images/diagnostics/20251210T021337-analytics.json`. Segment allowed by CSP; analytics captured. Console: expected Printful WebGL capability warning and 404s for `/stripe/lockup.svg` and thank-you `/order/preview` fetch (non-blocking).
+- **Backlog - Sprint03-Task47-CX-refresh:** Remove customer-facing Printful references and hide variant IDs; drop Flow/Scene labels and blueprint callouts from the UI; simplify layout (less copy/boxes) with tightened brand voice; validate desktop/mobile and capture before/after.
 - **Printful webhook registration (Task44):** Store webhook now points to `https://app.snapcase.ai/api/webhooks/printful` (events: order_created/updated/failed/package_shipped/package_returned); `PRINTFUL_WEBHOOK_ARCHIVE_DIR=Images/diagnostics/printful` set in preview/prod with the folder created. `PRINTFUL_WEBHOOK_SECRET` remains unset, so production webhooks currently bypass signature validation until a signing key is added.
 - (None noted for Task42; monitor Printful live-token runs post-mask.)
 
