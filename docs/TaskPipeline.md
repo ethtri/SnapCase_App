@@ -3,10 +3,11 @@
 This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbatim into a new Codex chat. Move items to **Archive** once their AgentReports land in `docs/AgentReports/`.
 
 **Preflight (every prompt):**
-- `git status` must be clean (commit or stash).
+- Use `docs/PROMPT_TEMPLATE.md` to capture worktree/branch and guardrails before editing.
+- Run `git worktree list` then `git status` (stop if another worktree is dirty; stash with `git stash push -m "<TaskID> context"` if cleanup is needed).
 - `git pull` from the task branch before starting so you have the latest TaskPipeline and docs.
 - Check out the prompt's branch (e.g., `task/Sprint03-Task43-edm-live-smoke`).
-- Keep changes scoped. Update `PROGRESS.md` and the relevant `docs/AgentReports/` file before handoff. Leave the tree clean.
+- Keep changes scoped. Update `PROGRESS.md` and the relevant `docs/AgentReports/` file before handoff; leave the tree clean.
 
 **Definition of Done (DoD) for all prompts:**
 - Code/files updated; new assets in `Images/diagnostics/` when applicable.
