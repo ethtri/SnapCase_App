@@ -9,6 +9,9 @@
 - `npm run build`
 - Smoke via local `next start` -> `http://localhost:3000/design` for visual regression and screenshots (embed requests still rely on remote Printful availability).
 
+## Risks / Follow-ups
+- The invisible Product-tab blocker is a CSS overlay; verify on multiple breakpoints/devices to ensure it neither leaks underlying text nor overlaps toolbar controls. Consider a first-party Printful config or embed hook if available to disable the Product tab without host-side overlays.
+
 ## Artifacts
 - Before (dev alias): `Images/diagnostics/20251210T031700Z-before-design-desktop.png`, `Images/diagnostics/20251210T031700Z-before-design-mobile.png`
 - After (local build): `Images/diagnostics/20251210T034229Z-after-design-desktop.png`, `Images/diagnostics/20251210T034229Z-after-design-mobile.png`
