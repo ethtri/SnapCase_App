@@ -18,6 +18,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Goal (Sponsor Language) | Prep & References | Agent Kickoff |
 | --- | --- | --- | --- |
+| Sprint03-Task49 | Stabilize mobile Playwright smoke on `dev.snapcase.ai` so CTA unlocks and flow reaches checkout/thank-you | Base: `https://dev.snapcase.ai` (alias `snapcase-eopqpujyk-snapcase.vercel.app`); asset `tmp/task45-design.png`; report `docs/AgentReports/Sprint03-Task49-mobile-automation.md`; script `scripts/run-mobile-live-smoke.mjs` | `Prompt: Sprint03-Task49 prompt (branch task/Sprint03-Task49-mobile-automation, run scripts/run-mobile-live-smoke.mjs)` |
 
 > These prompts are ready to run in parallel; each owns its branch and AgentReport. Keep sponsor updated via `PROGRESS.md`.
 
