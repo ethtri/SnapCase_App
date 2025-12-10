@@ -564,7 +564,7 @@ function normalizeDesignStatus(
   let status: string | null = null;
   const blockingIssues: string[] = [];
   const warningMessages: string[] = [];
-  const selectedVariantIds: number[] = [];
+  let selectedVariantIds: number[] = [];
 
   if (payload && typeof payload === "object") {
     const data = payload as Record<string, unknown>;
@@ -651,10 +651,35 @@ function normalizeDesignStatus(
     }
   }
 
+  const normalizedExpectedVariantId =
+    typeof expectedVariantId === "number" && Number.isFinite(expectedVariantId)
+      ? expectedVariantId
+      : null;
+  const uniqueVariants = Array.from(
+    new Set(
+      selectedVariantIds.filter(
+        (variant) => typeof variant === "number" && Number.isFinite(variant),
+      ),
+    ),
+  );
+  const hasExpectedVariant =
+    normalizedExpectedVariantId != null &&
+    uniqueVariants.includes(normalizedExpectedVariantId);
+  selectedVariantIds =
+    normalizedExpectedVariantId != null
+      ? [
+          normalizedExpectedVariantId,
+          ...uniqueVariants.filter(
+            (variant) => variant !== normalizedExpectedVariantId,
+          ),
+        ]
+      : uniqueVariants;
+
   const variantMismatch =
     detectVariantMismatch &&
-    selectedVariantIds.length > 0 &&
-    !selectedVariantIds.includes(expectedVariantId);
+    normalizedExpectedVariantId != null &&
+    uniqueVariants.length > 0 &&
+    !hasExpectedVariant;
 
   const guardrailMode: GuardrailMode =
     typeof designValid === "boolean" ||
@@ -845,16 +870,16 @@ export function EdmEditor({
       setStatus("loading");
       setBootstrapPhase("probing-template");
       setError(null);
+      const catalogEntry = findPrintfulCatalogEntry(externalProductId);
+      const designerVariantId =
+        typeof catalogEntry?.catalogVariantId === "number" &&
+        Number.isFinite(catalogEntry.catalogVariantId)
+          ? catalogEntry.catalogVariantId
+          : catalogEntry?.defaultVariantId ?? variantId;
       const baseDiagnostics = captureDiagnosticsContext(
-        variantId,
+        designerVariantId,
         externalProductId,
       );
-      debug("bootstrap:start", {
-        variantId,
-        externalProductId,
-        retryToken,
-        forceInitProduct: shouldForceInit,
-      });
       setDiagnostics(
         baseDiagnostics
           ? {
@@ -864,8 +889,14 @@ export function EdmEditor({
           : baseDiagnostics,
       );
 
-      const catalogEntry = findPrintfulCatalogEntry(externalProductId);
       let printfulProductId = catalogEntry?.printfulProductId ?? null;
+      debug("bootstrap:start", {
+        variantId,
+        designerVariantId,
+        externalProductId,
+        retryToken,
+        forceInitProduct: shouldForceInit,
+      });
       if (catalogEntry?.retailPriceCents) {
         onPricingChangeRef.current?.({
           amountCents: catalogEntry.retailPriceCents,
@@ -982,7 +1013,8 @@ export function EdmEditor({
           setError(templateProbeError);
           setDiagnostics((prev) => {
             const base =
-              prev ?? captureDiagnosticsContext(variantId, externalProductId);
+              prev ??
+              captureDiagnosticsContext(designerVariantId, externalProductId);
             if (!base) {
               return prev;
             }
@@ -1026,7 +1058,7 @@ export function EdmEditor({
         setTemplateId(templateIdForDesigner);
         onTemplateHydratedRef.current?.({
           templateId: templateIdForDesigner,
-          variantId,
+          variantId: designerVariantId,
           source: templateSource ?? null,
         });
       }
@@ -1045,7 +1077,8 @@ export function EdmEditor({
         debug("bootstrap:missing-catalog", { externalProductId });
         setDiagnostics((prev) => {
           const base =
-            prev ?? captureDiagnosticsContext(variantId, externalProductId);
+            prev ??
+            captureDiagnosticsContext(designerVariantId, externalProductId);
           if (!base) {
             return prev;
           }
@@ -1064,17 +1097,17 @@ export function EdmEditor({
         hooks: configHooks,
         ...designerOptions
       } = buildPrintfulConfig({
-        variantId,
+        variantId: designerVariantId,
         printfulProductId,
         shouldInitProduct: Boolean(requiresInitProduct && printfulProductId),
         technique: PRINTFUL_DEFAULT_TECHNIQUE,
-        lockVariant: false,
+        lockVariant: true,
         theme: SNAPCASE_EMBED_THEME,
         hooks: {
           onDesignStatusUpdate: (payload: unknown) => {
             debug("design-status:update", payload);
             logAnalyticsEvent("printful_design_status_raw", {
-              variantId,
+              variantId: designerVariantId,
               externalProductId,
               payload,
             });
@@ -1082,7 +1115,7 @@ export function EdmEditor({
           onPricingStatusUpdate: (payload: unknown) => {
             debug("pricing-status:update", payload);
             logAnalyticsEvent("printful_pricing_status_raw", {
-              variantId,
+              variantId: designerVariantId,
               externalProductId,
               payload,
             });
@@ -1105,6 +1138,7 @@ export function EdmEditor({
         lockFlags: configSnapshot.variantLockFlags,
         lockEnabled: configSnapshot.variantLockEnabled,
         externalProductId,
+        lockedVariantId: designerVariantId,
       });
 
       if (cancelled) {
@@ -1150,7 +1184,8 @@ export function EdmEditor({
         setError(message);
         setDiagnostics((prev) => {
           const base =
-            prev ?? captureDiagnosticsContext(variantId, externalProductId);
+            prev ??
+            captureDiagnosticsContext(designerVariantId, externalProductId);
           if (!base) {
             return prev;
           }
@@ -1234,7 +1269,8 @@ export function EdmEditor({
         setError(message);
         setDiagnostics((prev) => {
           const base =
-            prev ?? captureDiagnosticsContext(variantId, externalProductId);
+            prev ??
+            captureDiagnosticsContext(designerVariantId, externalProductId);
           if (!base) {
             return prev;
           }
@@ -1258,7 +1294,8 @@ export function EdmEditor({
         setError("Printful designer is unavailable in this environment.");
         setDiagnostics((prev) => {
           const base =
-            prev ?? captureDiagnosticsContext(variantId, externalProductId);
+            prev ??
+            captureDiagnosticsContext(designerVariantId, externalProductId);
           if (!base) {
             return prev;
           }
@@ -1314,7 +1351,7 @@ export function EdmEditor({
           });
           const resolvedVariantId =
             latestDesignSnapshotRef.current?.selectedVariantIds?.[0] ??
-            variantId;
+            designerVariantId;
           onTemplateSavedRef.current?.({
             templateId: resolved,
             variantId: resolvedVariantId,
@@ -1327,8 +1364,8 @@ export function EdmEditor({
           }
           configHooks.onDesignStatusUpdate(payload);
           const snapshot = normalizeDesignStatus(payload, {
-            expectedVariantId: variantId,
-            detectVariantMismatch: false,
+            expectedVariantId: designerVariantId,
+            detectVariantMismatch: true,
           });
           latestDesignSnapshotRef.current = snapshot;
           const guardrailSnapshot: EdmGuardrailSnapshot = {
@@ -1434,7 +1471,8 @@ export function EdmEditor({
           setError(fallbackMessage);
           setDiagnostics((prev) => {
             const base =
-              prev ?? captureDiagnosticsContext(variantId, externalProductId);
+              prev ??
+              captureDiagnosticsContext(designerVariantId, externalProductId);
             if (!base) {
               return prev;
             }

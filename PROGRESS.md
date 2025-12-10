@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: November 24, 2025
+**Last Updated**: December 10, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -19,7 +19,6 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 ### Current Blockers
 
 - **Printful webhook registration (Task44):** Store webhook now points to `https://app.snapcase.ai/api/webhooks/printful` (events: order_created/updated/failed/package_shipped/package_returned); `PRINTFUL_WEBHOOK_ARCHIVE_DIR=Images/diagnostics/printful` set in preview/prod with the folder created. `PRINTFUL_WEBHOOK_SECRET` remains unset, so production webhooks currently bypass signature validation until a signing key is added.
-- **Task43 live smoke:** Reran masked `/design` on `https://dev.snapcase.ai` with explicit supported-variant clicks in Printful; CTA still locked (“Select a supported device”) because live `design_status` returned non-catalog `selectedVariantIds` + error “Please add a design!”. New artifacts: `Images/diagnostics/task43-design-{desktop,mobile}-2025-11-23T07-12-41-975Z.png`, `Images/diagnostics/task43-edm-live-2025-11-23T07-12-41-975Z.json` (plus 07-14-48-942Z set). AgentReport updated at `docs/AgentReports/Sprint03-Task43.md`. Next: fix live variant lock so Printful emits a single supported variant ID and CTA can unlock.
 - (None noted for Task42; monitor Printful live-token runs post-mask.)
 
 - **Printful EDM Access (2025-11-04 update)**: `ensureEdmScript()` now loads `embed.js` as a plain `<script>` (no `crossOrigin`) with a 15s watchdog so diagnostics capture script failures, and create-mode always passes Printful�s SUBLIMATION technique + a fallback reboot when PF returns `Template not found`. `npm run vercel-build` (Nov 4 @ 19:14Z) succeeded aside from pre-existing lint warnings, `vercel deploy --yes` published preview `https://snapcase-fbtuk9oqr-snapcase.vercel.app`, and `"/mnt/c/Program Files/nodejs/node.exe" scripts/collect-edm-diagnostics.js` logged the healthy session (`Images/diagnostics/edm-diagnostics-2025-11-04T19-17-46-144Z.png`) showing `setProductOK` / `designerLoadedOK`. **Update 2025-11-10:** EDM saves now hit `/api/edm/templates`, which caches the template ID server-side so `/api/checkout` + `/api/order/create` can trust server tokens; next diagnostics will focus on keeping Printful�s allowlist + dev alias in sync.
@@ -34,6 +33,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Recently Resolved
 
+- **Sprint03-Task45 sponsor refresh (2025-12-10):** Locked the Printful embed with `lockVariant=true` + `isVariantSelectionDisabled`, reordered live `design_status` to prefer catalog variants (CTA unlocks on designValid=true), and relaxed `/api/checkout` validation to log-but-allow missing template IDs when Printful withholds them. CSP connect now whitelists Segment (`cdn.segment.com`, `api.segment.io`, `cdn-settings.segment.com`). Deployed `snapcase-qnb2d99br-snapcase.vercel.app` and re-pointed `dev.snapcase.ai`; artifacts at `Images/diagnostics/20251210T012645-{design,checkout,thankyou}-{desktop,mobile}.png` with analytics `Images/diagnostics/20251210T012645-analytics.json` (designValid=true on variant 17726). Tests: `npm run build`. Prior WIP remains stashed in `SnapCase_App_task45_run2` as `Task45 WIP stub editor + diagnostics`; kept `tmp/task45-design.png` as the uploaded asset for reruns.
 - **Sprint03-Task44 - Printful webhook hardening (2025-11-24):** Webhook receiver enforces HMAC signatures when configured (documented fallback when unset), archives payloads idempotently under `PRINTFUL_WEBHOOK_ARCHIVE_DIR` (now `Images/diagnostics/printful` in preview/prod), and has Jest coverage (`tests/integration/printful-webhook-route.test.ts`). Sample capture: `Images/diagnostics/printful-webhook-2025-11-23T22-37-57-192Z-evt_local_capture.json`. Integration test rerun: `npx --yes jest --runInBand tests/integration/printful-webhook-route.test.ts` (pass). Webhook set via `scripts/printful-webhook-setup.js set https://app.snapcase.ai/api/webhooks/printful` with events order_created/updated/failed/package_shipped/package_returned; `PRINTFUL_WEBHOOK_SECRET` still pending, so production payloads currently bypass signature validation until the secret is provisioned.
 - **Sprint03-Task42 - SnapCase-first picker & EDM stub (2025-11-23):** SnapCase copy/picker now leads /design, Printful picker chrome is masked and variant-locked via host config, and the Playwright EDM stub hooks/guardrails are updated. `npx playwright test tests/e2e/design-to-checkout.spec.ts --project=chromium` passes; diagnostic captures at `Images/diagnostics/design-task42-desktop-2025-11-23T03-44-53-352Z.png` and `Images/diagnostics/design-task42-mobile-2025-11-23T03-44-53-352Z.png`; AgentReport refreshed.
 - **Sprint03-Task41 - sponsor readiness sweep (2025-11-22)**: dev.snapcase.ai HEAD 200 (`X-Vercel-Id: sfo1::j5nqw-1763854932269-ce745ad0a85e`); captured sponsor screenshots across design/checkout/thank-you desktop+mobile (`Images/diagnostics/design-sponsor-2025-11-22T23-43-11-433Z.png`, `checkout-sponsor-2025-11-22T23-43-11-433Z.png`, `thank-you-sponsor-2025-11-22T23-43-11-433Z.png` + mobile counterparts) plus analytics JSON (`Images/diagnostics/sponsor-readiness-2025-11-22T23-43-11-433Z.json`). Segment debugger harness logged 17 `api.segment.io` requests (design 11, thank-you 6) in `Images/diagnostics/segment-task34-2025-11-22T23-44-25-911Z.{json,png}`. `docs/UserTesting/Sprint02_Sponsor_Script.md` now references the new artifacts/timestamp for the sponsor walk-through.
@@ -777,7 +777,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ---
 
-**Last Updated**: December 31, 2024
+**Last Updated**: December 10, 2025
 
 **Next Review**: Weekly
 
