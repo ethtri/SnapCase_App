@@ -10,7 +10,7 @@
 This guide walks you through:
 1. Checking current webhook configuration via API
 2. Setting/updating webhook URLs via API
-3. Understanding webhook secrets (Printful doesn't provide a separate secret - signatures use HMAC)
+3. Understanding webhook secrets (Printful’s API does **not** expose a signing secret)
 4. Configuring environment variables in Vercel
 5. Creating the archive directory
 
@@ -132,63 +132,29 @@ Common event types you may want to subscribe to:
 
 ### 4.1 Printful Webhook Signatures
 
-**Important**: Printful does **NOT** provide a separate "webhook secret" like Stripe does. Instead:
+**Important**: For store `17088301`, Printful’s API does **NOT** expose a webhook signing secret. `GET /webhooks` and `POST /webhooks` return only `url`, `types`, and an empty `params` array—no `secret`/`secret_key` fields. There is no alternate endpoint documented to fetch one.
 
-- Printful signs webhooks using **HMAC-SHA256**
-- The signature is sent in the `X-PF-Signature` or `X-Printful-Signature` header
-- Your handler verifies signatures using a secret you generate yourself
+- If Printful ever publishes a secret, the signature will be in `X-PF-Signature` / `X-Printful-Signature`, and the handler can verify with `PRINTFUL_WEBHOOK_SECRET`.
+- Until then, signature verification cannot be enabled.
 
 ### 4.2 Setting Your Webhook Secret
 
-**Important Clarification**: Printful's webhook signature verification works differently than Stripe:
+Leave `PRINTFUL_WEBHOOK_SECRET` **unset**. This is intentional given the current API surface. The handler already:
 
-- Printful signs webhooks with HMAC-SHA256
-- The signature is in the `X-PF-Signature` or `X-Printful-Signature` header
-- **However**, Printful doesn't explicitly document what secret they use to generate signatures
+- Enforces JSON parsing and a 5 MB body cap.
+- Derives event IDs from headers/body and short-circuits duplicates.
+- Archives payloads under `Images/diagnostics/printful`.
 
-**Options for signature verification:**
-
-1. **Leave it unset (current behavior)**: Your handler works without signature verification when `PRINTFUL_WEBHOOK_SECRET` is not set. This is fine for development but not recommended for production.
-
-2. **Test with your API token**: Some webhook providers use the API token as the secret. You can try setting `PRINTFUL_WEBHOOK_SECRET` to your `PRINTFUL_TOKEN` value and test if signatures validate.
-
-3. **Contact Printful support**: Ask them how webhook signatures are generated and what secret/key is used.
-
-4. **Generate your own (if Printful supports custom secrets)**: If Printful allows you to set a custom signing secret when registering the webhook, generate one:
-   ```bash
-   # On Linux/Mac
-   openssl rand -hex 32
-   
-   # On Windows PowerShell
-   -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 64 | ForEach-Object {[char]$_})
-   ```
-
-> **Current Status**: Your webhook handler (`src/app/api/webhooks/printful/route.ts`) supports signature verification when `PRINTFUL_WEBHOOK_SECRET` is set, but will work without it (fallback mode). For now, you can proceed without setting the secret and enable it later once you confirm how Printful generates signatures.
+If Printful later exposes a secret, set `PRINTFUL_WEBHOOK_SECRET` and re-run `tests/integration/printful-webhook-route.test.ts`.
 
 ---
 
 ## Step 5: Configure Environment Variables in Vercel
 
-### 5.1 Set PRINTFUL_WEBHOOK_SECRET (Optional)
+### 5.1 PRINTFUL_WEBHOOK_SECRET
 
-**Note**: This is optional for now. Your handler works without it, but signature verification is recommended for production security.
-
-If you want to enable signature verification:
-
-```bash
-# For Preview/Development
-vercel env add PRINTFUL_WEBHOOK_SECRET preview
-# Try using your PRINTFUL_TOKEN value first, or generate a random secret
-
-# For Production
-vercel env add PRINTFUL_WEBHOOK_SECRET production
-# Use the same value as preview
-```
-
-**Important**: 
-- Start by testing with your `PRINTFUL_TOKEN` value to see if Printful uses it for signatures
-- If that doesn't work, you may need to contact Printful support to understand their signing mechanism
-- Your handler will work without this variable set (fallback mode), but won't verify signatures
+- Leave **unset** in all environments (API does not provide a secret).
+- If Printful publishes a secret in the future, add `PRINTFUL_WEBHOOK_SECRET` to preview + production and re-run the integration test.
 
 ### 5.2 Set PRINTFUL_WEBHOOK_ARCHIVE_DIR
 
@@ -213,7 +179,6 @@ vercel env ls | grep PRINTFUL_WEBHOOK
 ```
 
 You should see:
-- `PRINTFUL_WEBHOOK_SECRET` (value hidden)
 - `PRINTFUL_WEBHOOK_ARCHIVE_DIR` = `Images/diagnostics/printful`
 
 ---
@@ -262,7 +227,6 @@ After saving the webhook URL, Printful may send a test event. Check:
 After completing all steps, confirm:
 
 - [ ] **Webhook URL set to**: `https://app.snapcase.ai/api/webhooks/printful` (or dev equivalent)
-- [ ] **PRINTFUL_WEBHOOK_SECRET set** in both preview and production (don't share the value)
 - [ ] **PRINTFUL_WEBHOOK_ARCHIVE_DIR set** to `Images/diagnostics/printful` in both environments
 - [ ] **Archive directory exists**: `Images/diagnostics/printful/`
 - [ ] **Test webhook received** (optional but recommended)
@@ -287,11 +251,9 @@ After completing all steps, confirm:
 
 ### Signature Validation Failing
 
-- **Important**: Printful doesn't provide a webhook secret - you generate your own
-- Ensure `PRINTFUL_WEBHOOK_SECRET` is set in your environment variables
-- Check for extra spaces or newlines when setting the secret
-- Verify the secret is set in the correct Vercel environment (preview vs production)
-- Your handler will work without signature validation if `PRINTFUL_WEBHOOK_SECRET` is not set (fallback mode), but it's recommended to enable it for security
+- **Current limitation**: Printful does not expose a webhook secret for store `17088301`, so signature verification cannot be enabled today.
+- Keep `PRINTFUL_WEBHOOK_SECRET` unset. If Printful later publishes a secret, set it in preview/prod and re-run the integration test.
+- The handler already enforces JSON parsing, body-size caps, duplicate-event short-circuiting, and payload archiving.
 
 ---
 
@@ -299,10 +261,9 @@ After completing all steps, confirm:
 
 Once confirmed:
 
-1. **Rerun integration test**: `npx --yes jest --runInBand tests/integration/printful-webhook-route.test.ts`
-2. **Update AgentReport**: Document the webhook URLs (domains/paths only, no secrets)
-3. **Update PROGRESS.md**: Mark Task44 as complete
-4. **Merge Task44**: If all tests pass
+1. **Optional**: `npx --yes jest --runInBand tests/integration/printful-webhook-route.test.ts` (uses stubbed secrets inside the test)
+2. **Update AgentReport**: Document the webhook URL and note that no signing secret is available from Printful
+3. **Update PROGRESS.md**: Log the current posture and limitations
 
 ---
 
@@ -315,9 +276,9 @@ Webhook URLs set to:
 - dev: https://dev.snapcase.ai/api/webhooks/printful (or production URL)
 - prod: https://app.snapcase.ai/api/webhooks/printful
 
-PRINTFUL_WEBHOOK_SECRET set in dev/prod: ✅
+PRINTFUL_WEBHOOK_SECRET set in dev/prod: leave unset (Printful does not expose a secret).
 
-PRINTFUL_WEBHOOK_ARCHIVE_DIR set: ✅
+PRINTFUL_WEBHOOK_ARCHIVE_DIR set: Images/diagnostics/printful.
 ```
 
 **Do NOT share the actual secret value** - just confirm it's set.

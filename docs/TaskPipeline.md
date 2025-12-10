@@ -55,7 +55,9 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 | Sprint03-Task37 | DONE | Lint + telemetry refresh complete; see `docs/AgentReports/Sprint03-Task37.md`. |
 | Sprint03-Task38 | DONE | Printful v2 order flow implemented; see `docs/AgentReports/Sprint03-Task38.md`. |
 | Sprint03-Task39 | DONE | Webhook route registered for store `17088301`; sandbox order + payload captures logged in `docs/AgentReports/Sprint03-Task36.md` and `Images/diagnostics/printful-webhook-2025-11-23T08-37-22-000Z-*.json`. |
-| Sprint03-Task44 | DONE | Webhook now points to `https://app.snapcase.ai/api/webhooks/printful`, archive dir set to `Images/diagnostics/printful` (preview/prod), integration test rerun; `PRINTFUL_WEBHOOK_SECRET` still pending. See `docs/AgentReports/Sprint03-Task44.md` and `Images/diagnostics/printful-webhook-2025-11-23T22-37-57-192Z-evt_local_capture.json`. |
+| Sprint03-Task44 | DONE | Webhook at `https://app.snapcase.ai/api/webhooks/printful` with archive dir `Images/diagnostics/printful`; integration test covered. Printful does **not** expose a webhook secret, so `PRINTFUL_WEBHOOK_SECRET` remains unset by design (see Task50). Artifacts: `Images/diagnostics/printful-webhook-2025-11-23T22-37-57-192Z-evt_local_capture.json`. |
+| Sprint03-Task50 | DONE | Confirmed Printful API does not return a webhook signing secret for store 17088301 (no `secret_key` via GET/POST /webhooks). `PRINTFUL_WEBHOOK_SECRET` intentionally unset; archive dir unchanged. Docs: `docs/PRINTFUL_WEBHOOK_SECRET_FINAL.md`, `docs/PRINTFUL_WEBHOOK_SECRET_CLARIFICATION.md`; AgentReport: `docs/AgentReports/Sprint03-Task50-webhook-secret.md`. |
 | Sprint03-Task40 | DONE | Stripe prod secrets verified across scopes; live `/api/checkout` session captured. See `docs/AgentReports/Sprint03-Task40.md`. |
 | Sprint03-Task41 | DONE | Sponsor readiness sweep complete with fresh screenshots + Segment debugger evidence. See `docs/AgentReports/Sprint03-Task41.md`. |
 | Sprint03-Task42 | DONE | SnapCase-first picker with masked Printful row; Playwright e2e passing; new `/design` screenshots captured. See `docs/AgentReports/Sprint03-Task42.md`. |
+
