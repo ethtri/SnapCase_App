@@ -1680,7 +1680,7 @@ export function EdmEditor({
         data-testid="edm-designer-shell"
       >
         <div
-          className="absolute left-0 top-0 z-[3] h-16 w-36 rounded-br-3xl bg-white"
+          className="absolute left-0 top-0 z-[3] h-14 w-20 rounded-br-2xl bg-white"
           aria-hidden="true"
           data-testid="printful-product-guard"
           title="Product tab disabled"
