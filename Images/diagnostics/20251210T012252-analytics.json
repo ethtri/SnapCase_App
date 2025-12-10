@@ -1,0 +1,70 @@
+{
+  "analyticsTail": {
+    "events": [
+      {
+        "name": "thank_you_viewed",
+        "payload": {
+          "order_id": "SC-GJ02IFOL",
+          "shipping_method": "standard",
+          "template_id": null,
+          "variant_id": 17726,
+          "timeline_state": "submitted"
+        }
+      },
+      {
+        "name": "timeline_step_revealed",
+        "payload": {
+          "order_id": "SC-GJ02IFOL",
+          "step": "submitted"
+        }
+      }
+    ],
+    "segmentPreview": []
+  },
+  "logEvents": [
+    "analytics.design_cta_state_change {state: printful-validating, variantId: 632, source: printful}",
+    "analytics.edm_variant_locked {variantId: 632, designValid: null, errorSummaries: Object, timestamp: 2025-12-10T01:22:54.237Z, lockFlags: Object}",
+    "analytics.printful_design_status_raw {variantId: 17726, externalProductId: SNAP_IP15PRO_SNAP, payload: Object}",
+    "analytics.edm_design_status {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-10T01:22:56.990Z, guardrailMode: printful}",
+    "analytics.edm_guardrail_summary_update {variantId: 632, guardrailMode: printful, designValid: false, blockingIssues: 1, warningCount: 0}",
+    "analytics.edm_guardrail_blocked {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-10T01:22:56.990Z, blockingIssues: Array(1)}",
+    "analytics.design_cta_state_change {state: printful-validating, variantId: 17726, source: printful}",
+    "analytics.printful_design_status_raw {variantId: 17726, externalProductId: SNAP_IP15PRO_SNAP, payload: Object}",
+    "analytics.edm_design_status {variantId: 632, designValid: true, errorSummaries: Object, timestamp: 2025-12-10T01:23:14.393Z, guardrailMode: printful}",
+    "analytics.edm_guardrail_summary_update {variantId: 632, guardrailMode: printful, designValid: true, blockingIssues: 0, warningCount: 0}",
+    "analytics.design_cta_state_change {state: printful-ready, variantId: 17726, source: printful}",
+    "analytics.printful_design_status_raw {variantId: 17726, externalProductId: SNAP_IP15PRO_SNAP, payload: Object}",
+    "analytics.edm_design_status {variantId: 632, designValid: true, errorSummaries: Object, timestamp: 2025-12-10T01:23:14.944Z, guardrailMode: printful}",
+    "analytics.edm_guardrail_summary_update {variantId: 632, guardrailMode: printful, designValid: true, blockingIssues: 0, warningCount: 2}",
+    "analytics.edm_guardrail_warning {variantId: 632, designValid: true, errorSummaries: Object, timestamp: 2025-12-10T01:23:14.944Z, warningMessages: Array(2)}",
+    "analytics.checkout_pricing_update {shippingOption: standard, subtotal: 34.99, shipping: 4.99, tax: 3.3, total: 43.28}",
+    "analytics.checkout_pricing_update {shippingOption: standard, subtotal: 34.99, shipping: 4.99, tax: 3.3, total: 43.28}",
+    "payButtonDisabled:false",
+    "analytics.thank_you_viewed {order_id: SC-GJ02IFOL, shipping_method: standard, template_id: null, variant_id: 17726, timeline_state: submitted}",
+    "analytics.timeline_step_revealed {order_id: SC-GJ02IFOL, step: submitted}",
+    "analytics.design_cta_state_change {state: printful-validating, variantId: 632, source: printful}",
+    "analytics.edm_variant_locked {variantId: 632, designValid: null, errorSummaries: Object, timestamp: 2025-12-10T01:23:25.567Z, lockFlags: Object}",
+    "analytics.printful_design_status_raw {variantId: 17726, externalProductId: SNAP_IP15PRO_SNAP, payload: Object}",
+    "analytics.edm_design_status {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-10T01:23:28.006Z, guardrailMode: printful}",
+    "analytics.edm_guardrail_summary_update {variantId: 632, guardrailMode: printful, designValid: false, blockingIssues: 1, warningCount: 0}",
+    "analytics.edm_guardrail_blocked {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-10T01:23:28.006Z, blockingIssues: Array(1)}",
+    "analytics.design_cta_state_change {state: printful-validating, variantId: 17726, source: printful}",
+    "analytics.checkout_pricing_update {shippingOption: standard, subtotal: 34.99, shipping: 4.99, tax: 3.3, total: 43.28}",
+    "analytics.checkout_pricing_update {shippingOption: standard, subtotal: 34.99, shipping: 4.99, tax: 3.3, total: 43.28}",
+    "analytics.thank_you_viewed {order_id: SC-GJ02IFOL, shipping_method: standard, template_id: null, variant_id: 17726, timeline_state: submitted}",
+    "analytics.timeline_step_revealed {order_id: SC-GJ02IFOL, step: submitted}"
+  ],
+  "checkoutResponsePayload": {
+    "status": 400,
+    "body": {
+      "error": "Invalid request body",
+      "issues": [
+        {
+          "code": "custom",
+          "message": "Either templateStoreId (EDM), templateId (EDM), or designImage (Fabric export) must be provided.",
+          "path": []
+        }
+      ]
+    }
+  }
+}

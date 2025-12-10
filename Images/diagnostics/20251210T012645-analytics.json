@@ -1,0 +1,69 @@
+{
+  "analyticsTail": {
+    "events": [
+      {
+        "name": "thank_you_viewed",
+        "payload": {
+          "order_id": "cs_live_b1A5dzZVYWR0OVUTkl0A8msXkgzm21KLKJPWJncI0Fh9WBujhUCaujp0D2",
+          "shipping_method": "standard",
+          "template_id": null,
+          "variant_id": 17726,
+          "timeline_state": "submitted"
+        }
+      },
+      {
+        "name": "timeline_step_revealed",
+        "payload": {
+          "order_id": "cs_live_b1A5dzZVYWR0OVUTkl0A8msXkgzm21KLKJPWJncI0Fh9WBujhUCaujp0D2",
+          "step": "submitted"
+        }
+      }
+    ],
+    "segmentPreview": []
+  },
+  "logEvents": [
+    "analytics.design_cta_state_change {state: printful-validating, variantId: 632, source: printful}",
+    "analytics.edm_variant_locked {variantId: 632, designValid: null, errorSummaries: Object, timestamp: 2025-12-10T01:26:47.248Z, lockFlags: Object}",
+    "analytics.printful_design_status_raw {variantId: 17726, externalProductId: SNAP_IP15PRO_SNAP, payload: Object}",
+    "analytics.edm_design_status {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-10T01:26:50.368Z, guardrailMode: printful}",
+    "analytics.edm_guardrail_summary_update {variantId: 632, guardrailMode: printful, designValid: false, blockingIssues: 1, warningCount: 0}",
+    "analytics.edm_guardrail_blocked {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-10T01:26:50.368Z, blockingIssues: Array(1)}",
+    "analytics.design_cta_state_change {state: printful-validating, variantId: 17726, source: printful}",
+    "analytics.printful_design_status_raw {variantId: 17726, externalProductId: SNAP_IP15PRO_SNAP, payload: Object}",
+    "analytics.edm_design_status {variantId: 632, designValid: true, errorSummaries: Object, timestamp: 2025-12-10T01:27:08.529Z, guardrailMode: printful}",
+    "analytics.edm_guardrail_summary_update {variantId: 632, guardrailMode: printful, designValid: true, blockingIssues: 0, warningCount: 0}",
+    "analytics.design_cta_state_change {state: printful-ready, variantId: 17726, source: printful}",
+    "analytics.printful_design_status_raw {variantId: 17726, externalProductId: SNAP_IP15PRO_SNAP, payload: Object}",
+    "analytics.edm_design_status {variantId: 632, designValid: true, errorSummaries: Object, timestamp: 2025-12-10T01:27:09.100Z, guardrailMode: printful}",
+    "analytics.edm_guardrail_summary_update {variantId: 632, guardrailMode: printful, designValid: true, blockingIssues: 0, warningCount: 2}",
+    "analytics.edm_guardrail_warning {variantId: 632, designValid: true, errorSummaries: Object, timestamp: 2025-12-10T01:27:09.100Z, warningMessages: Array(2)}",
+    "analytics.checkout_pricing_update {shippingOption: standard, subtotal: 34.99, shipping: 4.99, tax: 3.3, total: 43.28}",
+    "analytics.checkout_pricing_update {shippingOption: standard, subtotal: 34.99, shipping: 4.99, tax: 3.3, total: 43.28}",
+    "payButtonDisabled:false",
+    "requestfailed https://b.stripecdn.com/stripethirdparty-srv/assets/v31.9/KlarnaExpressButton.html?id=e36b0b27-946c-4bb5-b040-8de27123fe66&origin=https%3A%2F%2Fjs.stripe.com net::ERR_ABORTED",
+    "requestfailed https://b.stripecdn.com/stripethirdparty-srv/assets/v31.9/AmazonPayButton.html?id=ad28b7af-6af1-4982-88de-b45281e0673b&origin=https%3A%2F%2Fjs.stripe.com net::ERR_ABORTED",
+    "requestfailed https://b.stripecdn.com/stripethirdparty-srv/assets/v31.9/KlarnaExpressButton.html?id=e36b0b27-946c-4bb5-b040-8de27123fe66&origin=https%3A%2F%2Fjs.stripe.com net::ERR_ABORTED",
+    "requestfailed https://b.stripecdn.com/stripethirdparty-srv/assets/v31.9/AmazonPayButton.html?id=ad28b7af-6af1-4982-88de-b45281e0673b&origin=https%3A%2F%2Fjs.stripe.com net::ERR_ABORTED",
+    "requestfailed https://b.stripecdn.com/stripethirdparty-srv/assets/v31.9/KlarnaExpressButton.html?id=e36b0b27-946c-4bb5-b040-8de27123fe66&origin=https%3A%2F%2Fjs.stripe.com net::ERR_ABORTED",
+    "requestfailed https://b.stripecdn.com/stripethirdparty-srv/assets/v31.9/AmazonPayButton.html?id=ad28b7af-6af1-4982-88de-b45281e0673b&origin=https%3A%2F%2Fjs.stripe.com net::ERR_ABORTED",
+    "analytics.thank_you_viewed {order_id: cs_live_b1A5dzZVYWR0OVUTkl0A8msXkgzm21KLKJPWJncI0Fh9WBujhUCaujp0D2, shipping_method: standard, template_id: null, variant_id: 17726, timeline_state: submitted}",
+    "analytics.timeline_step_revealed {order_id: cs_live_b1A5dzZVYWR0OVUTkl0A8msXkgzm21KLKJPWJncI0Fh9WBujhUCaujp0D2, step: submitted}",
+    "analytics.design_cta_state_change {state: printful-validating, variantId: 632, source: printful}",
+    "analytics.edm_variant_locked {variantId: 632, designValid: null, errorSummaries: Object, timestamp: 2025-12-10T01:27:20.195Z, lockFlags: Object}",
+    "analytics.printful_design_status_raw {variantId: 17726, externalProductId: SNAP_IP15PRO_SNAP, payload: Object}",
+    "analytics.edm_design_status {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-10T01:27:22.739Z, guardrailMode: printful}",
+    "analytics.edm_guardrail_summary_update {variantId: 632, guardrailMode: printful, designValid: false, blockingIssues: 1, warningCount: 0}",
+    "analytics.edm_guardrail_blocked {variantId: 632, designValid: false, errorSummaries: Object, timestamp: 2025-12-10T01:27:22.739Z, blockingIssues: Array(1)}",
+    "analytics.design_cta_state_change {state: printful-validating, variantId: 17726, source: printful}",
+    "analytics.checkout_pricing_update {shippingOption: standard, subtotal: 34.99, shipping: 4.99, tax: 3.3, total: 43.28}",
+    "analytics.checkout_pricing_update {shippingOption: standard, subtotal: 34.99, shipping: 4.99, tax: 3.3, total: 43.28}",
+    "analytics.thank_you_viewed {order_id: cs_live_b1A5dzZVYWR0OVUTkl0A8msXkgzm21KLKJPWJncI0Fh9WBujhUCaujp0D2, shipping_method: standard, template_id: null, variant_id: 17726, timeline_state: submitted}",
+    "analytics.timeline_step_revealed {order_id: cs_live_b1A5dzZVYWR0OVUTkl0A8msXkgzm21KLKJPWJncI0Fh9WBujhUCaujp0D2, step: submitted}"
+  ],
+  "checkoutResponsePayload": {
+    "status": 200,
+    "body": {
+      "parseError": "response.json: Protocol error (Network.getResponseBody): No resource with given identifier found"
+    }
+  }
+}
