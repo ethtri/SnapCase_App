@@ -46,7 +46,7 @@ const TIMELINE_LABELS: Record<
 > = {
   submitted: {
     label: "Submitted",
-    helper: "Stripe confirmed your payment.",
+    helper: "Payment confirmed.",
   },
   print_files: {
     label: "Print files",
@@ -330,14 +330,24 @@ function ThankYouScreen(): JSX.Element {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-12 lg:px-8">
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <section className="space-y-8">
+    <div
+      className="min-h-screen w-full"
+      style={{ backgroundColor: "var(--snap-gray-50)" }}
+    >
+      <div className="mx-auto w-full max-w-screen-2xl px-4 py-12 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <section className="space-y-8">
           <header
             className="space-y-6 rounded-3xl border border-violet-100 bg-gradient-to-b from-violet-50 to-white p-6 shadow-sm lg:p-8"
             data-testid="thank-you-hero"
             role="status"
             aria-live="polite"
+            style={{
+              borderRadius: "var(--radius-2xl)",
+              borderColor: "var(--snap-gray-200)",
+              boxShadow: "var(--shadow-lg)",
+              background: "linear-gradient(180deg, rgba(124, 58, 237, 0.08), #ffffff)",
+            }}
           >
             <div className="flex items-start gap-4">
               <span className="inline-flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-200">
@@ -381,6 +391,11 @@ function ThankYouScreen(): JSX.Element {
           <section
             className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm"
             data-testid="fulfillment-timeline"
+            style={{
+              borderRadius: "var(--radius-2xl)",
+              borderColor: "var(--snap-gray-200)",
+              boxShadow: "var(--shadow-md)",
+            }}
           >
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -490,6 +505,11 @@ function ThankYouScreen(): JSX.Element {
           <article
             className="space-y-5 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm"
             data-testid="order-summary-card"
+            style={{
+              borderRadius: "var(--radius-2xl)",
+              borderColor: "var(--snap-gray-200)",
+              boxShadow: "var(--shadow-md)",
+            }}
           >
             <div className="flex flex-col gap-2">
               <p className="text-sm uppercase tracking-wide text-gray-500">
@@ -601,6 +621,11 @@ function ThankYouScreen(): JSX.Element {
             <article
               className="space-y-4 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm"
               data-testid="design-summary"
+              style={{
+                borderRadius: "var(--radius-2xl)",
+                borderColor: "var(--snap-gray-200)",
+                boxShadow: "var(--shadow-md)",
+              }}
             >
               <div className="space-y-1">
                 <p className="text-sm uppercase tracking-wide text-gray-500">
@@ -655,6 +680,7 @@ function ThankYouScreen(): JSX.Element {
             </article>
           ) : null}
         </section>
+        </div>
       </div>
     </div>
   );

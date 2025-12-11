@@ -214,7 +214,7 @@ function CheckoutCancelBanner({ onResume }: CheckoutCancelBannerProps): JSX.Elem
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <h2 className="text-base font-semibold text-amber-900">
-            Stripe checkout was cancelled
+            Checkout was cancelled
           </h2>
           <p>
             Your latest design is still saved below. Jump back into checkout
@@ -259,13 +259,14 @@ function QualityPromiseBanner(): JSX.Element {
       className="flex items-start gap-4 rounded-3xl border border-transparent p-5 shadow-sm"
       data-testid="quality-promise-banner"
       style={{
-        backgroundColor: "var(--snap-violet-50, rgba(124, 58, 237, 0.1))",
+        backgroundColor: "var(--snap-violet-50)",
+        borderColor: "var(--snap-gray-200)",
       }}
     >
       <span
         aria-hidden="true"
-        className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-purple-700"
-        style={{ color: "var(--snap-violet, #7c3aed)" }}
+        className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white"
+        style={{ color: "var(--snap-violet)" }}
       >
         <svg
           className="h-6 w-6"
@@ -441,7 +442,7 @@ export default function CheckoutPage(): JSX.Element {
         const message =
           data?.message ??
           data?.error ??
-          "Unable to create a Stripe Checkout session.";
+          "Unable to create a checkout session.";
         setError(message);
       }
     } catch (err) {
@@ -467,16 +468,16 @@ export default function CheckoutPage(): JSX.Element {
   return (
     <div
       className="min-h-screen w-full"
-      style={{ backgroundColor: "var(--snap-gray-50, #f9fafb)" }}
+      style={{ backgroundColor: "var(--snap-gray-50)" }}
     >
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-semibold text-gray-900">
+      <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+        <header className="space-y-2" style={{ fontFamily: "var(--font-display)" }}>
+          <h1 className="text-3xl font-semibold text-gray-900 lg:text-4xl">
             Review &amp; Shipping
           </h1>
-          <p className="text-base text-gray-600">
-            Confirm your design, shipping speed, and totals before paying with
-            Stripe. Everything here stays locked to your saved Snapcase design.
+          <p className="text-base text-gray-700">
+            Confirm your design, shipping speed, and totals before completing payment. Everything
+            here stays locked to your saved Snapcase design.
           </p>
         </header>
 
@@ -488,7 +489,14 @@ export default function CheckoutPage(): JSX.Element {
           <div className="space-y-6 lg:col-span-8">
             <QualityPromiseBanner />
 
-            <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <section
+              className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+              style={{
+                borderRadius: "var(--radius-2xl)",
+                borderColor: "var(--snap-gray-200)",
+                boxShadow: "var(--shadow-md)",
+              }}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
@@ -562,7 +570,14 @@ export default function CheckoutPage(): JSX.Element {
               )}
             </section>
 
-            <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <section
+              className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+              style={{
+                borderRadius: "var(--radius-2xl)",
+                borderColor: "var(--snap-gray-200)",
+                boxShadow: "var(--shadow-md)",
+              }}
+            >
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">
                   Shipping speed
@@ -621,7 +636,14 @@ export default function CheckoutPage(): JSX.Element {
               </fieldset>
             </section>
 
-            <section className="space-y-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <section
+              className="space-y-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+              style={{
+                borderRadius: "var(--radius-2xl)",
+                borderColor: "var(--snap-gray-200)",
+                boxShadow: "var(--shadow-md)",
+              }}
+            >
               <div className="flex items-center justify-between">
                 <div>
                 <h2 className="text-lg font-semibold text-gray-900">
@@ -647,7 +669,7 @@ export default function CheckoutPage(): JSX.Element {
             </section>
           </div>
 
-          <div className="space-y-6 lg:col-span-4">
+          <div className="space-y-6 lg:col-span-4 lg:sticky lg:top-8">
             <section
               className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
               aria-live="polite"
@@ -701,40 +723,60 @@ export default function CheckoutPage(): JSX.Element {
               </div>
             ) : null}
 
-            <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <section
+              className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+              style={{
+                borderRadius: "var(--radius-2xl)",
+                borderColor: "var(--snap-gray-200)",
+                boxShadow: "var(--shadow-md)",
+              }}
+            >
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-gray-900">
-                  Stripe handoff
+                  Payment handoff
                 </p>
                 <p className="text-xs text-gray-600">
-                  We charge your card after production checks clear. The Quality
-                  Promise covers free reprints if anything slips.
+                  We charge your card after production checks clear. The Snapcase Quality Promise
+                  covers free reprints if anything slips.
                 </p>
               </div>
               <div className="space-y-3">
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  className="inline-flex w-full items-center justify-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex w-full items-center justify-center gap-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60"
                   style={{
-                    backgroundColor: "var(--snap-violet, #7c3aed)",
+                    backgroundColor: "var(--snap-violet)",
+                    borderRadius: "var(--radius-2xl)",
+                    minHeight: "var(--control-height)",
+                    boxShadow: "var(--shadow-md)",
+                    padding: "12px 16px",
                   }}
                   disabled={isSubmitting || !designContext}
                   aria-busy={isSubmitting}
                 >
-                  <span>
-                    {isSubmitting
-                      ? "Creating checkout session..."
-                      : "Pay with Stripe"}
+                  <span className="inline-flex items-center gap-2">
+                    <svg
+                      aria-hidden="true"
+                      className="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 17a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2 2 2 0 0 0-2 2v3a2 2 0 0 0 2 2Z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M7 9.5A5 5 0 0 1 17 9.5v2.5h1.5a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5v-4A1.5 1.5 0 0 1 5.5 12H7V9.5Z"
+                      />
+                    </svg>
+                    {isSubmitting ? "Creating checkout session..." : "Complete secure payment"}
                   </span>
-                  <Image
-                    src="/stripe/lockup.svg"
-                    alt=""
-                    width={96}
-                    height={28}
-                    className="h-4 w-auto"
-                    aria-hidden="true"
-                  />
                 </button>
                 <Link
                   href="/design"
@@ -744,16 +786,16 @@ export default function CheckoutPage(): JSX.Element {
                 </Link>
               </div>
               <p className="text-xs text-gray-500">
-                Successful payment redirects to Stripe. Cancel from Stripe any
-                time to come back here with your design preserved.
+                Successful payment opens a secure checkout window. Cancel any time to come back here
+                with your design preserved.
               </p>
             </section>
 
             {mockCheckoutUrl ? (
               <div className="space-y-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
                 <p>
-                  Stripe secrets are not configured. Use the mock checkout URL to
-                  demo the flow without leaving the prototype.
+                  Payment secrets are not configured. Use the mock checkout URL to demo the flow
+                  without leaving the prototype.
                 </p>
                 <div className="flex flex-wrap items-center gap-3 text-xs">
                   <a
@@ -769,7 +811,7 @@ export default function CheckoutPage(): JSX.Element {
                     className="font-semibold underline"
                     data-testid="mock-cancel-link"
                   >
-                    Simulate Stripe cancel
+                    Simulate cancel
                   </Link>
                 </div>
               </div>

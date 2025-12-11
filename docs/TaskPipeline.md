@@ -19,6 +19,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Goal (Sponsor Language) | Prep & References | Agent Kickoff |
 | --- | --- | --- | --- |
+| Sprint03-Task56 | Restore Snapcase mockups and align design/checkout/thank-you CX to the design system (no vendor IDs/copy leaks) | Branch `task/Sprint03-Task56-cx-realignment` on clean worktree; references: `Snapcase-Flow-Mockups/Flow-1-Design-and-Order/*/snapcase-notes-delta-screen-*.md`, `docs/DESIGN_SYSTEM.md`, `docs/Responsive_Blueprint.md`, `docs/UXCX_Guidelines.MD` | Prompt: Sprint03-Task56 – Restore mockups & realign CX/UX to design system |
 | Sprint03-Task49 | Stabilize mobile Playwright smoke on `dev.snapcase.ai` so CTA unlocks and flow reaches checkout/thank-you | Base: `https://dev.snapcase.ai` (alias `snapcase-eopqpujyk-snapcase.vercel.app`); asset `tmp/task45-design.png`; report `docs/AgentReports/Sprint03-Task49-mobile-automation.md`; script `scripts/run-mobile-live-smoke.mjs` | `Prompt: Sprint03-Task49 prompt (branch task/Sprint03-Task49-mobile-automation, run scripts/run-mobile-live-smoke.mjs)` |
 
 > These prompts are ready to run in parallel; each owns its branch and AgentReport. Keep sponsor updated via `PROGRESS.md`.

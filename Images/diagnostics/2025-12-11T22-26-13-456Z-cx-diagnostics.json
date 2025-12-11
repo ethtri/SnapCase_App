@@ -1,0 +1,26 @@
+{
+  "task": "Sprint03-Task56-cx-realignment",
+  "timestamp": "2025-12-11T22-26-13-456Z",
+  "pages": [
+    "design",
+    "checkout",
+    "thank-you"
+  ],
+  "beforeScreenshots": [
+    "Images/diagnostics/2025-12-11T22-07-25-505Z-before-design-desktop.png",
+    "Images/diagnostics/2025-12-11T22-07-25-505Z-before-design-mobile.png",
+    "Images/diagnostics/2025-12-11T22-07-25-505Z-before-checkout-desktop.png",
+    "Images/diagnostics/2025-12-11T22-07-25-505Z-before-checkout-mobile.png",
+    "Images/diagnostics/2025-12-11T22-07-25-505Z-before-thank-you-desktop.png",
+    "Images/diagnostics/2025-12-11T22-07-25-505Z-before-thank-you-mobile.png"
+  ],
+  "afterScreenshots": [
+    "Images/diagnostics/2025-12-11T22-26-13-456Z-after-design-desktop.png",
+    "Images/diagnostics/2025-12-11T22-26-13-456Z-after-design-mobile.png",
+    "Images/diagnostics/2025-12-11T22-26-13-456Z-after-checkout-desktop.png",
+    "Images/diagnostics/2025-12-11T22-26-13-456Z-after-checkout-mobile.png",
+    "Images/diagnostics/2025-12-11T22-26-13-456Z-after-thank-you-desktop.png",
+    "Images/diagnostics/2025-12-11T22-26-13-456Z-after-thank-you-mobile.png"
+  ],
+  "notes": "Before/after captures taken from local dev server on port 3001 after CX/UX realignment and token refresh."
+}
