@@ -268,7 +268,7 @@ function ensureEdmScript(): Promise<void> {
         cleanup();
         edmScriptPromise = null;
         const error = new Error(
-          "Failed to load Printful EDM script (embed.js). Check CSP/network.",
+          "Failed to load the designer script (embed.js). Check CSP/network.",
         );
         script.dataset.snapcaseEdmFailed = "true";
         reject(error);
@@ -797,15 +797,15 @@ export function EdmEditor({
   const loaderMessage = useMemo(() => {
     switch (bootstrapPhase) {
       case "probing-template":
-        return "Checking Printful template status...";
+        return "Checking saved design status...";
       case "loading-script":
-        return "Loading the Printful designer...";
+        return "Loading the designer...";
       case "requesting-nonce":
-        return "Requesting a fresh Printful nonce...";
+        return "Securing the designer session...";
       case "initializing-designer":
-        return "Initializing the Printful designer...";
+        return "Initializing the designer...";
       default:
-        return "Preparing Printful designer...";
+        return "Preparing the designer...";
     }
   }, [bootstrapPhase]);
 
@@ -962,7 +962,7 @@ export function EdmEditor({
           const details = await response.json().catch(() => null);
           const message =
             (details?.error as string | undefined) ??
-            "Unable to verify Printful template status.";
+            "Unable to verify the saved design status.";
           throw new Error(message);
         }
 
@@ -986,7 +986,7 @@ export function EdmEditor({
         if (exists && !shouldForceInit) {
           if (!remoteTemplateId) {
             throw new Error(
-              "Printful reported an existing template but omitted the templateId.",
+              "The design service reported a saved template but omitted its identifier.",
             );
           }
           templateIdFromProbe = remoteTemplateId;
@@ -1008,7 +1008,7 @@ export function EdmEditor({
         templateProbeError =
           probeError instanceof Error
             ? probeError.message
-            : "Unable to validate Printful template availability.";
+            : "Unable to validate design availability.";
         templateProbeCompletedAt = new Date().toISOString();
 
         if (!templateIdForDesigner) {
@@ -1077,7 +1077,7 @@ export function EdmEditor({
           return;
         }
         const message =
-          "No Printful catalog mapping found; cannot launch EDM create mode.";
+          "Missing catalog mapping; cannot launch the designer.";
         setStatus("error");
         if (!cancelled) {
           setBootstrapPhase("idle");
@@ -1190,7 +1190,7 @@ export function EdmEditor({
         const message =
           scriptError instanceof Error
             ? scriptError.message
-            : "Unable to load the Printful designer script.";
+            : "Unable to load the designer script.";
         setError(message);
         setDiagnostics((prev) => {
           const base =
@@ -1237,7 +1237,7 @@ export function EdmEditor({
           const details = await response.json().catch(() => null);
           throw new Error(
             details?.error ??
-              "Printful nonce request failed. Try again in a moment.",
+              "Designer nonce request failed. Try again in a moment.",
           );
         }
 
@@ -1250,7 +1250,7 @@ export function EdmEditor({
         expiresAt = payload?.expiresAt ?? null;
 
         if (!nonce) {
-          throw new Error("Nonce missing from Printful response.");
+          throw new Error("Nonce missing from designer response.");
         }
         setDiagnostics((prev) => {
           if (!prev) {
@@ -1275,7 +1275,7 @@ export function EdmEditor({
         const message =
           nonceError instanceof Error
             ? nonceError.message
-            : "Failed to request a Printful nonce.";
+            : "Failed to request a designer nonce.";
         setError(message);
         setDiagnostics((prev) => {
           const base =
@@ -1301,7 +1301,7 @@ export function EdmEditor({
       const PFConstructor = window.PFDesignMaker;
       if (!PFConstructor) {
         setStatus("error");
-        setError("Printful designer is unavailable in this environment.");
+        setError("Designer is unavailable in this environment.");
         setDiagnostics((prev) => {
           const base =
             prev ??
@@ -1312,7 +1312,7 @@ export function EdmEditor({
           return {
             ...base,
             lastErrorMessage:
-              "Printful designer is unavailable in this environment.",
+              "Designer is unavailable in this environment.",
             lastErrorEvent: "pf_constructor_missing",
             errorCapturedAt: new Date().toISOString(),
           };
@@ -1477,8 +1477,8 @@ export function EdmEditor({
           const fallbackMessage =
             details.message ??
             (details.event === "invalidOrigin"
-              ? "Printful rejected this origin. Send the diagnostics below with your escalation."
-              : "The Printful service reported an unexpected error. See diagnostics below.");
+              ? "The designer rejected this origin. Send the diagnostics below with your escalation."
+              : "The designer service reported an unexpected error. See diagnostics below.");
           setStatus("error");
           setError(fallbackMessage);
           setDiagnostics((prev) => {
@@ -1568,7 +1568,7 @@ export function EdmEditor({
         setError(
           initError instanceof Error
             ? initError.message
-            : "Failed to initialize Printful designer.",
+            : "Failed to initialize the designer.",
         );
       }
     }
@@ -1719,8 +1719,8 @@ export function EdmEditor({
             <span>{loaderMessage}</span>
             {showSlowLoaderHint ? (
               <span className="max-w-[280px] text-center text-xs text-gray-500">
-                This is taking longer than usual. Printful keeps your progress once
-                the designer finishes loading.
+                This is taking longer than usual. We keep your progress while the designer finishes
+                loading.
               </span>
             ) : null}
           </div>
@@ -1732,7 +1732,7 @@ export function EdmEditor({
             </p>
             <p className="text-xs text-gray-500">
               {error ??
-                "The Printful service did not respond. Please retry in a moment."}
+                "The designer service did not respond. Please retry in a moment."}
             </p>
             <button
               type="button"
@@ -1747,9 +1747,9 @@ export function EdmEditor({
 
       {templateId ? (
         <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-600">
-          <p className="font-medium text-gray-900">Last saved template</p>
-          <p className="mt-2 break-all font-mono text-xs text-gray-700">
-            {templateId}
+          <p className="font-medium text-gray-900">Design saved</p>
+          <p className="mt-2 text-xs text-gray-700">
+            Saved in Snapcase for checkout. Resave in the designer if you change devices or artwork.
           </p>
         </div>
       ) : null}
@@ -1759,9 +1759,9 @@ export function EdmEditor({
           className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
           data-testid="edm-offline-banner"
         >
-          <p className="font-semibold">Printful designer is offline</p>
+          <p className="font-semibold">Designer is offline</p>
           <p className="mt-1 text-amber-800">
-            Retry in a moment or capture diagnostics below if Printful continues
+            Retry in a moment or capture diagnostics below if the service continues
             to block the editor.
           </p>
         </div>
@@ -1769,7 +1769,7 @@ export function EdmEditor({
       {hasError && diagnostics ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-4 text-xs text-gray-700">
           <p className="text-sm font-semibold text-gray-900">
-            Debug details for Printful
+            Debug details
           </p>
           <dl className="mt-3 grid gap-1">
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
@@ -1796,7 +1796,7 @@ export function EdmEditor({
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
               <dt className="font-medium text-gray-800 sm:w-40">
-                Printful product
+                Production product
               </dt>
               <dd className="font-mono text-[11px] text-gray-700">
                 {diagnostics.printfulProductId ?? "(unknown)"}
@@ -1937,7 +1937,7 @@ export function EdmEditor({
               <dd className="font-mono text-[11px] text-gray-700">
                 {diagnostics.configSnapshot
                   ? diagnostics.configSnapshot.useUserConfirmationErrors
-                    ? "Printful confirmation modals"
+                ? "Provider confirmation modals"
                     : "SnapCase guardrails only"
                   : "(snapshot unavailable)"}
               </dd>
@@ -2052,7 +2052,7 @@ export function EdmEditor({
           {diagnostics.designStatus?.blockingIssues?.length ? (
             <details className="mt-3">
               <summary className="cursor-pointer font-medium text-gray-800">
-                Printful blocking issues
+                Designer blocking issues
               </summary>
               <ul className="mt-2 space-y-1 rounded-lg bg-gray-50 p-2 text-[11px] font-mono leading-tight text-gray-700">
                 {diagnostics.designStatus.blockingIssues.map((issue, index) => (
@@ -2064,7 +2064,7 @@ export function EdmEditor({
           {diagnostics.designStatus?.warningMessages?.length ? (
             <details className="mt-3">
               <summary className="cursor-pointer font-medium text-gray-800">
-                Printful warnings
+                Designer warnings
               </summary>
               <ul className="mt-2 space-y-1 rounded-lg bg-gray-50 p-2 text-[11px] font-mono leading-tight text-gray-700">
                 {diagnostics.designStatus.warningMessages.map((warning, index) => (
@@ -2086,7 +2086,7 @@ export function EdmEditor({
           {diagnostics.rawErrorPayload ? (
             <details className="mt-3">
               <summary className="cursor-pointer font-medium text-gray-800">
-                Raw Printful payload
+                Raw designer payload
               </summary>
               <pre className="mt-2 max-h-64 overflow-x-auto whitespace-pre-wrap rounded-lg bg-gray-50 p-2 text-[11px] leading-tight text-gray-700">
                 {diagnostics.rawErrorPayload}

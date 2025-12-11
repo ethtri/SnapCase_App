@@ -388,7 +388,7 @@ function ThankYouScreen(): JSX.Element {
                   Fulfillment timeline
                 </p>
                 <h2 className="text-2xl font-semibold text-gray-900">
-                  Submitted → Shipped
+                  Submitted to shipped
                 </h2>
               </div>
               <span className="text-xs font-mono uppercase tracking-wide text-gray-400">
@@ -617,20 +617,20 @@ function ThankYouScreen(): JSX.Element {
               <dl className="space-y-3 text-sm text-gray-700">
                 {designContext.variantLabel ? (
                   <div className="flex flex-col gap-0.5">
-                    <dt className="text-gray-500">Variant</dt>
+                    <dt className="text-gray-500">Device</dt>
                     <dd className="font-semibold text-gray-900">
                       {designContext.variantLabel}
                     </dd>
                   </div>
                 ) : null}
-                {designContext.templateId ? (
-                  <div className="flex flex-col gap-0.5">
-                    <dt className="text-gray-500">EDM template</dt>
-                    <dd className="font-mono text-xs text-gray-600">
-                      {designContext.templateId}
-                    </dd>
-                  </div>
-                ) : null}
+                <div className="flex flex-col gap-0.5">
+                  <dt className="text-gray-500">Design status</dt>
+                  <dd className="font-semibold text-gray-900">
+                    {designContext.templateId
+                      ? "Saved in Snapcase"
+                      : "Saved for this order"}
+                  </dd>
+                </div>
                 {designContext.exportedImage ? (
                   <div className="space-y-2">
                     <dt className="text-gray-500">Preview</dt>

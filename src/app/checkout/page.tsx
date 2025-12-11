@@ -475,8 +475,8 @@ export default function CheckoutPage(): JSX.Element {
             Review &amp; Shipping
           </h1>
           <p className="text-base text-gray-600">
-            Confirm your design, shipping speed, and totals before handing off
-            to Stripe. Everything shown here stays locked to your saved design.
+            Confirm your design, shipping speed, and totals before paying with
+            Stripe. Everything here stays locked to your saved Snapcase design.
           </p>
         </header>
 
@@ -495,7 +495,7 @@ export default function CheckoutPage(): JSX.Element {
                     Design summary
                   </h2>
                   <p className="text-sm text-gray-500">
-                    Pulled from your latest EDM save so you can confirm details
+                    Pulled from your saved design so you can confirm details
                     without reopening the editor.
                   </p>
                 </div>
@@ -521,16 +521,16 @@ export default function CheckoutPage(): JSX.Element {
                       </span>
                     </div>
                   </div>
-                  {designContext.templateId ? (
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium text-gray-600">
-                        EDM template
-                      </span>
-                      <span className="font-mono text-gray-900">
-                        {designContext.templateId}
-                      </span>
-                    </div>
-                  ) : null}
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-gray-600">
+                      Design status
+                    </span>
+                    <span className="text-gray-900">
+                      {designContext.templateId
+                        ? "Saved in Snapcase"
+                        : "Saved for checkout"}
+                    </span>
+                  </div>
                   {designContext.exportedImage ? (
                     <div className="space-y-2">
                       <span className="text-xs font-medium text-gray-600">
@@ -556,8 +556,8 @@ export default function CheckoutPage(): JSX.Element {
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
-                  No design context found. Return to the editor, save a template
-                  or export, then continue to checkout.
+                  No design context found. Return to the editor, save your
+                  design, then continue to checkout.
                 </div>
               )}
             </section>
@@ -568,8 +568,7 @@ export default function CheckoutPage(): JSX.Element {
                   Shipping speed
                 </h2>
                 <p className="text-sm text-gray-500">
-                  Options reflect the current flag configuration. Selecting an
-                  option recalculates totals via the polite live regions.
+                  Pick your speed and we&apos;ll refresh totals right away.
                 </p>
               </div>
               <fieldset
@@ -659,7 +658,7 @@ export default function CheckoutPage(): JSX.Element {
                   Cost summary
                 </h2>
                 <p className="text-sm text-gray-500">
-                  Updates anytime your variant or shipping selections change.
+                  Updates anytime your device or shipping choices change.
                 </p>
               </div>
               <dl className="space-y-3 text-sm text-gray-700">

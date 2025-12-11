@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: December 10, 2025
+**Last Updated**: December 11, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -38,6 +38,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Recently Resolved
 
+- **Sprint03-Task53 CX/UX audit (2025-12-11):** Scrubbed customer-facing Printful mentions and template/variant IDs from design, checkout, and thank-you, replacing them with Snapcase voice and neutral design-status copy (loader/offline messaging, guardrail helpers, and checkout/thank-you summaries). CTA/lock behaviour unchanged. Tests: `npm run build`. Artifacts: `Images/diagnostics/2025-12-11T17-40-07-409Z-{design,checkout,thank-you}-{desktop,mobile}.png` (before) and `Images/diagnostics/2025-12-11T18-01-08-610Z-{design,checkout,thank-you}-{desktop,mobile}.png` (after). Backlog: modern full-catalog device picker to reduce grid bloat and better surface Samsung/Pixel coverage.
 - **Sprint03-Task48 overlay hardening (2025-12-10):** Tightened the host-side Product-tab guard in the Printful embed with clamped size, border, shadow, and max-width to prevent UI bleed while keeping variant lock/CTA gating intact. Deployed `snapcase-eopqpujyk-snapcase.vercel.app` and aliased `dev.snapcase.ai`; artifacts at `Images/diagnostics/2025-12-10T175055209Z-before-{desktop,mobile}-{design,checkout,thankyou}.png/json` and `Images/diagnostics/2025-12-10T175354781Z-after-{desktop,mobile}-{design,checkout,thankyou}.png/json`. Tests: `npm run build`; manual desktop/mobile uploads unlock CTA. Known issue: Playwright mobile automation intermittently fails to unlock CTA, but manual mobile upload succeeds. Feature request sent to Printful for a first-party hide-navigation/variant-lock option; awaiting response.
 - **Sprint03-Task50 - Printful webhook secret investigation (2025-12-10):** Confirmed Printful API does not expose a webhook signing secret for store 17088301 (`secret_key` not returned via GET/POST /webhooks with any flags). `PRINTFUL_WEBHOOK_SECRET` stays unset by design; archive dir remains `Images/diagnostics/printful`. Docs added: `docs/PRINTFUL_WEBHOOK_SECRET_FINAL.md`, `docs/PRINTFUL_WEBHOOK_SECRET_CLARIFICATION.md`; `docs/PRINTFUL_WEBHOOK_SETUP_GUIDE.md` updated to note the limitation. Tests not rerun (missing `next/jest` in clean worktree; handler unchanged).
 - **Sprint03-Task47 CX refresh (2025-12-10):** Hid the Product tab with a host-side guard overlay, reduced the EDM mask height so controls stay visible, and scrubbed Flow/Scene labels plus Printful/variant IDs from `/design`, `/checkout`, and `/thank-you` in favor of Snapcase voice. Tests: `npm run build`. Screenshots: `Images/diagnostics/20251210T031700Z-before-design-{desktop,mobile}.png`, `Images/diagnostics/20251210T034229Z-after-design-{desktop,mobile}.png`. See `docs/AgentReports/Sprint03-Task47-CX-refresh.md`.
@@ -785,9 +786,8 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ---
 
-**Last Updated**: December 10, 2025
+**Last Updated**: December 11, 2025
 
 **Next Review**: Weekly
 
 **Document Owner**: Ethan Trifari
-

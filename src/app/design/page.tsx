@@ -447,7 +447,7 @@ export default function DesignPage(): JSX.Element {
 
   const ownershipHelper =
     priceLabel != null
-      ? `Designer ready. Live price ${priceLabel}.`
+      ? `Designer cleared. Live price ${priceLabel}.`
       : "Designer is validating your upload.";
 
   const guardrailSummary = useMemo<GuardrailSummary>(() => {
@@ -570,11 +570,11 @@ export default function DesignPage(): JSX.Element {
   const checkoutVariantLabel =
     formatDeviceLabel(activeDevice ?? seedDevice) ??
     designSummary?.variantLabel ??
-    "Pick a supported device in SnapCase";
+    "Pick a supported device in Snapcase";
 
   const templateSummaryLabel = lastTemplateId
-    ? `Template #${lastTemplateId}`
-    : "Save in the designer to capture a template ID";
+    ? "Design saved in Snapcase"
+    : "Save in the designer to reuse at checkout";
 
   const lastAttemptLabel = designSummary?.lastCheckoutAttemptAt
     ? new Date(designSummary.lastCheckoutAttemptAt).toLocaleString("en-US", {
@@ -595,11 +595,11 @@ export default function DesignPage(): JSX.Element {
         <div className="mx-auto w-full max-w-[1400px] space-y-10 px-4 sm:px-5 md:px-6 lg:px-8 xl:px-10">
           <header className="space-y-4">
             <h1 className="text-3xl font-semibold text-gray-900">
-              Design your Snapcase. We keep the device locked.
+              Design your Snapcase. Device stays locked to your pick.
             </h1>
             <p className="text-base text-gray-600">
-              Pick a device, upload your design, and continue once the checks clear. Checkout always
-              matches what you see here.
+              Choose your device, drop in your art, and continue when the checks clear. Checkout
+              mirrors what you see here.
             </p>
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
               <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1">
@@ -608,7 +608,7 @@ export default function DesignPage(): JSX.Element {
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1">
                 <span className="h-2 w-2 rounded-full bg-gray-900" aria-hidden="true" />
-                Live price + template
+                Live price + saved design
               </span>
               <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1">
                 <span className="h-2 w-2 rounded-full bg-gray-900" aria-hidden="true" />
@@ -626,12 +626,12 @@ export default function DesignPage(): JSX.Element {
                       Device
                     </p>
                     <p className="text-sm text-gray-700">
-                      Pick the device you want to print. We keep the designer locked to this pick so
-                      checkout matches.
+                      Choose where you want this printed. We keep the designer locked to your pick
+                      so checkout can&apos;t drift.
                     </p>
                   </div>
                   <span className="rounded-full border border-gray-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
-                    Locked in designer
+                    Locked to this pick
                   </span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -655,7 +655,7 @@ export default function DesignPage(): JSX.Element {
                           </p>
                           <p className="text-base font-semibold">{entry.model}</p>
                           <p className="text-xs text-gray-500">
-                            Snapcase snap case · ready to print
+                            Snapcase snap case, ready to print
                           </p>
                         </div>
                         <span
@@ -683,8 +683,8 @@ export default function DesignPage(): JSX.Element {
                   {helperLabel}
                 </span>
                 <p className="text-sm text-gray-600">
-                  Snapcase loads your pick into the designer and keeps it locked. Swap devices above
-                  to change what is handed to checkout.
+                  We load your pick into the designer and keep it locked. Swap devices above to
+                  change what is handed to checkout.
                 </p>
               </div>
 
@@ -744,7 +744,7 @@ export default function DesignPage(): JSX.Element {
                 </p>
                 <p className="text-sm text-gray-600">
                   Continue unlocks after the designer clears your upload. We carry the locked device,
-                  price, and template straight into checkout.
+                  price, and saved design straight into checkout.
                 </p>
               </div>
 
@@ -767,7 +767,7 @@ export default function DesignPage(): JSX.Element {
                 </div>
                 <div className="flex items-start justify-between gap-3">
                   <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Template state
+                    Design state
                   </dt>
                   <dd className="text-right text-sm text-gray-900">{templateSummaryLabel}</dd>
                 </div>

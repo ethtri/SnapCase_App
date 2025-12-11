@@ -36,6 +36,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Status | Notes |
 | --- | --- | --- |
+| Sprint03-Task53 | DONE | CX/UX audit & copy refresh: scrubbed Printful/variant IDs, tightened Snapcase voice on design/checkout/thank-you. Artifacts: `Images/diagnostics/2025-12-11T17-40-07-409Z-{design,checkout,thank-you}-{desktop,mobile}.png` (before), `Images/diagnostics/2025-12-11T18-01-08-610Z-{design,checkout,thank-you}-{desktop,mobile}.png` (after). Tests: `npm run build`. Backlog: modern full-catalog device picker. |
 | Sprint03-Task52 | DONE | Variant lock now feeds catalog model names (fallback to variant id) into `preselectedSizes` and records Printful `reportedVariantIds` for diagnostics/analytics. See `docs/AgentReports/Sprint03-Task52-variant-sync.md` and `Images/diagnostics/2025-12-10T20-55-32-493Z-{design,checkout,thankyou}-mobile.png`. |
 | Sprint03-Task48 | DONE | Product-tab overlay hardened (clamped size/max width, border, shadow), CTA gating intact; deployed `snapcase-eopqpujyk-snapcase.vercel.app` aliased to `dev.snapcase.ai`. See `docs/AgentReports/Sprint03-Task48-overlay-hardening.md` and `Images/diagnostics/2025-12-10T175354781Z-after-*.png/json`. Known: mobile Playwright automation can fail to unlock CTA; manual upload succeeds. |
 | Sprint03-Task47 | DONE | CX refresh: Product tab guarded/hidden, mask height lowered, Flow/Scene + Printful/variant IDs removed, Snapcase voice applied. See `docs/AgentReports/Sprint03-Task47-CX-refresh.md` and `Images/diagnostics/20251210T034229Z-after-design-{desktop,mobile}.png`. |
@@ -62,4 +63,3 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 | Sprint03-Task40 | DONE | Stripe prod secrets verified across scopes; live `/api/checkout` session captured. See `docs/AgentReports/Sprint03-Task40.md`. |
 | Sprint03-Task41 | DONE | Sponsor readiness sweep complete with fresh screenshots + Segment debugger evidence. See `docs/AgentReports/Sprint03-Task41.md`. |
 | Sprint03-Task42 | DONE | SnapCase-first picker with masked Printful row; Playwright e2e passing; new `/design` screenshots captured. See `docs/AgentReports/Sprint03-Task42.md`. |
-
