@@ -104,6 +104,7 @@ type DesignStatusSnapshot = {
   blockingIssues: string[];
   warningMessages: string[];
   rawPayload: string | null;
+  reportedVariantIds: number[];
   selectedVariantIds: number[];
   variantMismatch: boolean;
   guardrailMode: GuardrailMode;
@@ -113,6 +114,7 @@ export type EdmGuardrailSnapshot = {
   designValid: boolean | null;
   blockingIssues: string[];
   warningMessages: string[];
+  reportedVariantIds: number[];
   selectedVariantIds: number[];
   variantMismatch: boolean;
   guardrailMode: GuardrailMode;
@@ -665,20 +667,26 @@ function normalizeDesignStatus(
   const hasExpectedVariant =
     normalizedExpectedVariantId != null &&
     uniqueVariants.includes(normalizedExpectedVariantId);
-  selectedVariantIds =
-    normalizedExpectedVariantId != null
+  const reportedVariantIds = uniqueVariants;
+  if (normalizedExpectedVariantId != null && reportedVariantIds.length > 0) {
+    selectedVariantIds = hasExpectedVariant
       ? [
           normalizedExpectedVariantId,
-          ...uniqueVariants.filter(
+          ...reportedVariantIds.filter(
             (variant) => variant !== normalizedExpectedVariantId,
           ),
         ]
-      : uniqueVariants;
+      : reportedVariantIds;
+  } else if (normalizedExpectedVariantId != null) {
+    selectedVariantIds = [normalizedExpectedVariantId];
+  } else {
+    selectedVariantIds = reportedVariantIds;
+  }
 
   const variantMismatch =
     detectVariantMismatch &&
     normalizedExpectedVariantId != null &&
-    uniqueVariants.length > 0 &&
+    reportedVariantIds.length > 0 &&
     !hasExpectedVariant;
 
   const guardrailMode: GuardrailMode =
@@ -695,6 +703,7 @@ function normalizeDesignStatus(
     blockingIssues,
     warningMessages,
     rawPayload: safeSerialize(payload),
+    reportedVariantIds,
     selectedVariantIds,
     variantMismatch,
     guardrailMode,
@@ -1098,6 +1107,7 @@ export function EdmEditor({
         ...designerOptions
       } = buildPrintfulConfig({
         variantId: designerVariantId,
+        variantName: catalogEntry?.model ?? null,
         printfulProductId,
         shouldInitProduct: Boolean(requiresInitProduct && printfulProductId),
         technique: PRINTFUL_DEFAULT_TECHNIQUE,
@@ -1372,6 +1382,7 @@ export function EdmEditor({
             designValid: snapshot.designValid,
             blockingIssues: snapshot.blockingIssues,
             warningMessages: snapshot.warningMessages,
+            reportedVariantIds: snapshot.reportedVariantIds,
             selectedVariantIds: snapshot.selectedVariantIds,
             variantMismatch: snapshot.variantMismatch,
             guardrailMode: snapshot.guardrailMode,
@@ -1385,6 +1396,7 @@ export function EdmEditor({
             guardrailMode: snapshot.guardrailMode,
             blockingIssues: snapshot.blockingIssues,
             warningMessages: snapshot.warningMessages,
+            reportedVariantIds: snapshot.reportedVariantIds,
             selectedVariantIds: snapshot.selectedVariantIds,
             variantMismatch: snapshot.variantMismatch,
           });
@@ -1944,6 +1956,16 @@ export function EdmEditor({
                 {diagnostics.designStatus
                   ? `${diagnostics.designStatus.designValid === false ? "blocked" : diagnostics.designStatus.designValid ? "valid" : "unknown"}${diagnostics.designStatus.status ? ` (${diagnostics.designStatus.status})` : ""} @ ${diagnostics.designStatus.at}`
                   : "(no status yet)"}
+              </dd>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+              <dt className="font-medium text-gray-800 sm:w-40">
+                Variants (reported)
+              </dt>
+              <dd className="font-mono text-[11px] text-gray-700">
+                {diagnostics.designStatus?.reportedVariantIds?.length
+                  ? diagnostics.designStatus.reportedVariantIds.join(", ")
+                  : "(none)"}
               </dd>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">

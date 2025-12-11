@@ -1,3 +1,5 @@
+import { findPrintfulCatalogEntryByVariantId } from "@/data/printful-catalog";
+
 export type PrintfulConfigDiagnosticsSnapshot = {
   variantLockEnabled: boolean;
   variantLockFlags: Record<string, unknown>;
@@ -15,6 +17,7 @@ type BuildPrintfulConfigOptions = {
   shouldInitProduct: boolean;
   technique?: string;
   lockVariant?: boolean;
+  variantName?: string | number | null;
   theme?: typeof SNAPCASE_EMBED_THEME;
   hooks?: {
     onDesignStatusUpdate?: (payload: unknown) => void;
@@ -41,13 +44,31 @@ export const SNAPCASE_EMBED_THEME = {
 function buildVariantLockFlags(
   variantId: number,
   lockVariant: boolean | undefined,
+  variantName: string | number | null | undefined,
 ) {
   const enableLock = Boolean(lockVariant);
+  const preselected = new Set<string>();
+
+  if (typeof variantName === "string" && variantName.trim().length > 0) {
+    preselected.add(variantName.trim());
+  }
+
+  if (typeof variantName === "number" && Number.isFinite(variantName)) {
+    preselected.add(String(variantName));
+  }
+
+  if (typeof variantId === "number" && Number.isFinite(variantId)) {
+    preselected.add(String(variantId));
+  }
+
   return {
     allowOnlyOneColorToBeSelected: enableLock,
     allowOnlyOneSizeToBeSelected: enableLock,
     isVariantSelectionDisabled: enableLock,
-    preselectedSizes: enableLock ? [String(variantId)] : undefined,
+    preselectedSizes:
+      enableLock && preselected.size > 0
+        ? Array.from(preselected)
+        : undefined,
   };
 }
 
@@ -57,9 +78,21 @@ export function buildPrintfulConfig({
   shouldInitProduct,
   technique,
   lockVariant = false,
+  variantName = null,
   theme = SNAPCASE_EMBED_THEME,
   hooks,
 }: BuildPrintfulConfigOptions) {
+  const catalogEntry = findPrintfulCatalogEntryByVariantId(variantId);
+  const resolvedVariantName =
+    typeof variantName === "string" && variantName.trim().length > 0
+      ? variantName.trim()
+      : typeof variantName === "number" && Number.isFinite(variantName)
+        ? variantName
+        : catalogEntry?.model ??
+          (typeof catalogEntry?.catalogVariantId === "number" &&
+          Number.isFinite(catalogEntry.catalogVariantId)
+            ? catalogEntry.catalogVariantId
+            : variantId);
   const disabledTools = ["clipart", "text", "pattern", "background"];
   const featureConfig = {
     disable_clipart: true,
@@ -83,7 +116,11 @@ export function buildPrintfulConfig({
     },
   };
 
-  const variantLockFlags = buildVariantLockFlags(variantId, lockVariant);
+  const variantLockFlags = buildVariantLockFlags(
+    variantId,
+    lockVariant,
+    resolvedVariantName,
+  );
 
   const diagnostics: PrintfulConfigDiagnosticsSnapshot = {
     variantLockEnabled: Boolean(lockVariant),
