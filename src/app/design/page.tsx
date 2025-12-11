@@ -431,8 +431,8 @@ export default function DesignPage(): JSX.Element {
   const deviceLabel = formatDeviceLabel(activeDevice ?? seedDevice);
   const helperLabel =
     deviceLabel != null
-      ? `Device locked: ${deviceLabel}`
-      : "Device locked to your Snapcase pick";
+      ? `Locked to ${deviceLabel}`
+      : "Variant locked to your Snapcase pick";
 
   const currentVariantId =
     edmSnapshot?.selectedVariantIds?.[0] ??
@@ -466,7 +466,7 @@ export default function DesignPage(): JSX.Element {
         tone: "error",
         message:
           edmSnapshot.blockingIssues[0] ??
-          "This design is blocked until you resolve the banner above.",
+          "Resolve the designer banner above before continuing.",
         source: "printful",
       };
     }
@@ -480,7 +480,7 @@ export default function DesignPage(): JSX.Element {
     if (edmSnapshot.designValid) {
       return {
         tone: "success",
-        message: "Looks good. Continue when you are ready.",
+        message: "Designer cleared. You can continue when you are ready.",
         source: "printful",
       };
     }
@@ -492,7 +492,25 @@ export default function DesignPage(): JSX.Element {
   }, [edmSnapshot]);
 
   const ctaState = useMemo<DesignCtaState>(() => {
-    if (!edmSnapshot || edmSnapshot.designValid !== true) {
+    if (!edmSnapshot) {
+      return {
+        id: "printful-validating",
+        label: "Loading designer...",
+        helperText: guardrailSummary.message,
+        disabled: true,
+        source: "printful",
+      };
+    }
+    if (edmSnapshot.designValid === false || edmSnapshot.blockingIssues.length > 0) {
+      return {
+        id: "printful-blocked",
+        label: "Resolve checks to continue",
+        helperText: guardrailSummary.message,
+        disabled: true,
+        source: "printful",
+      };
+    }
+    if (edmSnapshot.designValid !== true) {
       return {
         id: "printful-validating",
         label: "Validating design...",
@@ -508,11 +526,7 @@ export default function DesignPage(): JSX.Element {
       disabled: false,
       source: "printful",
     };
-  }, [
-    edmSnapshot,
-    guardrailSummary.message,
-    ownershipHelper,
-  ]);
+  }, [edmSnapshot, guardrailSummary.message, ownershipHelper]);
 
   useEffect(() => {
     const key = `${ctaState.id}:${currentVariantId ?? "none"}`;
@@ -529,15 +543,15 @@ export default function DesignPage(): JSX.Element {
 
   const guardrailTitle = useMemo(() => {
     if (guardrailSummary.tone === "error") {
-      return "Needs changes";
+      return "Designer needs changes";
     }
     if (guardrailSummary.tone === "warn") {
-      return "Heads up";
+      return "Heads up from the designer";
     }
     if (guardrailSummary.tone === "success") {
       return "Design cleared";
     }
-    return "Design checks running";
+    return "Designer checks running";
   }, [guardrailSummary]);
 
   const handleContinueToCheckout = useCallback(() => {
@@ -586,51 +600,88 @@ export default function DesignPage(): JSX.Element {
     : null;
 
   return (
-    <main className="relative bg-gray-50 pb-16 pt-12 lg:pb-24">
+    <main
+      className="relative pb-16 pt-12 lg:pb-24"
+      style={{ backgroundColor: "var(--snap-gray-50)" }}
+    >
       {isHydrated ? (
         <span data-testid="design-hydrated-marker" hidden />
       ) : null}
 
       <div className="px-safe-area">
-        <div className="mx-auto w-full max-w-[1400px] space-y-10 px-4 sm:px-5 md:px-6 lg:px-8 xl:px-10">
-          <header className="space-y-4">
-            <h1 className="text-3xl font-semibold text-gray-900">
-              Design your Snapcase.
-            </h1>
-            <p className="text-base text-gray-600">
-              Pick your device, drop in your art, and continue when the checks clear. Checkout
-              mirrors what you see here.
+        <div className="mx-auto w-full max-w-screen-2xl space-y-10 px-4 sm:px-6 lg:px-8 xl:px-10">
+          <header className="space-y-3">
+            <div className="space-y-2" style={{ fontFamily: "var(--font-display)" }}>
+              <p className="text-sm font-semibold uppercase tracking-wide text-gray-600">
+                Snapcase designer
+              </p>
+              <h1 className="text-3xl font-semibold text-gray-900 lg:text-4xl">
+                Design your Snapcase
+              </h1>
+            </div>
+            <p className="max-w-3xl text-base text-gray-700">
+              Pick your device, drop in your art, and continue once the designer clears your upload.
+              Checkout mirrors everything you see here so the handoff stays locked.
             </p>
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
-              <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1">
-                <span className="h-2 w-2 rounded-full bg-gray-900" aria-hidden="true" />
+              <span
+                className="inline-flex items-center gap-2 rounded-full border px-3 py-1"
+                style={{ borderColor: "var(--snap-gray-200)", backgroundColor: "var(--snap-white)" }}
+              >
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
                 Device locked
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1">
-                <span className="h-2 w-2 rounded-full bg-gray-900" aria-hidden="true" />
+              <span
+                className="inline-flex items-center gap-2 rounded-full border px-3 py-1"
+                style={{ borderColor: "var(--snap-gray-200)", backgroundColor: "var(--snap-white)" }}
+              >
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
                 Live price + saved design
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1">
-                <span className="h-2 w-2 rounded-full bg-gray-900" aria-hidden="true" />
+              <span
+                className="inline-flex items-center gap-2 rounded-full border px-3 py-1"
+                style={{ borderColor: "var(--snap-gray-200)", backgroundColor: "var(--snap-white)" }}
+              >
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
                 Checkout stays in sync
               </span>
             </div>
           </header>
 
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,2.5fr),minmax(320px,1fr)]">
-            <section className="space-y-6 rounded-[40px] border border-gray-200 bg-white/80 p-6 shadow-xl">
-              <div className="space-y-3 rounded-3xl border border-gray-200 bg-white/70 p-5">
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
+            <section
+              className="space-y-6 lg:col-span-8"
+              style={{
+                borderRadius: "var(--radius-2xl)",
+                border: "1px solid var(--snap-gray-200)",
+                backgroundColor: "var(--snap-white)",
+                boxShadow: "var(--shadow-lg)",
+                padding: "var(--space-6)",
+              }}
+            >
+              <div
+                className="space-y-3"
+                style={{
+                  borderRadius: "var(--radius-xl)",
+                  border: "1px solid var(--snap-gray-200)",
+                  backgroundColor: "rgba(255,255,255,0.9)",
+                  padding: "var(--space-5)",
+                }}
+              >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="space-y-1">
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                       Device
                     </p>
                     <p className="text-sm text-gray-700">
-                      Choose where you want this printed. We keep the designer locked to your pick
-                      so checkout can&apos;t drift.
+                      Choose where you want this printed. We keep the designer locked to your pick so
+                      checkout can&apos;t drift.
                     </p>
                   </div>
-                  <span className="rounded-full border border-gray-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
+                  <span
+                    className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700"
+                    style={{ border: "1px solid var(--snap-gray-200)", backgroundColor: "var(--snap-gray-50)" }}
+                  >
                     Locked to this pick
                   </span>
                 </div>
@@ -642,11 +693,14 @@ export default function DesignPage(): JSX.Element {
                         key={entry.variantId}
                         type="button"
                         onClick={() => handleDeviceSelected(entry)}
-                        className={`flex w-full items-start justify-between rounded-2xl border px-4 py-3 text-left transition focus:outline-none focus:ring-2 focus:ring-gray-900/60 ${
-                          selected
-                            ? "border-gray-900 bg-gray-900 text-white shadow-lg"
-                            : "border-gray-200 bg-white text-gray-800 hover:border-gray-300"
-                        }`}
+                        className="flex w-full items-start justify-between border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                        style={{
+                          borderRadius: "var(--radius-xl)",
+                          borderColor: selected ? "var(--snap-violet)" : "var(--snap-gray-200)",
+                          backgroundColor: selected ? "var(--snap-violet)" : "var(--snap-white)",
+                          color: selected ? "var(--snap-white)" : "var(--snap-gray-900)",
+                          boxShadow: selected ? "var(--shadow-md)" : "none",
+                        }}
                         data-testid={`device-option-${entry.variantId}`}
                       >
                         <div className="space-y-1">
@@ -656,13 +710,19 @@ export default function DesignPage(): JSX.Element {
                           <p className="text-base font-semibold">{entry.model}</p>
                         </div>
                         <span
-                          className={`mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full border ${
-                            selected ? "border-white bg-white text-gray-900" : "border-gray-300"
-                          }`}
+                          className="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full border"
+                          style={{
+                            borderColor: selected ? "var(--snap-white)" : "var(--snap-gray-300)",
+                            backgroundColor: selected ? "var(--snap-white)" : "transparent",
+                            color: selected ? "var(--snap-violet)" : "inherit",
+                          }}
                           aria-hidden="true"
                         >
                           {selected ? (
-                            <span className="block h-2.5 w-2.5 rounded-full bg-current" />
+                            <span
+                              className="block h-2.5 w-2.5 rounded-full"
+                              style={{ backgroundColor: "currentColor" }}
+                            />
                           ) : null}
                         </span>
                       </button>
@@ -671,21 +731,38 @@ export default function DesignPage(): JSX.Element {
                 </div>
               </div>
 
-              <div className="space-y-2 rounded-3xl border border-dashed border-gray-200 bg-gray-50/70 px-5 py-4">
+              <div
+                className="space-y-2"
+                style={{
+                  borderRadius: "var(--radius-xl)",
+                  border: "1px dashed var(--snap-gray-200)",
+                  backgroundColor: "rgba(249, 250, 251, 0.8)",
+                  padding: "var(--space-5)",
+                }}
+              >
                 <span
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-1 text-xs font-semibold uppercase tracking-wide text-gray-900"
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-wide text-gray-900"
                   data-testid="design-helper-pill"
+                  style={{ border: "1px solid var(--snap-gray-300)", backgroundColor: "var(--snap-white)" }}
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-gray-900" aria-hidden="true" />
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
                   {helperLabel}
                 </span>
                 <p className="text-sm text-gray-600">
-                  We load your pick into the designer and keep it locked. Swap devices above to
-                  change what is handed to checkout.
+                  We load your pick into the designer and keep it locked. Swap devices above to change
+                  what is handed to checkout.
                 </p>
               </div>
 
-              <div className="rounded-3xl border border-gray-200 bg-white/90 p-2 shadow-inner">
+              <div
+                style={{
+                  borderRadius: "var(--radius-xl)",
+                  border: "1px solid var(--snap-gray-200)",
+                  backgroundColor: "rgba(255, 255, 255, 0.98)",
+                  padding: "var(--space-2)",
+                  boxShadow: "var(--shadow-sm) inset",
+                }}
+              >
                 {seedDevice ? (
                   <EdmEditor
                     key={`${seedDevice.variantId}-${designerResetToken}`}
@@ -697,16 +774,30 @@ export default function DesignPage(): JSX.Element {
                     onPricingChange={setPricingDetails}
                   />
                 ) : (
-                  <div className="rounded-2xl border border-gray-200 bg-gray-50 p-8 text-center text-sm text-gray-600">
-                    We do not have a supported device to preload yet. Please contact support to add
-                    your catalog entry.
+                  <div
+                    className="text-center text-sm text-gray-600"
+                    style={{
+                      borderRadius: "var(--radius-lg)",
+                      border: "1px solid var(--snap-gray-200)",
+                      backgroundColor: "var(--snap-gray-50)",
+                      padding: "var(--space-6)",
+                    }}
+                  >
+                    We do not have a supported device to preload yet. Please contact support to add your
+                    catalog entry.
                   </div>
                 )}
               </div>
 
               <div
-                className="space-y-3 rounded-3xl border border-gray-100 bg-gray-50 p-6 text-sm text-gray-600"
+                className="space-y-3 text-sm text-gray-600"
                 data-testid="guardrail-card"
+                style={{
+                  borderRadius: "var(--radius-xl)",
+                  border: "1px solid var(--snap-gray-100)",
+                  backgroundColor: "var(--snap-cloud)",
+                  padding: "var(--space-6)",
+                }}
               >
                 <p
                   className="text-xs font-semibold uppercase tracking-wide text-gray-500"
@@ -734,79 +825,106 @@ export default function DesignPage(): JSX.Element {
               </div>
             </section>
 
-            <aside className="space-y-5 rounded-[32px] border border-gray-200 bg-white/95 p-6 shadow-xl">
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Checkout preview
-                </p>
-                <p className="text-sm text-gray-600">
-                  Continue unlocks after the designer clears your upload. We carry the locked device,
-                  price, and saved design straight into checkout.
-                </p>
-              </div>
+            <aside
+              className="space-y-5 lg:col-span-4"
+              style={{
+                position: "relative",
+              }}
+            >
+              <div
+                className="space-y-2"
+                style={{
+                  borderRadius: "var(--radius-2xl)",
+                  border: "1px solid var(--snap-gray-200)",
+                  backgroundColor: "rgba(255,255,255,0.96)",
+                  boxShadow: "var(--shadow-lg)",
+                  padding: "var(--space-6)",
+                  position: "sticky",
+                  top: "var(--space-8)",
+                }}
+              >
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Checkout preview
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Continue unlocks after the designer clears your upload. We carry the locked device,
+                    price, and saved design straight into checkout.
+                  </p>
+                </div>
 
-              <dl className="space-y-4 text-sm text-gray-600">
-                <div className="flex items-start justify-between gap-3">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Device lock
-                  </dt>
-                  <dd className="text-right text-base font-semibold text-gray-900">
-                    {checkoutVariantLabel}
-                  </dd>
-                </div>
-                <div className="flex items-start justify-between gap-3">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Price
-                  </dt>
-                  <dd className="text-right text-base font-semibold text-gray-900">
-                    {priceLabel ?? "Waiting on designer"}
-                  </dd>
-                </div>
-                <div className="flex items-start justify-between gap-3">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Design state
-                  </dt>
-                  <dd className="text-right text-sm text-gray-900">{templateSummaryLabel}</dd>
-                </div>
-                <div className="flex items-start justify-between gap-3">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Guardrail status
-                  </dt>
-                  <dd
-                    className={`text-right text-sm font-medium ${
-                      guardrailSummary.tone === "error"
-                        ? "text-red-600"
-                        : guardrailSummary.tone === "warn"
-                          ? "text-amber-600"
-                          : guardrailSummary.tone === "success"
-                            ? "text-emerald-600"
-                            : "text-gray-900"
-                    }`}
-                  >
-                    {guardrailSummary.message}
-                  </dd>
-                </div>
-                {lastAttemptLabel ? (
+                <dl className="space-y-4 text-sm text-gray-600">
                   <div className="flex items-start justify-between gap-3">
                     <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Last checkout attempt
+                      Device lock
                     </dt>
-                    <dd className="text-right text-sm text-gray-900">{lastAttemptLabel}</dd>
+                    <dd className="text-right text-base font-semibold text-gray-900">
+                      {checkoutVariantLabel}
+                    </dd>
                   </div>
-                ) : null}
-              </dl>
+                  <div className="flex items-start justify-between gap-3">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Price
+                    </dt>
+                    <dd className="text-right text-base font-semibold text-gray-900">
+                      {priceLabel ?? "Waiting on designer"}
+                    </dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Design state
+                    </dt>
+                    <dd className="text-right text-sm text-gray-900">{templateSummaryLabel}</dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Designer status
+                    </dt>
+                    <dd
+                      className={`text-right text-sm font-medium ${
+                        guardrailSummary.tone === "error"
+                          ? "text-red-600"
+                          : guardrailSummary.tone === "warn"
+                            ? "text-amber-600"
+                            : guardrailSummary.tone === "success"
+                              ? "text-emerald-600"
+                              : "text-gray-900"
+                      }`}
+                    >
+                      {guardrailSummary.message}
+                    </dd>
+                  </div>
+                  {lastAttemptLabel ? (
+                    <div className="flex items-start justify-between gap-3">
+                      <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        Last checkout attempt
+                      </dt>
+                      <dd className="text-right text-sm text-gray-900">{lastAttemptLabel}</dd>
+                    </div>
+                  ) : null}
+                </dl>
 
-              <div className="space-y-3">
-                <button
-                  type="button"
-                  disabled={ctaState.disabled}
-                  onClick={handleContinueToCheckout}
-                  className="inline-flex w-full items-center justify-center rounded-full bg-gray-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
-                  data-testid="continue-button"
-                >
-                  {ctaState.label}
-                </button>
-                <p className="text-xs text-gray-500">{ctaState.helperText}</p>
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    disabled={ctaState.disabled}
+                    onClick={handleContinueToCheckout}
+                    className="inline-flex w-full items-center justify-center gap-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed"
+                    style={{
+                      borderRadius: "var(--radius-pill)",
+                      minHeight: "var(--control-height)",
+                      backgroundColor: ctaState.disabled
+                        ? "var(--snap-gray-300)"
+                        : "var(--snap-violet)",
+                      boxShadow: "var(--shadow-md)",
+                      padding: "12px 20px",
+                    }}
+                    data-testid="continue-button"
+                  >
+                    <span className="inline-flex items-center gap-2">{ctaState.label}</span>
+                  </button>
+                  <p className="text-xs text-gray-500">{ctaState.helperText}</p>
+                </div>
               </div>
             </aside>
           </div>
