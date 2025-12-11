@@ -595,10 +595,10 @@ export default function DesignPage(): JSX.Element {
         <div className="mx-auto w-full max-w-[1400px] space-y-10 px-4 sm:px-5 md:px-6 lg:px-8 xl:px-10">
           <header className="space-y-4">
             <h1 className="text-3xl font-semibold text-gray-900">
-              Design your Snapcase. Device stays locked to your pick.
+              Design your Snapcase.
             </h1>
             <p className="text-base text-gray-600">
-              Choose your device, drop in your art, and continue when the checks clear. Checkout
+              Pick your device, drop in your art, and continue when the checks clear. Checkout
               mirrors what you see here.
             </p>
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
@@ -654,9 +654,6 @@ export default function DesignPage(): JSX.Element {
                             {entry.brand}
                           </p>
                           <p className="text-base font-semibold">{entry.model}</p>
-                          <p className="text-xs text-gray-500">
-                            Snapcase snap case, ready to print
-                          </p>
                         </div>
                         <span
                           className={`mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full border ${
