@@ -18,3 +18,10 @@
 
 ## Tests
 - npm run build (pass)
+
+## Sponsor feedback / next steps
+- Flow still feels busy/clunky: device selection, designer, and checkout preview live together. Sponsor wants a modern stepped flow: (1) Pick your case → Next; (2) Design your case (show selected model/case type in header, minimal helper, simple “design valid” banner) → Next; (3) Review order (proof/price/model) → Continue to checkout/Stripe. If proof isn’t possible, position review near/below the EDM iframe.
+- Reduce helper copy: remove “Locked to …” helper and similar busy text; rely on clearer UI cues for selection/lock.
+- Desktop: hide “Detect my phone”; brand chips should include Google (done).
+- Checkout preview placement: avoid dead space; consider stacking or situating review closer to the designer instead of a right-hand aside.
+- Overall ask: make the flow cleaner and more modern for MVP, with clearer navigation and less clutter.
