@@ -108,6 +108,10 @@ export default function DesignPage(): JSX.Element {
   const [isHydrated, setIsHydrated] = useState(false);
   const [didHydrateContext, setDidHydrateContext] = useState(false);
   const [designerResetToken, setDesignerResetToken] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [brandFilter, setBrandFilter] = useState<"all" | "apple" | "samsung">(
+    "apple",
+  );
 
   const lastPersistedVariantRef = useRef<number | null>(null);
   const lastCtaStateRef = useRef<string | null>(null);
@@ -590,6 +594,21 @@ export default function DesignPage(): JSX.Element {
     ? "Design saved in Snapcase"
     : "Save in the designer to reuse at checkout";
 
+  const filteredCatalog = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    return catalog.filter((entry) => {
+      const matchesBrand =
+        brandFilter === "all" ||
+        entry.brand.toLowerCase() ===
+          (brandFilter === "apple" ? "apple" : "samsung");
+      const matchesQuery =
+        !normalizedQuery ||
+        entry.model.toLowerCase().includes(normalizedQuery) ||
+        entry.brand.toLowerCase().includes(normalizedQuery);
+      return matchesBrand && matchesQuery;
+    });
+  }, [brandFilter, catalog, searchQuery]);
+
   const lastAttemptLabel = designSummary?.lastCheckoutAttemptAt
     ? new Date(designSummary.lastCheckoutAttemptAt).toLocaleString("en-US", {
         month: "short",
@@ -623,8 +642,8 @@ export default function DesignPage(): JSX.Element {
               Back
             </button>
             <div className="flex flex-col items-center">
-              <p className="text-sm font-semibold text-gray-900">Design your case</p>
-              <p className="text-[11px] font-medium text-gray-500">Step 2 of 2</p>
+              <p className="text-sm font-semibold text-gray-900">Select Device</p>
+              <p className="text-[11px] font-medium text-gray-500">Step 1 of 2</p>
             </div>
             <span
               className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700"
@@ -682,45 +701,106 @@ export default function DesignPage(): JSX.Element {
                 padding: "var(--space-6)",
               }}
             >
-              <div className="space-y-3 lg:hidden">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-gray-900">Pick your device</p>
-                    <span
-                      className="max-w-[180px] truncate rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700"
-                      style={{ border: "1px solid var(--snap-gray-200)", backgroundColor: "var(--snap-gray-50)" }}
-                    >
-                      {helperLabel}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    Swap brands here. We keep the designer and checkout locked to your pick.
-                  </p>
+              <div className="space-y-4 lg:hidden">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-gray-900">Select Device</p>
+                  <span
+                    className="max-w-[180px] truncate rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700"
+                    style={{ border: "1px solid var(--snap-gray-200)", backgroundColor: "var(--snap-gray-50)" }}
+                  >
+                    {helperLabel}
+                  </span>
                 </div>
-                <div className="flex gap-2 overflow-x-auto pb-1">
-                  {catalog.map((entry) => {
+
+                <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 shadow-sm">
+                  <span aria-hidden="true" className="text-xs font-semibold text-gray-500">
+                    Search
+                  </span>
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="Search model"
+                    className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                    aria-label="Search model"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 rounded-full bg-white p-1 shadow-sm">
+                  {([
+                    { id: "apple", label: "Apple" },
+                    { id: "samsung", label: "Samsung" },
+                  ] as const).map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setBrandFilter(option.id)}
+                      className={`flex-1 rounded-full px-3 py-2 text-center text-xs font-semibold transition ${
+                        brandFilter === option.id
+                          ? "bg-[var(--snap-violet)] text-white shadow-sm"
+                          : "bg-white text-gray-600"
+                      }`}
+                      style={{
+                        border: brandFilter === option.id ? "1px solid var(--snap-violet)" : "1px solid var(--snap-gray-200)",
+                      }}
+                      aria-pressed={brandFilter === option.id}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setBrandFilter("all")}
+                    className="rounded-full border border-gray-200 px-3 py-2 text-center text-xs font-semibold text-gray-700"
+                    aria-pressed={brandFilter === "all"}
+                  >
+                    All
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBrandFilter("all");
+                    setSearchQuery("");
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-full border border-[var(--snap-violet)] bg-white px-4 py-2 text-sm font-semibold text-[var(--snap-violet)] transition"
+                >
+                  Detect my phone
+                </button>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {filteredCatalog.map((entry) => {
                     const selected = seedDevice?.variantId === entry.variantId;
                     return (
                       <button
                         key={entry.variantId}
                         type="button"
                         onClick={() => handleDeviceSelected(entry)}
-                        className={`flex min-w-[180px] flex-col gap-1 rounded-2xl border px-4 py-3 text-left shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                          selected ? "border-[var(--snap-violet)] bg-[var(--snap-violet)] text-white" : "border-gray-200 bg-white text-gray-900"
+                        className={`relative flex flex-col gap-2 rounded-2xl border bg-white p-3 text-left shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                          selected ? "border-[var(--snap-violet)] ring-1 ring-[var(--snap-violet)]" : "border-gray-200"
                         }`}
-                        data-testid={`device-chip-${entry.variantId}`}
+                        data-testid={`device-card-${entry.variantId}`}
                       >
-                        <span className="text-[11px] font-semibold uppercase tracking-wide">
-                          {entry.brand}
-                        </span>
-                        <span className="text-sm font-semibold leading-tight">
-                          {entry.model}
-                        </span>
-                        <span
-                          className={`text-xs font-semibold ${selected ? "text-white/80" : "text-gray-500"}`}
+                        <div
+                          className="flex h-28 w-full items-center justify-center rounded-xl"
+                          style={{
+                            background: selected ? "rgba(124,58,237,0.06)" : "linear-gradient(180deg,#f5f7fa 0%,#eef2ff 100%)",
+                          }}
                         >
-                          Locked for checkout
-                        </span>
+                          <span className="text-xl font-semibold text-gray-900">
+                            {entry.model.slice(0, 1)}
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-gray-900">{entry.model}</p>
+                          <p className="text-[11px] font-medium text-gray-500">From $34.99</p>
+                        </div>
+                        {selected ? (
+                          <span className="absolute right-2 top-2 rounded-full bg-white px-2 py-1 text-[10px] font-semibold uppercase text-[var(--snap-violet)] shadow-sm">
+                            Selected
+                          </span>
+                        ) : null}
                       </button>
                     );
                   })}
@@ -1042,22 +1122,27 @@ export default function DesignPage(): JSX.Element {
 
       <div className="lg:hidden fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white/95 px-safe-area backdrop-blur">
         <div className="mx-auto flex w-full max-w-xl flex-col gap-2 px-4 py-3">
-          <button
-            type="button"
-            disabled={ctaState.disabled}
-            onClick={handleContinueToCheckout}
-            className="inline-flex w-full items-center justify-center gap-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed"
-            style={{
-              borderRadius: "var(--radius-pill)",
-              minHeight: "var(--control-height)",
-              backgroundColor: ctaState.disabled ? "var(--snap-gray-300)" : "var(--snap-violet)",
-              boxShadow: "var(--shadow-md)",
-              padding: "12px 20px",
-            }}
-            data-testid="continue-button-mobile"
-          >
-            <span className="inline-flex items-center gap-2">{ctaState.label}</span>
-          </button>
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-xs font-semibold text-gray-900">
+                {formatDeviceLabel(seedDevice ?? activeDevice) ?? "Select a device"}
+              </span>
+              <span className="text-[11px] text-gray-500">Back-only print</span>
+            </div>
+            <button
+              type="button"
+              disabled={ctaState.disabled}
+              onClick={handleContinueToCheckout}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: ctaState.disabled ? "var(--snap-gray-300)" : "var(--snap-violet)",
+                boxShadow: "var(--shadow-md)",
+              }}
+              data-testid="continue-button-mobile"
+            >
+              {ctaState.label}
+            </button>
+          </div>
           <p className="text-center text-[11px] text-gray-600">{ctaState.helperText}</p>
         </div>
       </div>
