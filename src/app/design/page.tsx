@@ -701,20 +701,24 @@ export default function DesignPage(): JSX.Element {
                 padding: "var(--space-6)",
               }}
             >
-              <div className="space-y-4 lg:hidden">
+              <div className="space-y-5 lg:hidden">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-gray-900">Select Device</p>
-                  <span
-                    className="max-w-[180px] truncate rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700"
-                    style={{ border: "1px solid var(--snap-gray-200)", backgroundColor: "var(--snap-gray-50)" }}
-                  >
-                    {helperLabel}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => router.back()}
+                      className="rounded-full border border-gray-200 px-3 py-1 text-sm font-semibold text-gray-700"
+                      aria-label="Go back"
+                    >
+                      &lt;
+                    </button>
+                    <p className="text-lg font-semibold text-gray-900">Select Device</p>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 shadow-sm">
-                  <span aria-hidden="true" className="text-xs font-semibold text-gray-500">
-                    Search
+                <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-3 text-sm text-gray-600 shadow-sm">
+                  <span aria-hidden="true" className="text-base text-gray-400">
+                    &#128269;
                   </span>
                   <input
                     type="search"
@@ -735,10 +739,10 @@ export default function DesignPage(): JSX.Element {
                       key={option.id}
                       type="button"
                       onClick={() => setBrandFilter(option.id)}
-                      className={`flex-1 rounded-full px-3 py-2 text-center text-xs font-semibold transition ${
+                      className={`flex-1 rounded-full px-3 py-2 text-center text-sm font-semibold transition ${
                         brandFilter === option.id
                           ? "bg-[var(--snap-violet)] text-white shadow-sm"
-                          : "bg-white text-gray-600"
+                          : "bg-gray-100 text-gray-600"
                       }`}
                       style={{
                         border: brandFilter === option.id ? "1px solid var(--snap-violet)" : "1px solid var(--snap-gray-200)",
@@ -748,14 +752,6 @@ export default function DesignPage(): JSX.Element {
                       {option.label}
                     </button>
                   ))}
-                  <button
-                    type="button"
-                    onClick={() => setBrandFilter("all")}
-                    className="rounded-full border border-gray-200 px-3 py-2 text-center text-xs font-semibold text-gray-700"
-                    aria-pressed={brandFilter === "all"}
-                  >
-                    All
-                  </button>
                 </div>
 
                 <button
@@ -764,12 +760,12 @@ export default function DesignPage(): JSX.Element {
                     setBrandFilter("all");
                     setSearchQuery("");
                   }}
-                  className="flex w-full items-center justify-center gap-2 rounded-full border border-[var(--snap-violet)] bg-white px-4 py-2 text-sm font-semibold text-[var(--snap-violet)] transition"
+                  className="flex w-full items-center justify-center gap-2 rounded-full border border-[var(--snap-violet)] bg-white px-4 py-3 text-sm font-semibold text-[var(--snap-violet)] transition"
                 >
-                  Detect my phone
+                  &#128241; Detect my phone
                 </button>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   {filteredCatalog.map((entry) => {
                     const selected = seedDevice?.variantId === entry.variantId;
                     return (
@@ -777,30 +773,27 @@ export default function DesignPage(): JSX.Element {
                         key={entry.variantId}
                         type="button"
                         onClick={() => handleDeviceSelected(entry)}
-                        className={`relative flex flex-col gap-2 rounded-2xl border bg-white p-3 text-left shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                          selected ? "border-[var(--snap-violet)] ring-1 ring-[var(--snap-violet)]" : "border-gray-200"
-                        }`}
+                        className="text-left"
                         data-testid={`device-card-${entry.variantId}`}
                       >
                         <div
-                          className="flex h-28 w-full items-center justify-center rounded-xl"
+                          className={`relative flex h-40 w-full items-center justify-center rounded-3xl border transition ${
+                            selected
+                              ? "border-[var(--snap-violet)] shadow-[0_0_0_2px_rgba(124,58,237,0.25)]"
+                              : "border-gray-200"
+                          }`}
                           style={{
-                            background: selected ? "rgba(124,58,237,0.06)" : "linear-gradient(180deg,#f5f7fa 0%,#eef2ff 100%)",
+                            background: selected
+                              ? "linear-gradient(180deg,#fdfbff 0%,#f4eefe 100%)"
+                              : "linear-gradient(180deg,#f9fafb 0%,#f3f4f6 100%)",
                           }}
                         >
-                          <span className="text-xl font-semibold text-gray-900">
-                            {entry.model.slice(0, 1)}
-                          </span>
+                          <div className="flex h-24 w-12 items-center justify-center rounded-xl bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]" />
                         </div>
-                        <div className="space-y-1">
+                        <div className="mt-2 space-y-1 text-center">
                           <p className="text-sm font-semibold text-gray-900">{entry.model}</p>
-                          <p className="text-[11px] font-medium text-gray-500">From $34.99</p>
+                          <p className="text-[12px] text-gray-500">From $34.99</p>
                         </div>
-                        {selected ? (
-                          <span className="absolute right-2 top-2 rounded-full bg-white px-2 py-1 text-[10px] font-semibold uppercase text-[var(--snap-violet)] shadow-sm">
-                            Selected
-                          </span>
-                        ) : null}
                       </button>
                     );
                   })}
@@ -1124,10 +1117,10 @@ export default function DesignPage(): JSX.Element {
         <div className="mx-auto flex w-full max-w-xl flex-col gap-2 px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-gray-900">
+              <span className="text-sm font-semibold text-gray-900">
                 {formatDeviceLabel(seedDevice ?? activeDevice) ?? "Select a device"}
               </span>
-              <span className="text-[11px] text-gray-500">Back-only print</span>
+              <span className="text-[12px] font-semibold text-gray-700">Back-only print</span>
             </div>
             <button
               type="button"
@@ -1140,7 +1133,7 @@ export default function DesignPage(): JSX.Element {
               }}
               data-testid="continue-button-mobile"
             >
-              {ctaState.label}
+              {ctaState.disabled ? ctaState.label : `${ctaState.label} →`}
             </button>
           </div>
           <p className="text-center text-[11px] text-gray-600">{ctaState.helperText}</p>
