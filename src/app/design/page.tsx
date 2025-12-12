@@ -601,7 +601,7 @@ export default function DesignPage(): JSX.Element {
 
   return (
     <main
-      className="relative pb-16 pt-12 lg:pb-24"
+      className="relative pb-28 pt-8 lg:pb-24 lg:pt-12"
       style={{ backgroundColor: "var(--snap-gray-50)" }}
     >
       {isHydrated ? (
@@ -609,8 +609,31 @@ export default function DesignPage(): JSX.Element {
       ) : null}
 
       <div className="px-safe-area">
-        <div className="mx-auto w-full max-w-screen-2xl space-y-10 px-4 sm:px-6 lg:px-8 xl:px-10">
-          <header className="space-y-3">
+        <div className="mx-auto w-full max-w-screen-xl space-y-8 px-4 sm:px-6 lg:max-w-screen-2xl lg:space-y-10 lg:px-8 xl:px-10">
+          <header
+            className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm lg:hidden"
+            style={{ border: "1px solid var(--snap-gray-200)" }}
+          >
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-sm font-semibold text-gray-700"
+            >
+              <span aria-hidden="true">&lt;</span>
+              Back
+            </button>
+            <div className="flex flex-col items-center">
+              <p className="text-sm font-semibold text-gray-900">Design your case</p>
+              <p className="text-[11px] font-medium text-gray-500">Step 2 of 2</p>
+            </div>
+            <span
+              className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700"
+              style={{ border: "1px solid var(--snap-gray-200)", backgroundColor: "var(--snap-gray-50)" }}
+            >
+              Locked
+            </span>
+          </header>
+          <header className="hidden space-y-3 lg:block">
             <div className="space-y-2" style={{ fontFamily: "var(--font-display)" }}>
               <p className="text-sm font-semibold uppercase tracking-wide text-gray-600">
                 Snapcase designer
@@ -648,9 +671,9 @@ export default function DesignPage(): JSX.Element {
             </div>
           </header>
 
-          <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
+          <div className="grid gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
             <section
-              className="space-y-6 lg:col-span-8"
+              className="space-y-5 lg:col-span-8 lg:space-y-6"
               style={{
                 borderRadius: "var(--radius-2xl)",
                 border: "1px solid var(--snap-gray-200)",
@@ -659,8 +682,53 @@ export default function DesignPage(): JSX.Element {
                 padding: "var(--space-6)",
               }}
             >
+              <div className="space-y-3 lg:hidden">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-gray-900">Pick your device</p>
+                    <span
+                      className="max-w-[180px] truncate rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700"
+                      style={{ border: "1px solid var(--snap-gray-200)", backgroundColor: "var(--snap-gray-50)" }}
+                    >
+                      {helperLabel}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    Swap brands here. We keep the designer and checkout locked to your pick.
+                  </p>
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {catalog.map((entry) => {
+                    const selected = seedDevice?.variantId === entry.variantId;
+                    return (
+                      <button
+                        key={entry.variantId}
+                        type="button"
+                        onClick={() => handleDeviceSelected(entry)}
+                        className={`flex min-w-[180px] flex-col gap-1 rounded-2xl border px-4 py-3 text-left shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                          selected ? "border-[var(--snap-violet)] bg-[var(--snap-violet)] text-white" : "border-gray-200 bg-white text-gray-900"
+                        }`}
+                        data-testid={`device-chip-${entry.variantId}`}
+                      >
+                        <span className="text-[11px] font-semibold uppercase tracking-wide">
+                          {entry.brand}
+                        </span>
+                        <span className="text-sm font-semibold leading-tight">
+                          {entry.model}
+                        </span>
+                        <span
+                          className={`text-xs font-semibold ${selected ? "text-white/80" : "text-gray-500"}`}
+                        >
+                          Locked for checkout
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div
-                className="space-y-3"
+                className="hidden space-y-3 lg:block"
                 style={{
                   borderRadius: "var(--radius-xl)",
                   border: "1px solid var(--snap-gray-200)",
@@ -732,7 +800,7 @@ export default function DesignPage(): JSX.Element {
               </div>
 
               <div
-                className="space-y-2"
+                className="hidden space-y-2 lg:block"
                 style={{
                   borderRadius: "var(--radius-xl)",
                   border: "1px dashed var(--snap-gray-200)",
@@ -790,7 +858,7 @@ export default function DesignPage(): JSX.Element {
               </div>
 
               <div
-                className="space-y-3 text-sm text-gray-600"
+                className="hidden space-y-3 text-sm text-gray-600 lg:block"
                 data-testid="guardrail-card"
                 style={{
                   borderRadius: "var(--radius-xl)",
@@ -823,10 +891,51 @@ export default function DesignPage(): JSX.Element {
                   {ctaState.helperText}
                 </p>
               </div>
+
+              <div
+                className="space-y-2 rounded-2xl border border-gray-100 bg-white p-4 text-sm text-gray-700 shadow-sm lg:hidden"
+                data-testid="guardrail-card"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    {guardrailTitle}
+                  </p>
+                  <span
+                    className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+                      guardrailSummary.tone === "error"
+                        ? "bg-red-50 text-red-700"
+                        : guardrailSummary.tone === "warn"
+                          ? "bg-amber-50 text-amber-700"
+                          : guardrailSummary.tone === "success"
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {guardrailSummary.tone === "success" ? "Cleared" : "In review"}
+                  </span>
+                </div>
+                <p
+                  className={`text-base font-medium ${
+                    guardrailSummary.tone === "error"
+                      ? "text-red-600"
+                      : guardrailSummary.tone === "warn"
+                        ? "text-amber-600"
+                        : guardrailSummary.tone === "success"
+                          ? "text-emerald-600"
+                          : "text-gray-700"
+                  }`}
+                  data-testid="guardrail-description"
+                >
+                  {guardrailSummary.message}
+                </p>
+                <p className="text-xs text-gray-500" data-testid="guardrail-footnote">
+                  {ctaState.helperText}
+                </p>
+              </div>
             </section>
 
             <aside
-              className="space-y-5 lg:col-span-4"
+              className="hidden space-y-5 lg:col-span-4 lg:block"
               style={{
                 position: "relative",
               }}
@@ -928,6 +1037,28 @@ export default function DesignPage(): JSX.Element {
               </div>
             </aside>
           </div>
+        </div>
+      </div>
+
+      <div className="lg:hidden fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white/95 px-safe-area backdrop-blur">
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-2 px-4 py-3">
+          <button
+            type="button"
+            disabled={ctaState.disabled}
+            onClick={handleContinueToCheckout}
+            className="inline-flex w-full items-center justify-center gap-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed"
+            style={{
+              borderRadius: "var(--radius-pill)",
+              minHeight: "var(--control-height)",
+              backgroundColor: ctaState.disabled ? "var(--snap-gray-300)" : "var(--snap-violet)",
+              boxShadow: "var(--shadow-md)",
+              padding: "12px 20px",
+            }}
+            data-testid="continue-button-mobile"
+          >
+            <span className="inline-flex items-center gap-2">{ctaState.label}</span>
+          </button>
+          <p className="text-center text-[11px] text-gray-600">{ctaState.helperText}</p>
         </div>
       </div>
     </main>

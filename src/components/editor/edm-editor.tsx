@@ -1700,7 +1700,7 @@ export function EdmEditor({
         <div
           id={canvasId}
           ref={containerRef}
-          className="h-[min(90vh,900px)] min-h-[640px] w-full bg-gray-900/5"
+          className="h-[min(88vh,880px)] min-h-[540px] w-full bg-gray-900/5 lg:min-h-[640px]"
         />
         <div
           className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-12 bg-gradient-to-b from-white via-white/90 to-transparent"
