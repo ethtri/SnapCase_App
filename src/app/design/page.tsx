@@ -109,9 +109,9 @@ export default function DesignPage(): JSX.Element {
   const [didHydrateContext, setDidHydrateContext] = useState(false);
   const [designerResetToken, setDesignerResetToken] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
-  const [brandFilter, setBrandFilter] = useState<"all" | "apple" | "samsung">(
-    "apple",
-  );
+  const [brandFilter, setBrandFilter] = useState<
+    "all" | "apple" | "samsung" | "google"
+  >("apple");
 
   const lastPersistedVariantRef = useRef<number | null>(null);
   const lastCtaStateRef = useRef<string | null>(null);
@@ -600,7 +600,11 @@ export default function DesignPage(): JSX.Element {
       const matchesBrand =
         brandFilter === "all" ||
         entry.brand.toLowerCase() ===
-          (brandFilter === "apple" ? "apple" : "samsung");
+          (brandFilter === "apple"
+            ? "apple"
+            : brandFilter === "samsung"
+              ? "samsung"
+              : "google");
       const matchesQuery =
         !normalizedQuery ||
         entry.model.toLowerCase().includes(normalizedQuery) ||
@@ -620,7 +624,7 @@ export default function DesignPage(): JSX.Element {
 
   return (
     <main
-      className="relative pb-28 pt-8 lg:pb-24 lg:pt-12"
+              className="relative pb-28 pt-8 lg:pb-20 lg:pt-12"
       style={{ backgroundColor: "var(--snap-gray-50)" }}
     >
       {isHydrated ? (
@@ -658,41 +662,14 @@ export default function DesignPage(): JSX.Element {
                 Snapcase designer
               </p>
               <h1 className="text-3xl font-semibold text-gray-900 lg:text-4xl">
-                Design your Snapcase
+                Select your device
               </h1>
-            </div>
-            <p className="max-w-3xl text-base text-gray-700">
-              Pick your device, drop in your art, and continue once the designer clears your upload.
-              Checkout mirrors everything you see here so the handoff stays locked.
-            </p>
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
-              <span
-                className="inline-flex items-center gap-2 rounded-full border px-3 py-1"
-                style={{ borderColor: "var(--snap-gray-200)", backgroundColor: "var(--snap-white)" }}
-              >
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
-                Device locked
-              </span>
-              <span
-                className="inline-flex items-center gap-2 rounded-full border px-3 py-1"
-                style={{ borderColor: "var(--snap-gray-200)", backgroundColor: "var(--snap-white)" }}
-              >
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
-                Live price + saved design
-              </span>
-              <span
-                className="inline-flex items-center gap-2 rounded-full border px-3 py-1"
-                style={{ borderColor: "var(--snap-gray-200)", backgroundColor: "var(--snap-white)" }}
-              >
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
-                Checkout stays in sync
-              </span>
             </div>
           </header>
 
-          <div className="grid gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
+          <div className="space-y-6">
             <section
-              className="space-y-5 lg:col-span-8 lg:space-y-6"
+              className="space-y-5"
               style={{
                 borderRadius: "var(--radius-2xl)",
                 border: "1px solid var(--snap-gray-200)",
@@ -734,6 +711,7 @@ export default function DesignPage(): JSX.Element {
                   {([
                     { id: "apple", label: "Apple" },
                     { id: "samsung", label: "Samsung" },
+                    { id: "google", label: "Google" },
                   ] as const).map((option) => (
                     <button
                       key={option.id}
@@ -801,71 +779,84 @@ export default function DesignPage(): JSX.Element {
               </div>
 
               <div
-                className="hidden space-y-3 lg:block"
+                className="hidden space-y-4 lg:block"
                 style={{
                   borderRadius: "var(--radius-xl)",
                   border: "1px solid var(--snap-gray-200)",
-                  backgroundColor: "rgba(255,255,255,0.9)",
+                  backgroundColor: "rgba(255,255,255,0.96)",
                   padding: "var(--space-5)",
+                  boxShadow: "var(--shadow-lg)",
                 }}
               >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="space-y-1">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Device
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      Choose where you want this printed. We keep the designer locked to your pick so
-                      checkout can&apos;t drift.
-                    </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex flex-1 min-w-[260px] items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm">
+                    <span aria-hidden="true" className="text-base text-gray-400">
+                      &#128269;
+                    </span>
+                    <input
+                      type="search"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      placeholder="Search iPhone 15, Galaxy S24..."
+                      className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                      aria-label="Search model"
+                    />
                   </div>
-                  <span
-                    className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700"
-                    style={{ border: "1px solid var(--snap-gray-200)", backgroundColor: "var(--snap-gray-50)" }}
-                  >
-                    Locked to this pick
-                  </span>
+                  <div className="flex items-center gap-2 rounded-full bg-white p-1 shadow-sm">
+                    {([
+                      { id: "apple", label: "Apple" },
+                      { id: "samsung", label: "Samsung" },
+                      { id: "google", label: "Google" },
+                    ] as const).map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setBrandFilter(option.id)}
+                        className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                          brandFilter === option.id
+                            ? "bg-[var(--snap-violet)] text-white shadow-sm"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                        style={{
+                          border: brandFilter === option.id ? "1px solid var(--snap-violet)" : "1px solid var(--snap-gray-200)",
+                        }}
+                        aria-pressed={brandFilter === option.id}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {catalog.map((entry) => {
+
+                <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-4">
+                  {filteredCatalog.map((entry) => {
                     const selected = seedDevice?.variantId === entry.variantId;
                     return (
                       <button
                         key={entry.variantId}
                         type="button"
                         onClick={() => handleDeviceSelected(entry)}
-                        className="flex w-full items-start justify-between border px-4 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                        style={{
-                          borderRadius: "var(--radius-xl)",
-                          borderColor: selected ? "var(--snap-violet)" : "var(--snap-gray-200)",
-                          backgroundColor: selected ? "var(--snap-violet)" : "var(--snap-white)",
-                          color: selected ? "var(--snap-white)" : "var(--snap-gray-900)",
-                          boxShadow: selected ? "var(--shadow-md)" : "none",
-                        }}
+                        className="text-left"
                         data-testid={`device-option-${entry.variantId}`}
                       >
-                        <div className="space-y-1">
-                          <p className="text-[11px] font-semibold uppercase tracking-wide">
-                            {entry.brand}
-                          </p>
-                          <p className="text-base font-semibold">{entry.model}</p>
-                        </div>
-                        <span
-                          className="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full border"
+                        <div
+                          className={`relative flex h-48 w-full items-center justify-center rounded-3xl border transition ${
+                            selected
+                              ? "border-[var(--snap-violet)] shadow-[0_0_0_2px_rgba(124,58,237,0.25)]"
+                              : "border-gray-200"
+                          }`}
                           style={{
-                            borderColor: selected ? "var(--snap-white)" : "var(--snap-gray-300)",
-                            backgroundColor: selected ? "var(--snap-white)" : "transparent",
-                            color: selected ? "var(--snap-violet)" : "inherit",
+                            background: selected
+                              ? "linear-gradient(180deg,#fdfbff 0%,#f4eefe 100%)"
+                              : "linear-gradient(180deg,#f9fafb 0%,#f3f4f6 100%)",
                           }}
-                          aria-hidden="true"
                         >
-                          {selected ? (
-                            <span
-                              className="block h-2.5 w-2.5 rounded-full"
-                              style={{ backgroundColor: "currentColor" }}
-                            />
-                          ) : null}
-                        </span>
+                          <div className="flex h-28 w-14 items-center justify-center rounded-xl bg-white shadow-[0_16px_40px_rgba(15,23,42,0.08)]" />
+                        </div>
+                        <div className="mt-3 space-y-1 text-center">
+                          <p className="text-sm font-semibold text-gray-900">{entry.model}</p>
+                          <p className="text-[12px] text-gray-500">From $34.99</p>
+                        </div>
                       </button>
                     );
                   })}
@@ -1008,7 +999,7 @@ export default function DesignPage(): JSX.Element {
             </section>
 
             <aside
-              className="hidden space-y-5 lg:col-span-4 lg:block"
+              className="space-y-5"
               style={{
                 position: "relative",
               }}
