@@ -462,8 +462,8 @@ export default function DesignPage(): JSX.Element {
   );
 
   const ownershipHelper =
-    priceLabel != null
-      ? `Designer cleared. Live price ${priceLabel}.`
+    edmSnapshot?.designValid === true && (edmSnapshot.blockingIssues?.length ?? 0) === 0
+      ? "Designer cleared. You can continue when you are ready."
       : "Designer is validating your upload.";
 
   const brandOptions = useMemo(() => {
@@ -632,7 +632,8 @@ export default function DesignPage(): JSX.Element {
       })
     : null;
 
-  const proofImage = designSummary?.exportedImage ?? null;
+  const proofImage =
+    designSummary?.exportedImage ?? (edmSnapshot as unknown as { previewUrl?: string })?.previewUrl ?? null;
   const designStatusLabel = lastTemplateId
     ? "Design saved"
     : "Save in the designer to keep checkout in sync";
@@ -719,9 +720,9 @@ export default function DesignPage(): JSX.Element {
             </div>
           </header>
 
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start">
+          <div className="grid gap-8">
             <section
-              className="space-y-6 lg:col-span-8"
+              className="space-y-6"
               style={{
                 borderRadius: "var(--radius-2xl)",
                 border: "1px solid var(--snap-gray-200)",
@@ -982,7 +983,7 @@ export default function DesignPage(): JSX.Element {
             </section>
 
             <aside
-              className="hidden lg:block lg:col-span-4"
+              className="hidden lg:block"
               style={{
                 position: "relative",
               }}
@@ -1062,7 +1063,7 @@ export default function DesignPage(): JSX.Element {
                     </div>
                     <div className="space-y-1 sm:text-right">
                       <p className="font-semibold uppercase tracking-wide text-gray-500">Next step</p>
-                      <p className="text-sm font-medium leading-tight text-gray-900">{ctaState.helperText}</p>
+                      <p className="text-sm font-medium leading-tight text-gray-900">{ownershipHelper}</p>
                     </div>
                     {lastAttemptLabel ? (
                       <div className="col-span-2 flex items-start justify-between gap-3">
@@ -1091,7 +1092,6 @@ export default function DesignPage(): JSX.Element {
                     >
                       <span className="inline-flex items-center gap-2">{ctaState.label}</span>
                     </button>
-                    <p className="text-xs text-gray-500">{ctaState.helperText}</p>
                   </div>
                 </div>
               </div>

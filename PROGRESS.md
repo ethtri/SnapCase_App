@@ -252,7 +252,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - Expand automated checks (e.g., `npm run verify:mcp`, Jest/Playwright stubs) to keep regressions visible.
 
 ### Latest Updates
-  - 2025-12-15: Implemented Sprint03 Task63 UX plan and addressed sponsor feedback (removed Flow/Design-steps bar, hid detect-my-device on desktop, collapsed proof rail, transparent product guard, simplified rail status). `npm run build`; deployed https://snapcase-cv897r9rh-snapcase.vercel.app and aliased https://dev.snapcase.ai. Artifacts: `Images/diagnostics/2025-12-15T19-49-00-540Z-before-{design,checkout,thank-you}-{desktop,mobile}.png`, `Images/diagnostics/2025-12-15T23-36-57-672Z-after-{design,checkout,thank-you}-{desktop,mobile}.png`.
+  - 2025-12-15: Implemented Sprint03 Task63 UX plan and addressed sponsor feedback (removed Flow/Design-steps bar, hid detect-my-device on desktop, collapsed proof rail, transparent product guard, simplified rail status). `npm run build`; deployed https://snapcase-mqqigvhom-snapcase.vercel.app and aliased https://dev.snapcase.ai. Artifacts: `Images/diagnostics/2025-12-15T19-49-00-540Z-before-{design,checkout,thank-you}-{desktop,mobile}.png`, `Images/diagnostics/2025-12-15T23-51-54-807Z-after-{design,checkout,thank-you}-{desktop,mobile}.png`.
 
   - 2025-12-15: CX/UX plan for sponsor feedback (design/checkout/thank-you) captured; annotated screenshots and wireframes at `Images/diagnostics/2025-12-15T18-07-53-204Z-*`; see `docs/AgentReports/Sprint03-Task62-ux-plan.md`.
  

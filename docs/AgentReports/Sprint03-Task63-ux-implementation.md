@@ -8,11 +8,11 @@
 
 ## Verification
 - `npm run build`
-- Deployed `snapcase-cv897r9rh-snapcase.vercel.app` and aliased `https://dev.snapcase.ai`.
+- Deployed `snapcase-mqqigvhom-snapcase.vercel.app` and aliased `https://dev.snapcase.ai`.
 
 ## Artifacts
 - Before (dev alias): `Images/diagnostics/2025-12-15T19-49-00-540Z-before-{design,checkout,thank-you}-{desktop,mobile}.png`
-- After (dev alias): `Images/diagnostics/2025-12-15T23-36-57-672Z-after-{design,checkout,thank-you}-{desktop,mobile}.png`
+- After (dev alias): `Images/diagnostics/2025-12-15T23-51-54-807Z-after-{design,checkout,thank-you}-{desktop,mobile}.png`
 
 ## Sponsor feedback & go-to-green
 - Blocker object still visible in iframe → Product-tab guard is now transparent (still intercepts clicks to keep variant lock); next step is to monitor if a hidden guard is acceptable or replace with a first-party disable flag from Printful.
