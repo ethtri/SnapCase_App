@@ -472,12 +472,9 @@ export default function CheckoutPage(): JSX.Element {
     >
       <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
         <header className="space-y-2" style={{ fontFamily: "var(--font-display)" }}>
-          <h1 className="text-3xl font-semibold text-gray-900 lg:text-4xl">
-            Review &amp; Shipping
-          </h1>
+          <h1 className="text-3xl font-semibold text-gray-900 lg:text-4xl">Review &amp; Proof</h1>
           <p className="text-base text-gray-700">
-            Confirm your design, shipping speed, and totals before completing payment. Everything
-            here stays locked to your saved Snapcase design.
+            Review your locked proof, pick a shipping speed, and finish with one CTA. Checkout mirrors the saved design from the editor.
           </p>
         </header>
 
@@ -499,12 +496,9 @@ export default function CheckoutPage(): JSX.Element {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Design summary
-                  </h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Design proof</h2>
                   <p className="text-sm text-gray-500">
-                    Pulled from your saved design so you can confirm details
-                    without reopening the editor.
+                    Locked to your saved device and art so checkout cannot drift.
                   </p>
                 </div>
                 <Link
@@ -517,55 +511,69 @@ export default function CheckoutPage(): JSX.Element {
               </div>
 
               {designContext ? (
-                <div className="space-y-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-700">
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="font-medium">Device</span>
-                    <div className="flex flex-col items-end text-right">
-                      <span
-                        className="text-xs font-semibold text-gray-900"
-                        data-testid="checkout-variant-label"
-                      >
-                        {designContext.variantLabel ?? "Locked to your Snapcase pick"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-gray-600">
-                      Design status
-                    </span>
-                    <span className="text-gray-900">
-                      {designContext.templateId
-                        ? "Saved in Snapcase"
-                        : "Saved for checkout"}
-                    </span>
-                  </div>
-                  {designContext.exportedImage ? (
-                    <div className="space-y-2">
-                      <span className="text-xs font-medium text-gray-600">
-                        Design preview
-                      </span>
+                <div className="grid gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-700 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+                  <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                    {designContext.exportedImage ? (
                       <Image
                         src={designContext.exportedImage}
-                        alt="Design preview"
-                        width={512}
-                        height={512}
-                        className="h-48 w-full rounded-xl border border-gray-200 object-cover"
+                        alt="Design proof preview"
+                        width={720}
+                        height={900}
+                        className="h-full w-full max-h-[320px] rounded-xl object-cover"
                         unoptimized
                       />
+                    ) : (
+                      <div className="flex h-full min-h-[240px] items-center justify-center bg-gray-50 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        Save in the designer to see a proof here.
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                          Device
+                        </p>
+                        <p
+                          className="text-sm font-semibold text-gray-900"
+                          data-testid="checkout-variant-label"
+                        >
+                          {designContext.variantLabel ?? "Locked to your Snapcase pick"}
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
+                        Proof ready
+                      </span>
                     </div>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={clearDesign}
-                    className="text-xs font-medium text-gray-500 underline"
-                  >
-                    Clear stored design
-                  </button>
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        Design status
+                      </p>
+                      <p className="text-sm text-gray-900">
+                        {designContext.templateId ? "Saved in Snapcase" : "Saved for checkout"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        Price
+                      </p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {formatCurrency(pricingSnapshot.subtotal)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={clearDesign}
+                      className="text-xs font-medium text-gray-500 underline"
+                    >
+                      Clear stored design
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
-                  No design context found. Return to the editor, save your
-                  design, then continue to checkout.
+                  No design context found. Return to the editor, save your design, then continue to
+                  checkout.
                 </div>
               )}
             </section>
@@ -578,13 +586,16 @@ export default function CheckoutPage(): JSX.Element {
                 boxShadow: "var(--shadow-md)",
               }}
             >
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Shipping speed
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Pick your speed and we&apos;ll refresh totals right away.
-                </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Shipping &amp; review</h2>
+                  <p className="text-sm text-gray-500">
+                    Pick a speed and confirm where we send updates.
+                  </p>
+                </div>
+                <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
+                  {SHIPPING_DETAILS[shippingOption]?.eta}
+                </span>
               </div>
               <fieldset
                 role="radiogroup"
@@ -634,54 +645,38 @@ export default function CheckoutPage(): JSX.Element {
                   );
                 })}
               </fieldset>
+              <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-gray-900">Ship to</p>
+                    <p className="text-xs text-gray-600">Address capture connects to order creation next.</p>
+                  </div>
+                  <span className="rounded-full border border-gray-300 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-600">
+                    Syncing soon
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-gray-600">
+                  Shipping address will sync with your saved details once the backend order draft is active.
+                </p>
+              </div>
             </section>
 
+          </div>
+
+          <div className="space-y-6 lg:col-span-4 lg:sticky lg:top-8">
             <section
-              className="space-y-3 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+              className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
               style={{
                 borderRadius: "var(--radius-2xl)",
                 borderColor: "var(--snap-gray-200)",
                 boxShadow: "var(--shadow-md)",
               }}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Ship to
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Address capture connects to order creation in a later
-                  milestone.
-                </p>
-              </div>
-                <button
-                  type="button"
-                  className="text-sm font-semibold text-gray-700 underline"
-                  disabled
-                >
-                  Change
-                </button>
-              </div>
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-600">
-                Shipping address will sync with your saved details once the
-                backend order draft is active.
-              </div>
-            </section>
-          </div>
-
-          <div className="space-y-6 lg:col-span-4 lg:sticky lg:top-8">
-            <section
-              className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
               aria-live="polite"
               aria-atomic="true"
             >
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Cost summary
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Updates anytime your device or shipping choices change.
-                </p>
+                <h2 className="text-lg font-semibold text-gray-900">Order total</h2>
+                <p className="text-sm text-gray-500">Locked to your proof and shipping choice.</p>
               </div>
               <dl className="space-y-3 text-sm text-gray-700">
                 <div className="flex items-center justify-between">
@@ -708,38 +703,13 @@ export default function CheckoutPage(): JSX.Element {
                   <dd>{formatCurrency(pricingSnapshot.total)}</dd>
                 </div>
               </dl>
-            </section>
 
-            <div aria-live="polite" className="sr-only" data-testid="shipping-live-region">
-              {shippingLiveMessage}
-            </div>
-            <div aria-live="polite" className="sr-only" data-testid="pricing-live-region">
-              {pricingLiveMessage}
-            </div>
+              {error ? (
+                <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {error}
+                </div>
+              ) : null}
 
-            {error ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                {error}
-              </div>
-            ) : null}
-
-            <section
-              className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
-              style={{
-                borderRadius: "var(--radius-2xl)",
-                borderColor: "var(--snap-gray-200)",
-                boxShadow: "var(--shadow-md)",
-              }}
-            >
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-gray-900">
-                  Payment handoff
-                </p>
-                <p className="text-xs text-gray-600">
-                  We charge your card after production checks clear. The Snapcase Quality Promise
-                  covers free reprints if anything slips.
-                </p>
-              </div>
               <div className="space-y-3">
                 <button
                   type="button"
@@ -785,11 +755,17 @@ export default function CheckoutPage(): JSX.Element {
                   Back to design
                 </Link>
               </div>
-              <p className="text-xs text-gray-500">
-                Successful payment opens a secure checkout window. Cancel any time to come back here
-                with your design preserved.
+              <p className="text-xs text-gray-600">
+                We charge after production checks clear. The Snapcase Quality Promise covers free reprints if anything slips.
               </p>
             </section>
+
+            <div aria-live="polite" className="sr-only" data-testid="shipping-live-region">
+              {shippingLiveMessage}
+            </div>
+            <div aria-live="polite" className="sr-only" data-testid="pricing-live-region">
+              {pricingLiveMessage}
+            </div>
 
             {mockCheckoutUrl ? (
               <div className="space-y-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -817,6 +793,7 @@ export default function CheckoutPage(): JSX.Element {
               </div>
             ) : null}
           </div>
+
         </div>
       </div>
     </div>

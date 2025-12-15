@@ -1691,16 +1691,15 @@ export function EdmEditor({
         className="relative w-full overflow-hidden rounded-[32px] border border-gray-200 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.12)]"
         data-testid="edm-designer-shell"
       >
-        <div
-          className="absolute left-0 top-0 z-[3] h-[clamp(60px,8vw,80px)] w-[clamp(108px,14vw,156px)] max-w-[42%] rounded-br-2xl border border-gray-200/80 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]"
-          aria-hidden="true"
-          data-testid="printful-product-guard"
-          title="Product tab disabled"
-        />
+      <div
+        className="absolute left-0 top-0 z-[3] h-[clamp(60px,8vw,80px)] w-[clamp(108px,14vw,156px)] max-w-[42%] rounded-br-2xl bg-transparent"
+        aria-hidden="true"
+        data-testid="printful-product-guard"
+      />
         <div
           id={canvasId}
           ref={containerRef}
-          className="h-[min(90vh,900px)] min-h-[640px] w-full bg-gray-900/5"
+          className="h-[min(95vh,1040px)] min-h-[720px] w-full bg-gray-900/5 lg:min-h-[840px]"
         />
         <div
           className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-12 bg-gradient-to-b from-white via-white/90 to-transparent"

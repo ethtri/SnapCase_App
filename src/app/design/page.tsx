@@ -108,6 +108,8 @@ export default function DesignPage(): JSX.Element {
   const [isHydrated, setIsHydrated] = useState(false);
   const [didHydrateContext, setDidHydrateContext] = useState(false);
   const [designerResetToken, setDesignerResetToken] = useState(0);
+  const [brandFilter, setBrandFilter] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const lastPersistedVariantRef = useRef<number | null>(null);
   const lastCtaStateRef = useRef<string | null>(null);
@@ -292,6 +294,20 @@ export default function DesignPage(): JSX.Element {
     [],
   );
 
+  const handleBrandSelect = useCallback((brand: string) => {
+    setBrandFilter(brand);
+    logAnalyticsEvent("design_brand_filter", { brand });
+  }, []);
+
+  const handleDetectDevice = useCallback(() => {
+    const detectedBrand = seedDevice?.brand ?? "all";
+    setBrandFilter(detectedBrand);
+    logAnalyticsEvent("design_detect_device_clicked", {
+      brand: detectedBrand,
+      variantId: seedDevice?.variantId ?? null,
+    });
+  }, [seedDevice]);
+
   const persistTemplateForVariant = useCallback(
     async (
       variantId: number,
@@ -450,6 +466,27 @@ export default function DesignPage(): JSX.Element {
       ? `Designer cleared. Live price ${priceLabel}.`
       : "Designer is validating your upload.";
 
+  const brandOptions = useMemo(() => {
+    const brands = Array.from(new Set(catalog.map((entry) => entry.brand))).sort(
+      (a, b) => a.localeCompare(b),
+    );
+    return ["all", ...brands];
+  }, [catalog]);
+
+  const filteredCatalog = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    return catalog.filter((entry) => {
+      const matchesBrand = brandFilter === "all" || entry.brand === brandFilter;
+      const matchesSearch =
+        !normalizedSearch ||
+        entry.model.toLowerCase().includes(normalizedSearch) ||
+        entry.externalProductId.toLowerCase().includes(normalizedSearch);
+      return matchesBrand && matchesSearch;
+    });
+  }, [brandFilter, catalog, searchTerm]);
+
+  const visibleCatalog = filteredCatalog.length > 0 ? filteredCatalog : catalog;
+
   const guardrailSummary = useMemo<GuardrailSummary>(() => {
     if (!edmSnapshot) {
       return {
@@ -586,10 +623,6 @@ export default function DesignPage(): JSX.Element {
     designSummary?.variantLabel ??
     "Pick a supported device in Snapcase";
 
-  const templateSummaryLabel = lastTemplateId
-    ? "Design saved in Snapcase"
-    : "Save in the designer to reuse at checkout";
-
   const lastAttemptLabel = designSummary?.lastCheckoutAttemptAt
     ? new Date(designSummary.lastCheckoutAttemptAt).toLocaleString("en-US", {
         month: "short",
@@ -599,9 +632,48 @@ export default function DesignPage(): JSX.Element {
       })
     : null;
 
+  const proofImage = designSummary?.exportedImage ?? null;
+  const designStatusLabel = lastTemplateId
+    ? "Design saved"
+    : "Save in the designer to keep checkout in sync";
+
+  const stepperItems = useMemo(
+    () => [
+      {
+        id: "device",
+        label: "1. Device",
+        helper: checkoutVariantLabel,
+        status: activeDevice || seedDevice ? "complete" : "active",
+      },
+      {
+        id: "design",
+        label: "2. Design",
+        helper:
+          ctaState.id === "printful-ready"
+            ? ownershipHelper
+            : guardrailSummary.message,
+        status: ctaState.id === "printful-ready" ? "complete" : "active",
+      },
+      {
+        id: "review",
+        label: "3. Review",
+        helper: "Checkout stays locked to this pick",
+        status: ctaState.id === "printful-ready" ? "active" : "pending",
+      },
+    ],
+    [
+      activeDevice,
+      checkoutVariantLabel,
+      ctaState.id,
+      guardrailSummary.message,
+      ownershipHelper,
+      seedDevice,
+    ],
+  );
+
   return (
     <main
-      className="relative pb-16 pt-12 lg:pb-24"
+      className="relative pb-28 pt-12 lg:pb-24"
       style={{ backgroundColor: "var(--snap-gray-50)" }}
     >
       {isHydrated ? (
@@ -610,7 +682,7 @@ export default function DesignPage(): JSX.Element {
 
       <div className="px-safe-area">
         <div className="mx-auto w-full max-w-screen-2xl space-y-10 px-4 sm:px-6 lg:px-8 xl:px-10">
-          <header className="space-y-3">
+          <header className="space-y-4">
             <div className="space-y-2" style={{ fontFamily: "var(--font-display)" }}>
               <p className="text-sm font-semibold uppercase tracking-wide text-gray-600">
                 Snapcase designer
@@ -619,9 +691,8 @@ export default function DesignPage(): JSX.Element {
                 Design your Snapcase
               </h1>
             </div>
-            <p className="max-w-3xl text-base text-gray-700">
-              Pick your device, drop in your art, and continue once the designer clears your upload.
-              Checkout mirrors everything you see here so the handoff stays locked.
+            <p className="max-w-4xl text-base text-gray-700">
+              Lock your device, upload your art, and keep the checkout proof in sync. The rail on the right follows you with the saved design, price, and CTA.
             </p>
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
               <span
@@ -629,26 +700,67 @@ export default function DesignPage(): JSX.Element {
                 style={{ borderColor: "var(--snap-gray-200)", backgroundColor: "var(--snap-white)" }}
               >
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
-                Device locked
+                Variant lock on
               </span>
               <span
                 className="inline-flex items-center gap-2 rounded-full border px-3 py-1"
                 style={{ borderColor: "var(--snap-gray-200)", backgroundColor: "var(--snap-white)" }}
               >
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
-                Live price + saved design
+                Proof mirrors checkout
               </span>
               <span
                 className="inline-flex items-center gap-2 rounded-full border px-3 py-1"
                 style={{ borderColor: "var(--snap-gray-200)", backgroundColor: "var(--snap-white)" }}
               >
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
-                Checkout stays in sync
+                CTA unlocks after checks
               </span>
             </div>
           </header>
 
-          <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
+          <nav
+            aria-label="Design steps"
+            className="grid gap-3 rounded-2xl border border-gray-200 bg-white/80 p-3 shadow-sm backdrop-blur"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                Design steps
+              </p>
+              <span className="rounded-full border border-gray-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
+                Locked to Snapcase catalog
+              </span>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {stepperItems.map((step) => {
+                const tone =
+                  step.status === "complete"
+                    ? "border-emerald-200 bg-emerald-50"
+                    : step.status === "active"
+                      ? "border-violet-200 bg-violet-50"
+                      : "border-gray-200 bg-gray-50";
+                return (
+                  <div
+                    key={step.id}
+                    className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 ${tone}`}
+                    aria-current={step.status === "active" ? "step" : undefined}
+                  >
+                    <span className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full border border-current text-xs font-semibold text-gray-900">
+                      {step.label.split(".")[0]}
+                    </span>
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-semibold leading-tight text-gray-900">
+                        {step.label}
+                      </p>
+                      <p className="text-xs leading-snug text-gray-700">{step.helper}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </nav>
+
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start">
             <section
               className="space-y-6 lg:col-span-8"
               style={{
@@ -660,7 +772,7 @@ export default function DesignPage(): JSX.Element {
               }}
             >
               <div
-                className="space-y-3"
+                className="space-y-4"
                 style={{
                   borderRadius: "var(--radius-xl)",
                   border: "1px solid var(--snap-gray-200)",
@@ -674,8 +786,7 @@ export default function DesignPage(): JSX.Element {
                       Device
                     </p>
                     <p className="text-sm text-gray-700">
-                      Choose where you want this printed. We keep the designer locked to your pick so
-                      checkout can&apos;t drift.
+                      Compact picker with brand chips so checkout stays locked to your selection.
                     </p>
                   </div>
                   <span
@@ -685,8 +796,52 @@ export default function DesignPage(): JSX.Element {
                     Locked to this pick
                   </span>
                 </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {brandOptions.map((brand) => {
+                    const isActive = brandFilter === brand;
+                    const label =
+                      brand === "all"
+                        ? "All devices"
+                        : `${brand.slice(0, 1).toUpperCase()}${brand.slice(1)}`;
+                    return (
+                      <button
+                        key={brand}
+                        type="button"
+                        onClick={() => handleBrandSelect(brand)}
+                        className="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide transition"
+                        style={{
+                          borderColor: isActive ? "var(--snap-violet)" : "var(--snap-gray-200)",
+                          backgroundColor: isActive ? "var(--snap-violet-10, rgba(124,58,237,0.08))" : "var(--snap-white)",
+                          color: isActive ? "var(--snap-violet)" : "var(--snap-gray-800)",
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={handleDetectDevice}
+                    className="inline-flex items-center gap-2 rounded-full border border-dashed px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700 md:hidden"
+                    style={{ backgroundColor: "var(--snap-gray-50)" }}
+                  >
+                    Detect my device
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="search"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Search by model or product id"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-800 shadow-inner focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                  />
+                </div>
+
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {catalog.map((entry) => {
+                  {visibleCatalog.map((entry) => {
                     const selected = seedDevice?.variantId === entry.variantId;
                     return (
                       <button
@@ -729,6 +884,11 @@ export default function DesignPage(): JSX.Element {
                     );
                   })}
                 </div>
+                {filteredCatalog.length === 0 ? (
+                  <p className="text-xs text-gray-500">
+                    No matches yet - showing the full catalog while we add your device.
+                  </p>
+                ) : null}
               </div>
 
               <div
@@ -736,21 +896,33 @@ export default function DesignPage(): JSX.Element {
                 style={{
                   borderRadius: "var(--radius-xl)",
                   border: "1px dashed var(--snap-gray-200)",
-                  backgroundColor: "rgba(249, 250, 251, 0.8)",
+                  backgroundColor: "rgba(249, 250, 251, 0.9)",
                   padding: "var(--space-5)",
                 }}
               >
-                <span
-                  className="inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-wide text-gray-900"
-                  data-testid="design-helper-pill"
-                  style={{ border: "1px solid var(--snap-gray-300)", backgroundColor: "var(--snap-white)" }}
-                >
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
-                  {helperLabel}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className="inline-flex items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-wide text-gray-900"
+                    data-testid="design-helper-pill"
+                    style={{ border: "1px solid var(--snap-gray-300)", backgroundColor: "var(--snap-white)" }}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--snap-gray-900)" }} aria-hidden="true" />
+                    Locked to {checkoutVariantLabel}
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                      guardrailSummary.tone === "error"
+                        ? "border-red-200 bg-red-50 text-red-700"
+                        : guardrailSummary.tone === "warn"
+                          ? "border-amber-200 bg-amber-50 text-amber-700"
+                          : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    }`}
+                  >
+                    Designer {guardrailTitle.toLowerCase()}
+                  </span>
+                </div>
                 <p className="text-sm text-gray-600">
-                  We load your pick into the designer and keep it locked. Swap devices above to change
-                  what is handed to checkout.
+                  Keep uploads inside the frame. The CTA and checkout rail update as soon as the designer clears your proof.
                 </p>
               </div>
 
@@ -759,7 +931,7 @@ export default function DesignPage(): JSX.Element {
                   borderRadius: "var(--radius-xl)",
                   border: "1px solid var(--snap-gray-200)",
                   backgroundColor: "rgba(255, 255, 255, 0.98)",
-                  padding: "var(--space-2)",
+                  padding: "var(--space-3)",
                   boxShadow: "var(--shadow-sm) inset",
                 }}
               >
@@ -823,88 +995,124 @@ export default function DesignPage(): JSX.Element {
                   {ctaState.helperText}
                 </p>
               </div>
+
+              <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm lg:hidden">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-gray-900">Proof snapshot</p>
+                  <span className="rounded-full border border-gray-200 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-600">
+                    Step 3
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-16 w-14 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                    {proofImage ? (
+                      <img src={proofImage} alt="Design proof" className="h-full w-full object-cover" loading="lazy" />
+                    ) : (
+                      <span className="px-2 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                        Proof saves after upload
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-gray-900">{checkoutVariantLabel}</p>
+                    <p className="text-xs text-gray-600">{designStatusLabel}</p>
+                    <p className="text-xs text-gray-600">{priceLabel ?? "Live price pending"}</p>
+                  </div>
+                </div>
+              </div>
             </section>
 
             <aside
-              className="space-y-5 lg:col-span-4"
+              className="hidden lg:block lg:col-span-4"
               style={{
                 position: "relative",
               }}
             >
               <div
-                className="space-y-2"
+                className="space-y-3"
                 style={{
                   borderRadius: "var(--radius-2xl)",
                   border: "1px solid var(--snap-gray-200)",
                   backgroundColor: "rgba(255,255,255,0.96)",
                   boxShadow: "var(--shadow-lg)",
-                  padding: "var(--space-6)",
+                  padding: "var(--space-4)",
                   position: "sticky",
-                  top: "var(--space-8)",
+                  top: "var(--space-6)",
                 }}
               >
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Checkout preview
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Continue unlocks after the designer clears your upload. We carry the locked device,
-                    price, and saved design straight into checkout.
-                  </p>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Proof &amp; checkout
+                    </p>
+                    <p className="text-xs text-gray-600">Stays synced while you design.</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full border border-gray-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
+                      Variant locked
+                    </span>
+                    <span
+                      className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                        ctaState.id === "printful-ready"
+                          ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : "border border-amber-200 bg-amber-50 text-amber-700"
+                      }`}
+                    >
+                      {ctaState.id === "printful-ready" ? "Ready" : "Running checks"}
+                    </span>
+                  </div>
                 </div>
 
-                <dl className="space-y-4 text-sm text-gray-600">
-                  <div className="flex items-start justify-between gap-3">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Device lock
-                    </dt>
-                    <dd className="text-right text-base font-semibold text-gray-900">
-                      {checkoutVariantLabel}
-                    </dd>
+                <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                  <div className="flex h-20 w-16 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white">
+                    {proofImage ? (
+                      <img
+                        src={proofImage}
+                        alt="Design proof preview"
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="px-2 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                        Proof saves after upload
+                      </span>
+                    )}
                   </div>
-                  <div className="flex items-start justify-between gap-3">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Price
-                    </dt>
-                    <dd className="text-right text-base font-semibold text-gray-900">
-                      {priceLabel ?? "Waiting on designer"}
-                    </dd>
+                  <div className="space-y-1 text-sm text-gray-700">
+                    <p className="text-sm font-semibold text-gray-900">{checkoutVariantLabel}</p>
+                    <p className="text-xs text-gray-600">{designStatusLabel}</p>
+                    <p className="text-xs text-gray-600">{priceLabel ?? "Live price pending"}</p>
                   </div>
-                  <div className="flex items-start justify-between gap-3">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Design state
-                    </dt>
-                    <dd className="text-right text-sm text-gray-900">{templateSummaryLabel}</dd>
-                  </div>
-                  <div className="flex items-start justify-between gap-3">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Designer status
-                    </dt>
-                    <dd
-                      className={`text-right text-sm font-medium ${
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-xs text-gray-700">
+                  <div className="space-y-1">
+                    <p className="font-semibold uppercase tracking-wide text-gray-500">Designer</p>
+                    <p
+                      className={`text-sm font-semibold leading-tight ${
                         guardrailSummary.tone === "error"
                           ? "text-red-600"
                           : guardrailSummary.tone === "warn"
-                            ? "text-amber-600"
-                            : guardrailSummary.tone === "success"
-                              ? "text-emerald-600"
-                              : "text-gray-900"
+                            ? "text-amber-700"
+                            : "text-emerald-700"
                       }`}
                     >
                       {guardrailSummary.message}
-                    </dd>
+                    </p>
+                  </div>
+                  <div className="space-y-1 text-right">
+                    <p className="font-semibold uppercase tracking-wide text-gray-500">CTA</p>
+                    <p className="text-sm font-medium leading-tight text-gray-900">{ctaState.helperText}</p>
                   </div>
                   {lastAttemptLabel ? (
-                    <div className="flex items-start justify-between gap-3">
-                      <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Last checkout attempt
-                      </dt>
-                      <dd className="text-right text-sm text-gray-900">{lastAttemptLabel}</dd>
+                    <div className="col-span-2 flex items-start justify-between gap-3">
+                      <p className="font-semibold uppercase tracking-wide text-gray-500">Last attempt</p>
+                      <p className="text-sm text-gray-900">{lastAttemptLabel}</p>
                     </div>
                   ) : null}
-                </dl>
+                </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <button
                     type="button"
                     disabled={ctaState.disabled}
@@ -930,6 +1138,38 @@ export default function DesignPage(): JSX.Element {
           </div>
         </div>
       </div>
+      <div
+        className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-200 bg-white/95 backdrop-blur lg:hidden"
+        style={{ boxShadow: "0 -8px 30px rgba(15,23,42,0.08)" }}
+      >
+        <div className="mx-auto flex max-w-screen-md items-center gap-3 px-4 py-3">
+          <div className="flex flex-1 items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+              {proofImage ? (
+                <img src={proofImage} alt="Design proof" className="h-full w-full object-cover" loading="lazy" />
+              ) : (
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Proof</span>
+              )}
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-sm font-semibold text-gray-900">{checkoutVariantLabel}</p>
+              <p className="text-xs text-gray-600">
+                {priceLabel ?? "Live price pending"} - {designStatusLabel}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled={ctaState.disabled}
+            onClick={handleContinueToCheckout}
+            className="inline-flex min-w-[140px] items-center justify-center rounded-full bg-[var(--snap-violet)] px-4 py-2 text-sm font-semibold text-white shadow-md transition disabled:cursor-not-allowed disabled:bg-gray-300"
+            data-testid="continue-button-mobile"
+          >
+            {ctaState.disabled ? "Checks running" : ctaState.label}
+          </button>
+        </div>
+      </div>
+
     </main>
   );
 }

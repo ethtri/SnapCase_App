@@ -272,7 +272,7 @@ function ThankYouScreen(): JSX.Element {
     });
   }, [orderSnapshot]);
 
-  const orderIdDisplay = orderSnapshot ? `#${orderSnapshot.orderId}` : "—";
+  const orderIdDisplay = orderSnapshot ? `#${orderSnapshot.orderId}` : "-";
   const trackHref =
     orderSnapshot?.trackUrl ??
     `/order/preview?from=thank-you&order=${encodeURIComponent(
@@ -629,7 +629,7 @@ function ThankYouScreen(): JSX.Element {
             >
               <div className="space-y-1">
                 <p className="text-sm uppercase tracking-wide text-gray-500">
-                  Design summary
+                  Design proof
                 </p>
                 <h2 className="text-xl font-semibold text-gray-900">
                   Saved snapshot
@@ -672,11 +672,6 @@ function ThankYouScreen(): JSX.Element {
                   </div>
                 ) : null}
               </dl>
-            </article>
-          ) : isLoaded ? (
-            <article className="rounded-3xl border border-dashed border-gray-300 bg-gray-50 p-6 text-sm text-gray-600">
-              We couldn&rsquo;t locate a saved design. Start a new case from the
-              editor to capture a new summary.
             </article>
           ) : null}
         </section>
