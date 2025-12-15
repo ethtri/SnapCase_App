@@ -53,6 +53,8 @@ type DesignCtaState = {
   source: GuardrailCopySource;
 };
 
+type DeviceBrandFilter = "all" | "apple" | "samsung" | "google";
+
 function formatDeviceLabel(device: DeviceCatalogEntry | null): string | null {
   if (!device) {
     return null;
@@ -108,6 +110,9 @@ export default function DesignPage(): JSX.Element {
   const [isHydrated, setIsHydrated] = useState(false);
   const [didHydrateContext, setDidHydrateContext] = useState(false);
   const [designerResetToken, setDesignerResetToken] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [brandFilter, setBrandFilter] = useState<DeviceBrandFilter>("all");
+  const [detectStatus, setDetectStatus] = useState<string | null>(null);
 
   const lastPersistedVariantRef = useRef<number | null>(null);
   const lastCtaStateRef = useRef<string | null>(null);
@@ -581,6 +586,48 @@ export default function DesignPage(): JSX.Element {
     router.push("/checkout");
   }, [activeDevice, ctaState.disabled, router, seedDevice]);
 
+  const handleDetectMyPhone = useCallback(() => {
+    if (typeof navigator === "undefined") {
+      return;
+    }
+    const uaData =
+      (navigator as { userAgentData?: { brands?: { brand: string }[] } })
+        .userAgentData ?? null;
+    const userAgent = navigator.userAgent?.toLowerCase() ?? "";
+    const platform = navigator.platform?.toLowerCase() ?? "";
+    const brands =
+      uaData?.brands?.map((entry) => entry.brand.toLowerCase()).join(" ") ?? "";
+    const haystack = `${userAgent} ${platform} ${brands}`;
+
+    if (haystack.includes("iphone") || haystack.includes("ipad")) {
+      setBrandFilter("apple");
+      setSearchQuery("iphone");
+      setDetectStatus("Detected Apple device from your browser details.");
+      return;
+    }
+    if (haystack.includes("samsung") || haystack.includes("sm-")) {
+      setBrandFilter("samsung");
+      setSearchQuery("galaxy");
+      setDetectStatus("Detected Samsung device from your browser details.");
+      return;
+    }
+    if (haystack.includes("pixel")) {
+      setBrandFilter("google");
+      setSearchQuery("pixel");
+      setDetectStatus("Detected Google Pixel device from your browser details.");
+      return;
+    }
+    if (haystack.includes("android")) {
+      setBrandFilter("all");
+      setSearchQuery("galaxy");
+      setDetectStatus("Detected Android device. Showing popular matches.");
+      return;
+    }
+    setBrandFilter("all");
+    setSearchQuery("");
+    setDetectStatus("We could not detect your phone. Showing all devices.");
+  }, []);
+
   const checkoutVariantLabel =
     formatDeviceLabel(activeDevice ?? seedDevice) ??
     designSummary?.variantLabel ??
@@ -589,6 +636,30 @@ export default function DesignPage(): JSX.Element {
   const templateSummaryLabel = lastTemplateId
     ? "Design saved in Snapcase"
     : "Save in the designer to reuse at checkout";
+
+  const filteredCatalog = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const filterByBrand = (entry: DeviceCatalogEntry): boolean => {
+      if (brandFilter === "all") {
+        return true;
+      }
+      return entry.brand.toLowerCase() === brandFilter;
+    };
+    const matchesQuery = (entry: DeviceCatalogEntry): boolean => {
+      if (!normalizedQuery) {
+        return true;
+      }
+      return (
+        entry.model.toLowerCase().includes(normalizedQuery) ||
+        entry.brand.toLowerCase().includes(normalizedQuery)
+      );
+    };
+
+    const filtered = catalog.filter(
+      (entry) => filterByBrand(entry) && matchesQuery(entry),
+    );
+    return filtered;
+  }, [brandFilter, catalog, searchQuery]);
 
   const lastAttemptLabel = designSummary?.lastCheckoutAttemptAt
     ? new Date(designSummary.lastCheckoutAttemptAt).toLocaleString("en-US", {
@@ -685,8 +756,95 @@ export default function DesignPage(): JSX.Element {
                     Locked to this pick
                   </span>
                 </div>
+
+                <div className="space-y-2">
+                  <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                    <div
+                      className="flex flex-1 items-center gap-2 rounded-full border px-3 py-2 text-sm text-gray-700"
+                      style={{ borderColor: "var(--snap-gray-200)", backgroundColor: "var(--snap-white)" }}
+                    >
+                      <span aria-hidden="true" className="text-base text-gray-400">
+                        &#128269;
+                      </span>
+                      <input
+                        type="search"
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.target.value)}
+                        placeholder="Search iPhone 15, Galaxy S24..."
+                        className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                        aria-label="Search devices"
+                        data-testid="device-search-input"
+                      />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {([
+                        { id: "apple", label: "Apple", icon: "&#63743;" },
+                        { id: "samsung", label: "Samsung" },
+                        { id: "google", label: "Google" },
+                      ] satisfies { id: DeviceBrandFilter; label: string; icon?: string }[]).map(
+                        (option) => {
+                          const isActive = brandFilter === option.id;
+                          return (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() =>
+                                setBrandFilter((current) =>
+                                  current === option.id ? "all" : option.id,
+                                )
+                              }
+                              className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition ${
+                                isActive
+                                  ? "text-white shadow-sm"
+                                  : "text-gray-700"
+                              }`}
+                              style={{
+                                border: "1px solid var(--snap-gray-200)",
+                                backgroundColor: isActive
+                                  ? "var(--snap-violet)"
+                                  : "var(--snap-gray-50)",
+                              }}
+                              aria-pressed={isActive}
+                            >
+                              {option.icon ? (
+                                <span
+                                  aria-hidden="true"
+                                  className="text-sm leading-none"
+                                  dangerouslySetInnerHTML={{ __html: option.icon }}
+                                />
+                              ) : null}
+                              {option.label}
+                            </button>
+                          );
+                        },
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-1 lg:hidden">
+                    <button
+                      type="button"
+                      onClick={handleDetectMyPhone}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold text-[var(--snap-violet)]"
+                      style={{
+                        borderColor: "var(--snap-violet)",
+                        backgroundColor: "var(--snap-white)",
+                      }}
+                    >
+                      <span aria-hidden="true" className="text-base">
+                        &#128241;
+                      </span>
+                      Detect my phone
+                    </button>
+                    {detectStatus ? (
+                      <p className="text-xs text-gray-600" aria-live="polite">
+                        {detectStatus}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {catalog.map((entry) => {
+                  {filteredCatalog.map((entry) => {
                     const selected = seedDevice?.variantId === entry.variantId;
                     return (
                       <button
@@ -728,6 +886,14 @@ export default function DesignPage(): JSX.Element {
                       </button>
                     );
                   })}
+                  {filteredCatalog.length === 0 ? (
+                    <div
+                      className="col-span-full rounded-xl border px-4 py-3 text-sm text-gray-700"
+                      style={{ borderColor: "var(--snap-gray-200)", backgroundColor: "var(--snap-gray-50)" }}
+                    >
+                      No devices match your search yet. Clear filters or try another model name.
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
