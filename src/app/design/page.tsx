@@ -719,47 +719,6 @@ export default function DesignPage(): JSX.Element {
             </div>
           </header>
 
-          <nav
-            aria-label="Design steps"
-            className="grid gap-3 rounded-2xl border border-gray-200 bg-white/80 p-3 shadow-sm backdrop-blur"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-600">
-                Design steps
-              </p>
-              <span className="rounded-full border border-gray-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
-                Locked to Snapcase catalog
-              </span>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {stepperItems.map((step) => {
-                const tone =
-                  step.status === "complete"
-                    ? "border-emerald-200 bg-emerald-50"
-                    : step.status === "active"
-                      ? "border-violet-200 bg-violet-50"
-                      : "border-gray-200 bg-gray-50";
-                return (
-                  <div
-                    key={step.id}
-                    className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 ${tone}`}
-                    aria-current={step.status === "active" ? "step" : undefined}
-                  >
-                    <span className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full border border-current text-xs font-semibold text-gray-900">
-                      {step.label.split(".")[0]}
-                    </span>
-                    <div className="space-y-0.5">
-                      <p className="text-sm font-semibold leading-tight text-gray-900">
-                        {step.label}
-                      </p>
-                      <p className="text-xs leading-snug text-gray-700">{step.helper}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </nav>
-
           <div className="grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start">
             <section
               className="space-y-6 lg:col-span-8"
@@ -962,7 +921,7 @@ export default function DesignPage(): JSX.Element {
               </div>
 
               <div
-                className="space-y-3 text-sm text-gray-600"
+                className="space-y-3 text-sm text-gray-600 lg:hidden"
                 data-testid="guardrail-card"
                 style={{
                   borderRadius: "var(--radius-xl)",
@@ -1029,26 +988,26 @@ export default function DesignPage(): JSX.Element {
               }}
             >
               <div
-                className="space-y-3"
+                className="space-y-4"
                 style={{
                   borderRadius: "var(--radius-2xl)",
                   border: "1px solid var(--snap-gray-200)",
                   backgroundColor: "rgba(255,255,255,0.96)",
                   boxShadow: "var(--shadow-lg)",
-                  padding: "var(--space-4)",
+                  padding: "var(--space-5)",
                   position: "sticky",
                   top: "var(--space-6)",
                 }}
               >
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="space-y-0.5">
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                       Proof &amp; checkout
                     </p>
                     <p className="text-xs text-gray-600">Stays synced while you design.</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full border border-gray-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-gray-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700 shadow-sm">
                       Variant locked
                     </span>
                     <span
@@ -1063,75 +1022,77 @@ export default function DesignPage(): JSX.Element {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-                  <div className="flex h-20 w-16 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white">
-                    {proofImage ? (
-                      <img
-                        src={proofImage}
-                        alt="Design proof preview"
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span className="px-2 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                        Proof saves after upload
-                      </span>
-                    )}
-                  </div>
-                  <div className="space-y-1 text-sm text-gray-700">
-                    <p className="text-sm font-semibold text-gray-900">{checkoutVariantLabel}</p>
-                    <p className="text-xs text-gray-600">{designStatusLabel}</p>
-                    <p className="text-xs text-gray-600">{priceLabel ?? "Live price pending"}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs text-gray-700">
-                  <div className="space-y-1">
-                    <p className="font-semibold uppercase tracking-wide text-gray-500">Designer</p>
-                    <p
-                      className={`text-sm font-semibold leading-tight ${
-                        guardrailSummary.tone === "error"
-                          ? "text-red-600"
-                          : guardrailSummary.tone === "warn"
-                            ? "text-amber-700"
-                            : "text-emerald-700"
-                      }`}
-                    >
-                      {guardrailSummary.message}
-                    </p>
-                  </div>
-                  <div className="space-y-1 text-right">
-                    <p className="font-semibold uppercase tracking-wide text-gray-500">CTA</p>
-                    <p className="text-sm font-medium leading-tight text-gray-900">{ctaState.helperText}</p>
-                  </div>
-                  {lastAttemptLabel ? (
-                    <div className="col-span-2 flex items-start justify-between gap-3">
-                      <p className="font-semibold uppercase tracking-wide text-gray-500">Last attempt</p>
-                      <p className="text-sm text-gray-900">{lastAttemptLabel}</p>
+                <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-20 w-16 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white">
+                      {proofImage ? (
+                        <img
+                          src={proofImage}
+                          alt="Design proof preview"
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className="px-2 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                          Proof saves after upload
+                        </span>
+                      )}
                     </div>
-                  ) : null}
-                </div>
+                    <div className="space-y-1 text-sm text-gray-800">
+                      <p className="text-sm font-semibold text-gray-900">{checkoutVariantLabel}</p>
+                      <p className="text-xs text-gray-600">{designStatusLabel}</p>
+                      <p className="text-xs text-gray-600">{priceLabel ?? "Live price pending"}</p>
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    disabled={ctaState.disabled}
-                    onClick={handleContinueToCheckout}
-                    className="inline-flex w-full items-center justify-center gap-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed"
-                    style={{
-                      borderRadius: "var(--radius-pill)",
-                      minHeight: "var(--control-height)",
-                      backgroundColor: ctaState.disabled
-                        ? "var(--snap-gray-300)"
-                        : "var(--snap-violet)",
-                      boxShadow: "var(--shadow-md)",
-                      padding: "12px 20px",
-                    }}
-                    data-testid="continue-button"
-                  >
-                    <span className="inline-flex items-center gap-2">{ctaState.label}</span>
-                  </button>
-                  <p className="text-xs text-gray-500">{ctaState.helperText}</p>
+                  <div className="grid gap-3 text-xs text-gray-700 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <p className="font-semibold uppercase tracking-wide text-gray-500">Designer status</p>
+                      <p
+                        className={`text-sm font-semibold leading-tight ${
+                          guardrailSummary.tone === "error"
+                            ? "text-red-600"
+                            : guardrailSummary.tone === "warn"
+                              ? "text-amber-700"
+                              : "text-emerald-700"
+                        }`}
+                      >
+                        {guardrailSummary.message}
+                      </p>
+                    </div>
+                    <div className="space-y-1 sm:text-right">
+                      <p className="font-semibold uppercase tracking-wide text-gray-500">Next step</p>
+                      <p className="text-sm font-medium leading-tight text-gray-900">{ctaState.helperText}</p>
+                    </div>
+                    {lastAttemptLabel ? (
+                      <div className="col-span-2 flex items-start justify-between gap-3">
+                        <p className="font-semibold uppercase tracking-wide text-gray-500">Last attempt</p>
+                        <p className="text-sm text-gray-900">{lastAttemptLabel}</p>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      disabled={ctaState.disabled}
+                      onClick={handleContinueToCheckout}
+                      className="inline-flex w-full items-center justify-center gap-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed"
+                      style={{
+                        borderRadius: "var(--radius-pill)",
+                        minHeight: "var(--control-height)",
+                        backgroundColor: ctaState.disabled
+                          ? "var(--snap-gray-300)"
+                          : "var(--snap-violet)",
+                        boxShadow: "var(--shadow-md)",
+                        padding: "12px 20px",
+                      }}
+                      data-testid="continue-button"
+                    >
+                      <span className="inline-flex items-center gap-2">{ctaState.label}</span>
+                    </button>
+                    <p className="text-xs text-gray-500">{ctaState.helperText}</p>
+                  </div>
                 </div>
               </div>
             </aside>
