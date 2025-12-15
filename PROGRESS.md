@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: December 11, 2025
+**Last Updated**: December 15, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -38,6 +38,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Recently Resolved
 
+- **Sprint03-Task60 dependency vulnerability cleanup (2025-12-15):** Resolved 7 npm audit findings (2 moderate, 5 high) by bumping Next/eslint-config-next to 14.2.35 and overriding @modelcontextprotocol/sdk@1.24.3, body-parser@2.2.1, glob@10.5.0, js-yaml@4.1.1; lockfile regenerated. Tests: `npm install`, `npm audit` (0 vulns), `npm run build`. Deploy: not required (patch-level dependency updates only).
 - **Sprint03-Task56 CX realignment (2025-12-11):** Restored `Snapcase-Flow-Mockups` references, refreshed design/checkout/thank-you to the design system tokens (colors/radii/spacing/shadows), and scrubbed vendor mentions from customer copy while keeping variant lock and CTA gating intact. Checkout panel now sticks on desktop, payment copy is provider-agnostic, and thank-you uses tokenized hero/cards plus neutral timeline helpers. Tests: `npm run build`. Artifacts: `Images/diagnostics/2025-12-11T22-07-25-505Z-before-{design,checkout,thank-you}-{desktop,mobile}.png`, `Images/diagnostics/2025-12-11T22-26-13-456Z-after-{design,checkout,thank-you}-{desktop,mobile}.png`, diagnostics `Images/diagnostics/2025-12-11T22-26-13-456Z-cx-diagnostics.json`.
 - **Sprint03-Task54 CX/UX audit + device picker proposal (2025-12-11):** Audited design/checkout/thank-you for on-brand copy (no new Printful/template leaks) and documented a modern full-catalog device picker (search/filter, Samsung/Pixel emphasis, lock-aware CTA). Design still surfaces verbose diagnostics on failure; recommended a compact error/retry state and hiding JSON behind a toggle. Tests: doc-only (no code changes). Artifacts: `Images/diagnostics/2025-12-11T20-43-41-546Z-{design,checkout,thank-you}-desktop.png`, `Images/diagnostics/2025-12-11T20-43-41-546Z-picker-wireframe.png`. Backlog: implement the picker proposal and design error-state polish.
 - **Sprint03-Task53 CX/UX audit (2025-12-11):** Scrubbed customer-facing Printful mentions and template/variant IDs from design, checkout, and thank-you, replacing them with Snapcase voice and neutral design-status copy (loader/offline messaging, guardrail helpers, and checkout/thank-you summaries). CTA/lock behaviour unchanged. Tests: `npm run build`. Artifacts: `Images/diagnostics/2025-12-11T17-40-07-409Z-{design,checkout,thank-you}-{desktop,mobile}.png` (before) and `Images/diagnostics/2025-12-11T18-01-08-610Z-{design,checkout,thank-you}-{desktop,mobile}.png` (after). Backlog: modern full-catalog device picker to reduce grid bloat and better surface Samsung/Pixel coverage.

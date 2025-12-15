@@ -37,6 +37,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Status | Notes |
 | --- | --- | --- |
+| Sprint03-Task60 | DONE | Dependency vuln cleanup: upgraded Next/eslint-config-next to 14.2.35 and added overrides for @modelcontextprotocol/sdk@1.24.3, body-parser@2.2.1, glob@10.5.0, js-yaml@4.1.1; npm audit 7->0 (2 moderate, 5 high); npm run build pass; no deploy (patch-level). |
 | Sprint03-Task59A | DONE (Google mapping pending IDs) | Catalog expanded with iPhone 16/17 (Printful 683) and Samsung S24 mapped to product 684 + glossy catalog variant IDs to align the embed; Google Pixel snap cases are not in the Printful catalog, so mapping is deferred. Artifacts: `Images/diagnostics/2025-12-15T05-33-28-766Z-before-design-{desktop,mobile}.png`, `Images/diagnostics/2025-12-15T05-42-25-226Z-after-design-{desktop,mobile,s24-desktop}.png`. Tests: `npm run build` (pass); npm install reports 7 vulns (2 moderate, 5 high). |
 | Sprint03-Task59B | DONE | Picker refresh merged clean (branch already aligned with main); compact text-first cards with brand chips + Apple icon remain intact. Tests: `npm run build` (pass); `npm ci` reports 7 vulns (2 moderate, 5 high). |
 | Sprint03-Task59C | DONE | Flow/review tweaks merged clean (branch already aligned with main); proof/review copy/layout live with CTA/variant lock unchanged; checkout/thank-you unaffected. Tests: `npm run build` (pass); `npm ci` reports 7 vulns (2 moderate, 5 high). |
