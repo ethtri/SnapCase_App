@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: December 11, 2025
+**Last Updated**: December 15, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -251,6 +251,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - Expand automated checks (e.g., `npm run verify:mcp`, Jest/Playwright stubs) to keep regressions visible.
 
 ### Latest Updates
+  - 2025-12-15: CX/UX plan for sponsor feedback (design/checkout/thank-you) captured; annotated screenshots and wireframes at `Images/diagnostics/2025-12-15T18-07-53-204Z-*`; see `docs/AgentReports/Sprint03-Task62-ux-plan.md`.
  
   - 2025-12-14: Catalog refreshed with iPhone 16/17 entries (Printful 683) and Samsung S24 mappings pointing at Printful product 684 + glossy catalog variant IDs; Google Pixel snap cases still missing from the Printful catalog/store APIs.
   - 2025-11-06: Added `src/lib/printful/templates.ts` plus `GET /api/edm/templates/{externalProductId}` to surface `{ exists, templateId, printfulProductId }` ahead of EDM launch. New integration coverage lives in `tests/integration/edm-template-status-route.test.ts`; validated locally via `npx jest --runInBand tests/integration/edm-template-status-route.test.ts`. Docs updated with the ?Template probe API? subsection.
@@ -789,7 +790,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ---
 
-**Last Updated**: December 11, 2025
+**Last Updated**: December 15, 2025
 
 **Next Review**: Weekly
 
