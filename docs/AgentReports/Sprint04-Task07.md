@@ -11,8 +11,8 @@
 - Docs: `docs/Responsive_Blueprint.md`, `docs/SnapCase_App_Prototype.MD`, `docs/TaskPipeline.md`, `PROGRESS.md` now reflect Option A shipped plus proof card removal and new diagnostics.
 
 ## Verification
+- `npm run lint` (blocked: Next.js prompt to generate config; repository still missing ESLint config, so none was created. Existing react-hooks/exhaustive-deps warning at `src/app/design/page.tsx` remains acknowledged per instruction.)
 - `npm run build`
-- `npm run lint` (blocked: repo has no ESLint config on origin/main; guardrail prevented auto-generation)
 
 ## Diagnostics
 - Picker: `Images/diagnostics/2025-12-16T02-05-51-402Z-design-after-picker.png`
