@@ -1,0 +1,30 @@
+{
+  "designContext": {
+    "variantId": 34013,
+    "externalProductId": "SNAP_IP17PRO_SNAP",
+    "templateId": null,
+    "templateStoreId": null,
+    "templateStoredAt": null,
+    "exportedImage": null,
+    "designFileId": null,
+    "designFileUrl": null,
+    "variantLabel": "iPhone 17 Pro",
+    "lastCheckoutAttemptAt": null,
+    "unitPriceCents": 3499,
+    "unitPriceCurrency": "USD",
+    "pricingSource": "catalog",
+    "printfulProductId": 683,
+    "timestamp": 1765850758283
+  },
+  "guardrailText": "DESIGN STATUS\n\nPlease add a design!\n\nFix the banner, then continue to checkout.",
+  "cta": {
+    "label": "Resolve the Printful banner above",
+    "disabled": true
+  },
+  "testHooks": null,
+  "designStatus": null,
+  "screenshotPaths": {
+    "picker": "Images\\diagnostics\\2025-12-16T02-05-51-402Z-design-after-picker.png",
+    "editor": "Images\\diagnostics\\2025-12-16T02-05-51-402Z-design-after-editor.png"
+  }
+}
