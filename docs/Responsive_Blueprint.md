@@ -10,7 +10,7 @@ This blueprint fuses the Stitch delta docs with the design system so engineers c
 > | Responsive Delivery Strategy | Authoritative | Reflects EDM-first constraints and helper copy limits (Ref: docs/Printful_EDM_KeyFacts.md:85-165). |
 > | Desktop Layout & Guardrail Ownership | Authoritative | Matches current two-column approach and Printful-only guardrails (Ref: docs/Printful_EDM_KeyFacts.md:141-165). |
 > | Screen 1 – Select Your Device | Authoritative | Device picker/UI tokens match current implementation; no Printful conflicts. |
-> | Screen 2 – Layout & Guardrails | Needs Rewrite | Added EDM-first guidance below, but Fabric toggle content remains archived until rewritten (Ref: docs/Printful_EDM_KeyFacts.md:85-165). |
+> | Screen 2 – Layout & Guardrails | Updated (Option A shipped) | Option A two-screen flow is live; Fabric toggle content remains archived until rewritten (Ref: docs/Printful_EDM_KeyFacts.md:85-165). |
 > | Guardrail Banners & Safe-Area Overlays | Deprecated – Fabric-only | Printful owns guardrails; this section is retained only for Fabric fallback (Ref: docs/Printful_EDM_KeyFacts.md:141-165). |
 > | Flow-wide Accessibility Checklist | Authoritative | Applies to both EDM + Fabric shells. |
 > | Open UX Decisions | Authoritative | Decisions pending stakeholder review; note EDM constraints when resolving. |
@@ -46,11 +46,14 @@ This blueprint fuses the Stitch delta docs with the design system so engineers c
 ### Mockup vs Reality (Screen 2 focus)
 | Stitch component / spec | Live implementation | Status / Limitation |
 | --- | --- | --- |
+| Dedicated device screen before editor | **Option A shipped (Sprint04-Task07):** Screen 1 is a full-width picker page with sticky ActionBar/FAB; Screen 2 is editor-only with the compact “Your device: <model> · Change device” summary chip above the iframe. | **Shipped** – mirrors the mockups; keep this as the primary flow. Single-screen collapse remains the fallback below. |
+| Single-screen with collapsible picker | For teams that must keep a single `/design`, collapse the picker after selection into a pill/accordion pinned above the iframe (“Your device: iPhone 15 Pro · Change device”). “Edit device” reopens the grid inline without shrinking the Printful column. | **Documented fallback** – build only if a new route is off the table; must preserve two-column desktop width and ActionBar/FAB patterns. |
 | Variant picker hidden inside toolbar | SnapCase masks Printful’s picker row with a host overlay while keeping `isVariantSelectionDisabled` + `preselectedSizes` in the config and surfacing the helper pill (“Device locked — change in Step 1”), per `Snapcase-Flow-Mockups/Flow-1-Design-and-Order/Mobile/Screen-2-Design-your-case/snapcase-notes-delta-screen-2.md:23-27` and `.../Desktop/Screen-2-Design-your-case/snapcase-notes-delta-screen-2.md:18-22`. Diagnostics now rely on `Images/diagnostics/design-messaging-*.png` instead of showing the picker chrome. | **Shipped (masked)** – picker is visually suppressed; Printful still receives the lock flags underneath. Monitor for flicker if the iframe races the overlay. |
 | SnapCase safe-area & DPI overlay stacked over canvas | Safe-area overlays/DPI chips now render **only** in Fabric fallback, per `Snapcase-Flow-Mockups/.../Mobile/Screen-2-Design-your-case/snapcase-notes-delta-screen-2.md:25` and `.../Desktop/Screen-2-Design-your-case/snapcase-notes-delta-screen-2.md:20`. EDM relies on Printful’s overlay/banners while SnapCase mirrors the payload in the summary card. | **Deferred Fabric-only** – redundant overlays removed per `docs/Printful_EDM_Risk_Analysis.md` §1. |
 | Dedicated SnapCase guardrail rail with dismissible banners | Guardrail rail replaced by the compact summary tied to `onDesignStatusUpdate`, per `Snapcase-Flow-Mockups/.../Mobile/Screen-2-Design-your-case/snapcase-notes-delta-screen-2.md:24` and `.../Desktop/Screen-2-Design-your-case/snapcase-notes-delta-screen-2.md:19`, with diagnostics evidence in `Images/diagnostics/edm-diagnostics-2025-11-04T21-12-24-222Z.png`. | **Shipped** – aligns with `docs/Printful_EDM_KeyFacts.md` §Guardrails. |
 | Multi-pane canvas + preview strip | Still a single Printful column with an optional left-rail placeholder; multi-pane UI remains future scope (`Snapcase-Flow-Mockups/.../Mobile/Screen-2-Design-your-case/snapcase-notes-delta-screen-2.md:27`, `.../Desktop/.../snapcase-notes-delta-screen-2.md:22`). | **Not Started** – wait for multi-pane API or Fabric fallback. |
 | CTA row anchored below canvas with SnapCase-only messaging | Sticky ActionBar/floating CTA and the desktop summary column mirror Printful validity + “Back-only print” helper copy (`Snapcase-Flow-Mockups/.../Desktop/Screen-2-Design-your-case/snapcase-notes-delta-screen-2.md:21`; `.../Mobile/Screen-1-Pick-your-device/snapcase-notes-delta-screen-1.md:19-27`). Diagnostics: `Images/diagnostics/design-desktop-2025-11-05T15-47-53-583Z.png` (desktop) and `Images/diagnostics/design-mobile-2025-11-05T15-49-00-368Z.png` (mobile). | **Shipped** – blueprint + `/design` live code match. |
+| Proof & Checkout box | Current desktop builds show an empty Proof/Checkout tile; mockups do not require a blank box. Replace with a “Design summary” card (device, art thumbnail, template/price status) or remove entirely to declutter. | **Shipped (Task07)** – blank tile removed; design summary card now renders only when data is available (template/price/thumbnail). |
 
 ## Shared Responsive + Token Rules
 - **Shell**: `AppHeader` plus the safe-area `ActionBar` stay full width on base/sm and clamp to `container-lg` with `--space-6` gutters on `lg+`. Footers use `--space-4` vertical padding and a blur divider `calc(var(--space-1)/4)`.
@@ -80,6 +83,14 @@ This blueprint fuses the Stitch delta docs with the design system so engineers c
 ### Accessibility and Messaging
 - Focus order: Back -> Title -> Search -> Segmented control (tabs) -> Detect -> Grid (row traversal) -> FAB CTA. Segmented control uses `role="tablist"` and `role="tab"` with `aria-selected`; grid uses `role="grid"` and `role="gridcell"`.
 - All states maintain AA contrast (Snap Violet on white, violet outline on white, disabled state `var(--snap-gray-800)` at 60 percent). Live regions announce Detect outcomes via `aria-live="polite"`.
+
+### Device picker + handoff options (Sprint04-Task06)
+- **Option A (shipped Dec 15, 2025):** Screen 1 is a dedicated picker page with full-width grid + floating/sticky CTA. Continue loads the editor-only Screen 2 with the compact summary chip ("Your device: iPhone 15 Pro · Change device") above the iframe. Mirrors the mockups and avoids the cramped combined view.
+- **Option B (single-screen fallback):** Keep picker + editor on /design, but auto-collapse the picker into a pill/accordion once a device is chosen. "Edit device" reopens the grid inline without shrinking the Printful column. ActionBar/FAB + CTA states stay visible during collapse. Use only if a separate picker screen becomes impossible.
+- **Copy deck:** Picker helper "Choose your phone and case." Summary chip "Your device: iPhone 15 Pro · Change device." CTA states "Select a device" + "Continue to design" + "Waiting on your upload" + "Continue to checkout." Avoid jargon like "variant lock" or "rail."
+- **Save/resume gap:** Navigating back from checkout currently drops the design; persist device + template and rehydrate on return so the editor/CTA stay in sync.
+
+
 
 ## Screen 2 - Design Your Case and Guardrails
 
@@ -113,11 +124,16 @@ This blueprint fuses the Stitch delta docs with the design system so engineers c
 - **lg (>=1024px)**: Two columns lock; ActionBar transforms into `CheckoutStickyPanel` pinned within column B with `--space-6` padding and `--radius-xl`. Cancel/resume info bar positions above the totals block and spans both columns for emphasis.
 - **xl+ (>=1280px)**: Maintain content width at `container-lg`; promise banner can sit beside the cost summary if space allows, but keep reading order intact. Optional help/chat rails must not interfere with the sticky column.
 
+### Proof/Checkout card decision (Sprint04-Task06)
+- Shipped (Task07): the blank Proof & Checkout box is removed. A “Design summary” card now renders only when real data exists (device, price, saved template/thumbnail); otherwise the space stays empty to keep the column light. Keep a follow-up spike to validate a live thumbnail without blocking the flow.
+- Do not reserve space for this card on mobile; rely on the existing design summary + totals stack instead.
+
 ### Guardrails, Cancel/Resume, Pending States
 - Shipping cards form a `role="radiogroup"`; Standard is preselected, Express hidden when `SHOW_EXPRESS_SHIPPING` is false. When toggled, the pricing API recalculates subtotal, shipping, and tax; show shimmer skeleton (three lines) while pending and disable the Stripe CTA with `aria-busy="true"` plus spinner.
 - Guardrail messaging covers Printful rate failures (toast "We couldn't refresh shipping. Try again?"), Express unavailability (inline helper "Express is currently unavailable for your address."), and address validation errors (inline red helper under Address block). When the address is incomplete, Stripe CTA stays disabled.
 - Cancel/resume flow: If returning with `?canceled=1`, show an info banner above totals saying "No worries-your design is saved. Pick up where you left off." Banner colors use `var(--snap-blue-50)` background, `var(--snap-blue-700)` text, and optional dismiss button sized to `--space-5`. Ensure banner persists until the user completes payment or navigates away.
 - Stripe handoff: CTA copy "Pay with Stripe" uses the approved Stripe lockup asset in `public/stripe/lockup.svg`. Disable CTA while `/api/checkout` is pending; on failure, re-enable and announce toast "Payment couldn't start. Please retry." Persist `shippingSpeed`, `templateId`, and pricing metadata for Printful order creation.
+- Pricing transparency helper: keep a short line near totals ("Base price set by Snapcase; shipping/tax shown below") to avoid surprises.
 - **Quality Promise banner shipped (2025-11-05, Sprint02-Task05):** `/checkout` now renders the violet reassurance card at the top of column A with the canonical copy “Snapcase Quality Promise — If anything’s off, we remake it on us.” Fresh captures live at `Images/diagnostics/checkout-desktop-2025-11-05T16-48-23-099Z.png` (desktop) and `Images/diagnostics/checkout-mobile-2025-11-05T16-48-23-099Z.png` so reviewers can see the banner + CTA helper text in situ.
 - **Pricing live regions implemented:** Cost summary rows, shipping helpers, and CTA busy states now use `aria-live="polite"` via the `pricing-live-region`/`shipping-live-region` announcers in `src/app/checkout/page.tsx`. Every shipping toggle logs `checkout_shipping_selected`, and totals recalculations emit `checkout_pricing_update` so accessibility + analytics stay in sync.
 

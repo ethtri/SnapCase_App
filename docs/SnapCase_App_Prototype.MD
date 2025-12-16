@@ -41,6 +41,7 @@ Build a minimal but production‑ready web app at **`app.snapcase.ai`** where cu
 **Non‑Goals (v0)**
 
 * Accounts/profiles, coupons, gift wrap, tax-exempt logic, kiosk pickup sync.
+* Multi-item cart/add-to-cart flow is out of v0 scope; single-case checkout only, with multi-case/cart to be scoped in a later sprint.
 
 ## 2) Users & Stories
 
@@ -71,17 +72,25 @@ Build a minimal but production‑ready web app at **`app.snapcase.ai`** where cu
   1. Device picker (brand/model/case).
   2. Editor surface (EDM iframe or Fabric.js canvas).
   3. Clear notes and helper UI:
-     - Printful’s picker remains visible but locked; helper copy (“Device locked—change in Step 1”) must explain that variant changes happen upstream (refs: `docs/Responsive_Blueprint.md` §Screen 2, `docs/Printful_EDM_KeyFacts.md` §Variant Selection & Data Flow).
-     - Helper chip now ships as the documented “**Variant locked to your SnapCase selection**” pill with inline reminder to change devices in Step 1 (`Images/diagnostics/design-messaging-2025-11-05T15-57-23-800Z.png` · refs: `docs/Responsive_Blueprint.md` §Screen 2 Layout & Messaging).
+     - Printful’s picker remains visible but locked; helper copy keeps variant changes in Step 1 (refs: `docs/Responsive_Blueprint.md` §Screen 2, `docs/Printful_EDM_KeyFacts.md` §Variant Selection & Data Flow).
+     - Helper chip now ships as the compact summary above the iframe: “Your device: iPhone 15 Pro · Change device,” reinforcing the lock while keeping the editor layout clean (`docs/Responsive_Blueprint.md` §Screen 2 Layout & Messaging).
      - Guardrail summary card mirrors `onDesignStatusUpdate` payloads (designValid, errors, variant IDs) and drives CTA disablement; no duplicate SnapCase banners while EDM is active (`docs/Printful_EDM_Risk_Analysis.md` §1).
      - Guardrail toasts serialize through a single queue pinned above the ActionBar; DPI/content/policy warnings never stack or overlap Printful’s iframe per `docs/Responsive_Blueprint.md` §UX Decision Log #3.
-     - CTA copy states align with the blueprint: **Select a device** (no selection), **Resolve the Printful banner above**/**Relock your variant in Step 1** (blocking, disabled), **Waiting on Printful…** (pending validation, disabled), and **Continue to checkout** once either Printful or SnapCase guardrails allow progress. State transitions emit `design_cta_state_change` analytics so diagnostics can correlate UX + funnel data (`docs/Responsive_Blueprint.md` §Screen 2 CTA gating).
+     - CTA copy states align with the blueprint: **Select a device** (no selection), **Continue to design** (picker ready), **Waiting on your upload**/**Fix the Printful banner** (blocking/pending, disabled), and **Continue to checkout** once Printful clears the design. State transitions emit `design_cta_state_change` analytics so diagnostics can correlate UX + funnel data (`docs/Responsive_Blueprint.md` §Screen 2 CTA gating).
      - Safe-area overlay + DPI badge appear **only** during Fabric fallback; make the fallback label explicit so CX can reconcile screenshots.
      - Business copy reiterates “Back-only print” + “Printful sets base cost; SnapCase adds markup” to stay aligned with `docs/BusinessContext.Md` §3 and the checkout pricing narrative.
+  4. **Flow options (Sprint04-Task06):**
+     - **Option A (shipped Sprint04-Task07):** Screen 1 is a dedicated picker page with full-width grid + floating/sticky CTA. Continue loads the editor-only Screen 2 with the compact summary chip ("Your device: iPhone 15 Pro · Change device") above the iframe. Mirrors the mockups and avoids the cramped combined view.
+     - **Option B (single-screen fallback):** Keep picker + editor on /design, but collapse the picker into a pill/accordion after selection. "Edit device" reopens the grid inline without shrinking the Printful column. ActionBar/FAB stays visible; CTA/state labels remain in view. Use only if the dedicated picker screen becomes blocked.
+     - Copy deck for both: "Choose your phone and case." -> "Your device: iPhone 15 Pro · Change device." CTA states "Select a device" / "Continue to design" / "Waiting on your upload" / "Continue to checkout." Avoid jargon like "variant lock"/"rail."
+
+  - Save/resume: persist selected device + latest template so returning from checkout restores the design and CTA state.
 * **/checkout** shows item summary, shipping options (Standard/Express), price, and proceeds to Stripe Checkout.
   - Cancel/resume banner persists across sessions until checkout succeeds; no dismiss affordance ships by default. Future dismissal must be gated behind `NEXT_PUBLIC_ALLOW_CANCEL_BANNER_DISMISS` and continue logging the outstanding status (`docs/Responsive_Blueprint.md` §UX Decision Log #2, `Images/diagnostics/checkout-cancel-banner-2025-11-05T15-57-23-800Z.png`).
   - Snapcase Quality Promise banner (violet tint, shield icon) sits at the top of the review column reiterating “If anything’s off, we remake it on us.” Use the same copy in CX/support scripts and reference the captured evidence (`Images/diagnostics/checkout-desktop-2025-11-05T16-48-23-099Z.png`, `Images/diagnostics/checkout-mobile-2025-11-05T16-48-23-099Z.png`).
   - Cost summary + shipping helpers emit polite `aria-live` updates and analytics (`checkout_shipping_selected`, `checkout_pricing_update`) whenever variants or shipping speeds change. CTA helper text under “Pay with Stripe” repeats the Printful-first guardrail messaging so there is no conflicting reassurance downstream.
+  - Pricing transparency helper: short line near totals such as "Base price set by Snapcase; shipping/tax shown below" to prevent surprises.
+  - Proof/Checkout card: Blank Proof & Checkout tile removed. A "Design summary" card now renders only when data exists (device, art thumbnail, template status, price) powered by onDesignStatusUpdate + pricing; otherwise it stays hidden to reduce clutter. Action: schedule a later sprint spike to assess feasibility of a live thumbnail without blocking flow.
 * **/thank‑you** renders the confirmation hero (violet badge + order ID), fulfillment timeline (Submitted → Print files → In production → Shipped), delivery ETA chip, Track order / Design another dual CTA, and support link. Timeline + delivery copy pull from the persisted `snapcase:order-confirmation` snapshot (set during `/checkout` submission) and currently map Printful statuses (`draft`, `on_hold`, `in_progress`, `shipped`) to the four steps while we wait for `/api/order/create` + webhook polling to provide live Printful IDs/tracking URLs. Until then, Track order routes to `/order/preview?from=thank-you` and timeline state defaults to **Submitted** unless QA forces it via `?status=`.
 
 ## 6) Accessibility & NFRs
