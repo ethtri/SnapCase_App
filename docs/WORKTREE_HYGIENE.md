@@ -5,3 +5,5 @@
 - **No silent resets:** Do not delete, reset, or overwrite an existing worktree without explicit approval. If you need to park changes, use `git stash push -m "<TaskID> context"` and log the stash in `PROGRESS.md`.
 - **Preflight ritual:** Every prompt should state the branch and expected worktree path, and require `git status` both before and after. If the worktree is dirty, report it and wait for guidance.
 - **Handoff note:** At the end of a run, note in `PROGRESS.md` the active worktree path (if any), any stashes created, and whether the tree is clean. This keeps the next agent from guessing or cloning duplicate worktrees.
+- **Preferred location:** Create and operate worktrees outside of OneDrive-synced folders (e.g., `C:\Repos\SnapCase_App_*`) to avoid Windows/OneDrive file locks during removal.
+- **Removal protocol:** Before removing a worktree, close Explorer/VS Code on that path, then run `git worktree remove <path>`; if it fails, use `git worktree prune` to clean metadata before retrying. Only use `--force` after confirming nothing needed remains. Log every removal (path + branch) in `PROGRESS.md`.
