@@ -19,12 +19,14 @@
 - Lint config gate: Add a preflight check for `.eslintrc.cjs` before running `npm run lint`; block prompts that would recreate configs. Keep lint required even for doc-only runs that touch Next.js code.
 - Documentation gate: No handoff or branch switch unless the AgentReport and `PROGRESS.md` entry are written (even for aborted/partial runs). Capture and link diagnostics when behavior was exercised.
 - PR/compare gate: Push every task branch and record the compare or PR URL in both the AgentReport and `PROGRESS.md`; cite `scripts/mcp-branch.mjs` output.
+- AI-enforceable hygiene: Every agent run must start by cleaning up before touching the task. Rules: retire any worktree older than 7 days or not tied to the current branch list; delete detached HEAD worktrees immediately; drop or apply any stash older than 7 days after logging the decision in `PROGRESS.md`. If a worktree or stash is kept, the agent must renew its timestamp in `PROGRESS.md` with a clear reason. No human intervention required.
 
 ## Immediate action plan
 - Today: Publish this audit and AgentReport; add the PROGRESS entry (owner: AI).
 - Within 24 hours: Triage stashes `{0..6}` (safety/pre-pull and Task07 rescues); drop with notes or reapply/merge, logging outcomes in `PROGRESS.md` (owner: Ethan/PM).
 - Within 48 hours: Delete or archive redundant worktrees (`SnapCase_App_task43*`, `SnapCase_App_task45*`, `SnapCase_App_task59*`, detached HEAD) after confirming no unique commits; log disposition (owner: PM/engineering lead).
 - By next sprint kickoff: Apply the SOP edits below and require compare/PR links in new PROGRESS entries; add a weekly hygiene checklist to close old stashes/worktrees (owner: PM).
+- Ongoing enforcement by agents: The first step of every agent prompt is the hygiene sweep above; agents retire stale worktrees/stashes themselves and log actions in `PROGRESS.md` before executing any task steps.
 
 ## Stash triage (priority)
 - P0 (today): `stash@{0}`/`{1}` safety pre-pull on `main`; `stash@{2}` pre-Task07 rescue (untracked); `{3}-{5}` pre-Task07/08 cleanup on Task06 branch; `{6}-{8}` Task45 pre-merge/WIP.

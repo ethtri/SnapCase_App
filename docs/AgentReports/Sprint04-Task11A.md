@@ -16,6 +16,7 @@
 - 24h: triage stashes `{0..6}` (safety/pre-pull + Task07 rescues); log outcomes in PROGRESS (owner: PM/Ethan).
 - 48h: delete/archive redundant worktrees (Task43/45 clusters, sprint1 preview, detached HEAD) after confirming no unique commits; log disposition.
 - Next sprint kickoff: apply SOP edits proposed in the audit (stashes/worktree caps, PR link logging, lint config preflight).
+- Ongoing: every agent run starts with the hygiene sweep (retire stale worktrees/stashes per the audit) and logs the actions in PROGRESS before other work.
 
 ## Verification
 - Doc-only task; no tests run. Git status left clean on `task/Sprint04-Task11A-workflow-audit-reset`.
