@@ -526,7 +526,7 @@ export default function DesignPage(): JSX.Element {
       disabled: false,
       source: "printful",
     };
-  }, [edmSnapshot, guardrailSummary.message, ownershipHelper]);
+  }, [edmSnapshot, ownershipHelper]);
 
   useEffect(() => {
     const key = `${ctaState.id}:${currentVariantId ?? "none"}`;
