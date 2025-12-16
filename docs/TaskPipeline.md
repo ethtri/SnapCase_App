@@ -4,19 +4,20 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 **Preflight (every prompt):**
 - Use `docs/PROMPT_TEMPLATE.md` (strict controls) before editing.
-- Run `git worktree list` then `git status` (stop if another worktree is dirty; stash with `git stash push -m "<TaskID> context"` if cleanup is needed).
-- If `git status` mentions “rebase/merge in progress”, stop. Either finish/abort it first or exit and ask the PM; do not continue work in that state.
-- Start every prompt with a clean tree. If you see modified/untracked files unrelated to the task, stash or commit them before proceeding.
-- Be on the correct task branch (e.g., `task/Sprint03-Task43-edm-live-smoke`); do not work on the wrong branch.
-- Lint config guard: if `npm run lint` prompts to create an ESLint config, do not generate one; pull the existing config from `origin/main` or stop and report if none exists.
+- Run `git worktree list` then `git status` to enforce a **max of 3 worktrees**; retire any worktree older than 7 days or in a detached state before editing. Stop if another worktree is dirty.
+- If `git status` mentions “rebase/merge in progress”, stop. Either finish/abort it first or exit and ask the PM; do not continue work in that state. Start with a clean tree.
+- Be on the correct task branch (e.g., `task/Sprint03-Task43-edm-live-smoke`). If you see modified/untracked files unrelated to the task, stash or commit them before proceeding.
+- Stash discipline: new stashes use `git stash push -m "<TaskID> context"`. Review `git stash list` for entries older than 48 hours, retire them once validated, and log those actions in `PROGRESS.md`.
+- Lint-config preflight: pull the config from `origin/main`; if lint prompts to create a config or the config is missing after pull, stop and report—never generate one locally.
 - `git pull` from the task branch before starting so you have the latest TaskPipeline and docs.
-- Keep changes scoped. Update `PROGRESS.md` and the relevant `docs/AgentReports/` file before handoff; leave the tree clean.
+- Keep changes scoped. Update `PROGRESS.md`, the relevant `docs/AgentReports/` file, and diagnostics before handoff; leave the tree clean.
 
 **Definition of Done (DoD) for all prompts:**
 - Code/files updated; new assets in `Images/diagnostics/` when applicable.
-- Evidence in AgentReport with artifact paths, test results, and decisions.
+- Evidence in AgentReport with artifact paths, test results, decisions, and the compare/PR URL after pushing the branch.
 - Tests run as specified; if failing, log why and what was attempted.
-- `PROGRESS.md` updated; move prompt to Archive when complete.
+- `PROGRESS.md` updated; move prompt to Archive when complete. Log compare/PR URL in both `PROGRESS.md` and the AgentReport.
+- Doc integrity check before merge/handoff: confirm required docs exist (AgentReport file, `PROGRESS.md` entry, TaskPipeline status, and any referenced specs). Stop and resolve if any are missing.
 
 ## Active Prompts
 
