@@ -45,3 +45,13 @@
 - `docs/PROMPT_TEMPLATE.md` insertions:
   - Add a Preflight checkbox: "`git stash list --date=iso` reviewed; no stale/unlogged stashes; lint config present (`.eslintrc.cjs`)."
   - Add Deliverables fields: "Branch + compare/PR link: ____" and "Stash actions (if any) logged in PROGRESS: ____."
+
+## Additional recommended controls
+- CI gates: Require `npm run lint && npm run build` (or lint with `--max-warnings=0`) on every push/PR; block merges if either fails. Keep `.eslintrc.cjs` as the single lint source.
+- Pre-commit guard: Add `husky` + `lint-staged` (or a simple staged-files script) so lint/format runs before commits.
+- Branch protection: Disallow force-push/delete on `main`; require PRs to be up to date with `main` and CI green. Task branches must merge via PR (no direct main pushes).
+- Commit/branch standards: Enforce branch naming `task/SprintNN-TaskXX-*` and commit prefix `${TaskID}: <summary>`; MCP script already conforms.
+- Diagnostics discipline: When agents run flows, require saving artifacts under `Images/diagnostics/<timestamp>-<context>*` and linking in AgentReports to avoid lost evidence.
+- Stash alternatives: Prefer short WIP commits or temp branches over stashing; stash only for true safety with naming/logging rules above.
+- Rebase policy: Avoid rebasing shared branches; prefer merge/squash via PR. If a rebase is unavoidable, log before/after SHAs in PROGRESS.
+- Doc integrity check: Add a periodic CI/job that verifies required docs exist (`PROGRESS.md`, `docs/TaskPipeline.md`, `docs/PROMPT_TEMPLATE.md`, AgentReports template) and alerts on deletions.
