@@ -21,11 +21,12 @@ This playbook defines how we plan, document, and collaborate with AI coding agen
 
 ### Git Workflow â€“ November 8, 2025
 - **Branch per task:** Before editing, create (or reuse) a branch named `task/SprintNN-TaskXX-<slug>` so each promptâ€™s diff stays isolated. Do not stack multiple tasks on `main`.
-- **Clean status ritual:** Run `git status` before making changes. If unrelated files appear, stop and notify the PM rather than piling on. Repeat `git status` at the end and ensure only files from the current task show as modified.
+- **Clean status ritual (hard stop):** Run `git status -sb` before making changes. If unrelated files appear or the prompt shows `rebase/merge in progress`, stop and notify the PM rather than piling on. Record start/end `git status -sb` in the AgentReport. Repeat `git status` at the end and ensure only files from the current task show as modified.
 - **Commit or stash before handoff:** When the task finishes (or timebox expires) either commit/push the task branch or `git stash push -m "SprintNN-TaskXX partial"` if additional follow-up is needed. Never leave a dirty working tree for the next agent.
 - **Active prompt cap:** Limit concurrent engineering prompts to **two**. Start a third only after one branch has been merged, pushed for review, or stashed. The PM should track active branches in `PROGRESS.md`.
 - **Prompt boilerplate:** Include a short checklist in every engineering prompt reminding agents to 1) checkout/create the task branch, 2) run `git status` before/after, and 3) leave the tree clean (commit, push, or stash) before exiting the run.
 - **Worktree & Prompt Discipline:** One worktree per task; run `git worktree list` + `git status` before and after prompts. If any worktree is dirty, stop and report; no duplicate worktrees or resets. Copy `.vercel` from the main worktree if missing, run `vercel whoami`, and keep the task tree clean on exit. Stashes must be named via `git stash push -m "<TaskID> context"` and logged in `PROGRESS.md`; never drop or edit others' stashes. End-of-run gate: AgentReport + `PROGRESS.md` + `docs/TaskPipeline.md` updated, tests noted, artifacts saved, `git status` clean, and no secrets committed (env only).
+- **Lint/config ownership:** If ESLint config is missing or mismatched, restore from `origin/main` (`git checkout origin/main -- .eslintrc* package.json package-lock.json`). If still missing, treat as a blocker and stop; do not scaffold new configs.
 
 ### Prompt Pipeline Tracker â€“ November 8, 2025
 - **Single source:** `docs/TaskPipeline.md` lists every scoped prompt with links to required specs, branch names, and the exact phrase sponsors can use to start the agent. Keep it updated whenever tasks finish or new ones queue.
@@ -163,20 +164,20 @@ Deliverables:
 
 **Reminder:** When in doubt, slow down, tighten the scope, and surface questions early. This playbook keeps our velocity high without sacrificing control. Update it whenever our process evolves. 
 
-### Completion Gate — November 23, 2025
+### Completion Gate  November 23, 2025
 - A task is not complete unless all are true: (1) an AgentReport for the Task ID exists in `docs/AgentReports/` with artifact paths and decisions; (2) `PROGRESS.md` has an updated entry; (3) required tests are run and their results (pass/fail + rationale) are logged; (4) `git status` is clean on the task branch; (5) `docs/TaskPipeline.md` is updated (move the prompt to Archive when done).
 - PM acceptance checklist (apply before marking done): AgentReport present, `PROGRESS.md` updated, tests noted, clean tree, TaskPipeline updated. If any are missing, the task is **not done**.
-- Every prompt must repeat the gate: “Do not mark complete unless AgentReport + PROGRESS updated + tests logged + clean tree. Missing any of these = rejected.”
+- Every prompt must repeat the gate: Do not mark complete unless AgentReport + PROGRESS updated + tests logged + clean tree. Missing any of these = rejected. AgentReport must include start/end `git status -sb` to prove clean entry/exit.
 - Use the shared AgentReport template at `docs/AgentReports/TEMPLATE.md` to keep evidence/test results consistent.
 - Keep TaskPipeline active rows stable during a wave; do not rewrite active entries mid-run. Add new prompts only after the prior wave is archived.
 
-### Completion Gate — November 23, 2025
+### Completion Gate  November 23, 2025
 - Not done unless all are true: (1) AgentReport for the Task ID exists in `docs/AgentReports/` with artifact paths and decisions; (2) `PROGRESS.md` has an updated entry; (3) required tests are run and results (pass/fail + rationale) are logged; (4) `git status` is clean on the task branch; (5) `docs/TaskPipeline.md` is updated (move prompt to Archive when done).
 - PM acceptance checklist (apply before marking done): AgentReport present, `PROGRESS.md` updated, tests noted, clean tree, TaskPipeline updated. Missing any = not done.
-- Every prompt must repeat the gate: “Do not mark complete unless AgentReport + PROGRESS updated + tests logged + clean tree. Missing any of these = rejected.”
+- Every prompt must repeat the gate: Do not mark complete unless AgentReport + PROGRESS updated + tests logged + clean tree. Missing any of these = rejected. AgentReport must include start/end `git status -sb` to prove clean entry/exit.
 - Use `docs/AgentReports/TEMPLATE.md` for consistency. Keep TaskPipeline active rows stable during a wave; add/archive only between waves.
 
-### Prompt Standards — November 23, 2025
+### Prompt Standards  November 23, 2025
 - Preflight in every prompt: clean `git status`, correct task branch (`task/SprintNN-TaskXX-*`), scope files, required tests, required artifacts (screenshots/JSON).
 - Deliverables block: AgentReport file path, PROGRESS update required, tests to run/report, assets to save under `Images/diagnostics/`.
 - Completion reminder: restate the completion gate verbatim at the end of the prompt.
