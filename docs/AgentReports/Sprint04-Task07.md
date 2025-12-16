@@ -11,9 +11,8 @@
 - Docs: `docs/Responsive_Blueprint.md`, `docs/SnapCase_App_Prototype.MD`, `docs/TaskPipeline.md`, `PROGRESS.md` now reflect Option A shipped plus proof card removal and new diagnostics.
 
 ## Verification
-- `npm run lint` (passes with warnings)  
-  - Warnings: `react-hooks/exhaustive-deps` (`src/app/design/page.tsx`: `guardrailSummary.message` dependency) and `@next/next/no-img-element` (`<img>` usage). No config generated; `.eslintrc.cjs` pulled from `origin/main`.
-- `npm run build` (passes; same lint warnings emitted during build)
+- `npm run lint` (clean)
+- `npm run build` (clean)
 
 ## Diagnostics
 - Picker: `Images/diagnostics/2025-12-16T02-05-51-402Z-design-after-picker.png`
@@ -21,5 +20,4 @@
 - Design status/context: `Images/diagnostics/2025-12-16T02-05-51-402Z-design-after-status.json` (Printful banner pending upload; Snapcase design context includes variant/pricing lock)
 
 ## Follow-ups
-- Optionally address lint warnings (`react-hooks/exhaustive-deps` at `src/app/design/page.tsx` and `@next/next/no-img-element`).
 - Continue Task08 follow-up for save/resume + pricing helper; monitor Printful design status once uploads are exercised.

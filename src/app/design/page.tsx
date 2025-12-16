@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -540,7 +541,7 @@ export default function DesignPage(): JSX.Element {
       disabled: false,
       source: "printful",
     };
-  }, [edmSnapshot, guardrailSummary.message, selectedDevice, view]);
+  }, [edmSnapshot, selectedDevice, view]);
 
   const currentVariantId =
     edmSnapshot?.selectedVariantIds?.[0] ??
@@ -877,11 +878,14 @@ export default function DesignPage(): JSX.Element {
               </button>
             </div>
             {designSummary?.exportedImage ? (
-              <div className="overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
-                <img
+              <div className="relative h-56 w-full overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
+                <Image
                   src={designSummary.exportedImage}
                   alt="Saved proof preview"
-                  className="h-56 w-full object-cover"
+                  fill
+                  sizes="(min-width: 1024px) 480px, 100vw"
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             ) : null}
