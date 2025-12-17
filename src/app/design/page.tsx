@@ -592,17 +592,17 @@ export default function DesignPage(): JSX.Element {
     const ranked = catalog
       .filter((entry) => matchesBrand(entry) && matchesQuery(entry) && matchesFilter(entry))
       .sort((a, b) => {
-        const selectableScore =
-          Number((b.selectable ?? true) === true) - Number((a.selectable ?? true) === true);
-        if (selectableScore !== 0) return selectableScore;
-        const featuredScore = Number(Boolean(b.featured)) - Number(Boolean(a.featured));
-        if (featuredScore !== 0) return featuredScore;
         const brandScore =
           BRAND_ORDER.indexOf(a.brand) === BRAND_ORDER.indexOf(b.brand)
             ? 0
             : BRAND_ORDER.indexOf(a.brand) - BRAND_ORDER.indexOf(b.brand);
         if (brandScore !== 0) return brandScore;
-        return a.model.localeCompare(b.model);
+        const selectableScore =
+          Number((b.selectable ?? true) === true) - Number((a.selectable ?? true) === true);
+        if (selectableScore !== 0) return selectableScore;
+        const modelScore = a.model.localeCompare(b.model);
+        if (modelScore !== 0) return modelScore;
+        return (a.variantId ?? 0) - (b.variantId ?? 0);
       });
     return ranked;
   }, [brandFilter, catalog, catalogStatus, filters, searchQuery]);
@@ -717,7 +717,7 @@ export default function DesignPage(): JSX.Element {
       return {
         id: "ready-to-design",
         label: "Continue to design",
-        helperText: "Continue to the designer.",
+        helperText: "Your device is selected. Continue to design.",
         disabled: false,
         source: "snapcase",
       };
@@ -850,7 +850,7 @@ export default function DesignPage(): JSX.Element {
             type="button"
             onClick={handlePrimaryCta}
             disabled={ctaState.disabled}
-            className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300"
             data-testid="continue-button"
           >
             {ctaState.label}
@@ -864,7 +864,7 @@ export default function DesignPage(): JSX.Element {
             type="button"
             onClick={handlePrimaryCta}
             disabled={ctaState.disabled}
-            className="inline-flex items-center justify-center rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="inline-flex items-center justify-center rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300"
             data-testid="continue-button-desktop"
           >
             {ctaState.label}
@@ -935,10 +935,10 @@ export default function DesignPage(): JSX.Element {
                 {entry.model}
               </p>
               <p className="text-sm text-gray-600">
-                {BRAND_LABELS[entry.brand]} · Snap Case
+              {BRAND_LABELS[entry.brand]} · Snap Case
               </p>
               {isDisabled ? (
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-700">
                   Coming soon
                 </p>
               ) : null}
@@ -962,18 +962,22 @@ export default function DesignPage(): JSX.Element {
           Pick your phone, then jump into the designer. Continue when you&apos;re ready.
         </p>
         {selectedDevice ? (
-          <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm">
-            <span>{`Selected: ${formatDeviceLabel(selectedDevice)}`}</span>
+          <div
+            className="inline-flex flex-wrap items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-sm font-semibold text-gray-900 shadow-sm"
+            role="status"
+            aria-live="polite"
+          >
+            <span>{`Your device: ${formatDeviceLabel(selectedDevice)}`}</span>
             <span aria-hidden="true" className="text-gray-400">
               ·
             </span>
             <button
               type="button"
               onClick={handleClearSelection}
-              className="inline-flex items-center justify-center rounded-full px-2.5 py-1 text-xs font-semibold"
-              style={{ color: "var(--snap-violet)", backgroundColor: "var(--snap-cloud)" }}
+              className="inline-flex items-center justify-center rounded-full px-2.5 py-1 text-xs font-semibold text-[color:var(--snap-violet)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2"
+              style={{ backgroundColor: "var(--snap-cloud)" }}
             >
-              Change
+              Change device
             </button>
           </div>
         ) : null}
@@ -1354,7 +1358,7 @@ export default function DesignPage(): JSX.Element {
 
   return (
     <main className="min-h-screen bg-[var(--snap-gray-50)] pb-28 lg:pb-32">
-      <div className="px-4 py-8 sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
         {view === "picker" ? pickerView : designerView}
       </div>
       {actionBar}
