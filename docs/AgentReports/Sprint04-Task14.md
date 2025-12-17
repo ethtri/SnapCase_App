@@ -15,10 +15,10 @@
 - Manual smoke: Samsung/Pixel selection; cards stay visible, selection ring and helper chip reflect state; disabled coming-soon remains unselectable.
 
 ## Diagnostics
-- Picker screenshots/JSON: `Images/diagnostics/20251217T205155-picker-clean-desktop.{png,json}`, `Images/diagnostics/20251217T205155-picker-clean-mobile.{png,json}`.
+- Picker screenshots/JSON: `Images/diagnostics/20251217T205155-picker-clean-desktop.{png,json}`, `Images/diagnostics/20251217T205155-picker-clean-mobile.{png,json}`, `Images/diagnostics/20251217T212200-picker-clean-desktop.{png,json}`, `Images/diagnostics/20251217T212200-picker-clean-mobile.{png,json}`.
 
 ## Deployment
-- Preview: `https://snapcase-r063gma4r-snapcase.vercel.app`
+- Preview: `https://snapcase-nb3vubwbf-snapcase.vercel.app`
 - Alias: `https://dev.snapcase.ai` (updated for sponsor test)
 
 ## Links
