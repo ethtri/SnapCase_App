@@ -793,3 +793,5 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 **Next Review**: Weekly
 
 **Document Owner**: Ethan Trifari
+- 2025-12-17 - Sprint04-Task14C picker cleanup: simplified card UI (model+subtitle), violet selection ring + check chip, top selected helper chip, disabled coming-soon styling, kept all cards visible on selection, retired lock copy. Tests: npm run lint; npm run build. Diagnostics: Images/diagnostics/20251217T205155-picker-clean-{desktop,mobile}.{png,json}. Branch: task/Sprint04-Task14-device-picker-screen (ahead 1).
+- 2025-12-17 - Deployed Sprint04-Task14C picker cleanup to preview `https://snapcase-r063gma4r-snapcase.vercel.app` and aliased `https://dev.snapcase.ai` for sponsor testing. Verification: curl design 200, lint/build prior to deploy. Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task14-device-picker-screen.

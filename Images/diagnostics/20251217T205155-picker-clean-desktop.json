@@ -1,0 +1,16 @@
+{
+  "timestamp": "20251217T205155",
+  "viewport": {
+    "width": 1400,
+    "height": 900
+  },
+  "selectedVariantId": 712,
+  "selectedLabel": "Galaxy S24 Ultra",
+  "disabledVariantIds": [
+    91000,
+    91001,
+    81001
+  ],
+  "route": "/design",
+  "mode": "desktop"
+}
