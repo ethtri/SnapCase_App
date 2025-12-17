@@ -75,6 +75,7 @@ This blueprint fuses the Stitch delta docs with the design system so engineers c
 ### Behavioral Guardrails
 - Search maintains instant filtering and keeps the FAB visible by adding scroll padding to the body. Detect surfaces inline helper text "We only read your device info; no personal data" and a toast for success/failure. Persisted selections ensure `Next: Design` stays enabled after returning from the editor.
 - Skeleton loaders cover grid items while models fetch; the FAB disables (`var(--snap-cloud)` fill) until a model is selected. Guardrail analytics (`device_picker_viewed`, `model_selected`, etc.) fire regardless of breakpoint.
+- Typeahead suggestions now surface featured + filtered devices, brand tabs show counts (Apple/Samsung/Pixel/More), and filter chips gate MagSafe-ready, In-stock/Low-stock, and template-fit variants. Coming-soon/non-selectable cards stay visible but disabled, and a compact error/retry tile replaces the verbose diagnostics when the catalog fails to load.
 
 ### Content & CTA Notes (Nov 5 reality)
 - Pricing remains a single helper line — “From $34.99” — above the grid instead of per-card prices so Stitch back catalog references stay authoritative. Diagnostics still focus on Screen 2; capture a new Screen 1 set once the Printful type error is resolved.

@@ -1,0 +1,130 @@
+{
+  "stamp": "2025-12-17T02-54-41-749Z",
+  "slug": "mobile",
+  "url": "http://localhost:3000/design",
+  "selectedBrand": "All devices20",
+  "activeFilters": [],
+  "cardCount": 20,
+  "cards": [
+    {
+      "brand": "Apple",
+      "model": "iPhone 17 Pro",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy S24 Ultra",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 14",
+      "status": "Low stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 14 Pro",
+      "status": "Low stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 14 Pro Max",
+      "status": "Backorder",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 15",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 15 Pro",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 15 Pro Max",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 16",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 16 Plus",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 16 Pro",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 16 Pro Max",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 17",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 17 Air",
+      "status": "Low stock",
+      "selectable": true
+    },
+    {
+      "brand": "Apple",
+      "model": "iPhone 17 Pro Max",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy S24",
+      "status": "Low stock",
+      "selectable": true
+    },
+    {
+      "brand": "Samsung",
+      "model": "Galaxy S24+",
+      "status": "In stock",
+      "selectable": true
+    },
+    {
+      "brand": "Pixel",
+      "model": "Pixel 9 (coming soon)",
+      "status": "Coming soon",
+      "selectable": false
+    },
+    {
+      "brand": "Pixel",
+      "model": "Pixel 9 Pro (coming soon)",
+      "status": "Coming soon",
+      "selectable": false
+    },
+    {
+      "brand": "More",
+      "model": "OnePlus 13 (coming soon)",
+      "status": "Coming soon",
+      "selectable": false
+    }
+  ]
+}

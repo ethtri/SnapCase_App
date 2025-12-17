@@ -39,6 +39,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Status | Notes |
 | --- | --- | --- |
+| Sprint04-Task14 | DONE | Device picker screen shipped with brand tabs/typeahead/filter chips + compact error/retry state; catalog enriched with stock/template metadata and Pixel/Other entries. Docs + diagnostics updated (see `docs/AgentReports/Sprint04-Task14.md`). |
 | Sprint04-Task07 | DONE | Option A picker + editor-only flow shipped (sticky CTA + summary chip, blank proof box removed). Diagnostics: `Images/diagnostics/2025-12-16T02-05-51-402Z-design-after-{picker,editor}.png` + `...-status.json`. Tests: `npm run build` (pass); `npm run lint` blocked (no ESLint config on origin/main). See `docs/AgentReports/Sprint04-Task07.md`. |
 | Sprint03-Task48 | DONE | Product-tab overlay hardened (clamped size/max width, border, shadow), CTA gating intact; deployed `snapcase-eopqpujyk-snapcase.vercel.app` aliased to `dev.snapcase.ai`. See `docs/AgentReports/Sprint03-Task48-overlay-hardening.md` and `Images/diagnostics/2025-12-10T175354781Z-after-*.png/json`. Known: mobile Playwright automation can fail to unlock CTA; manual upload succeeds. |
 | Sprint03-Task47 | DONE | CX refresh: Product tab guarded/hidden, mask height lowered, Flow/Scene + Printful/variant IDs removed, Snapcase voice applied. See `docs/AgentReports/Sprint03-Task47-CX-refresh.md` and `Images/diagnostics/20251210T034229Z-after-design-{desktop,mobile}.png`. |

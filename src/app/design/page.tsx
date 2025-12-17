@@ -34,6 +34,8 @@ declare global {
 
 type BrandFilter = DeviceCatalogEntry["brand"] | "all";
 type DesignView = "picker" | "designer";
+type PickerFilterId = "magsafe" | "stock" | "template-fit";
+type CatalogStatus = "loading" | "ready" | "error";
 
 type GuardrailSummary = {
   tone: "error" | "warn" | "success" | "neutral";
@@ -55,10 +57,32 @@ type DesignCtaState = {
   source: "snapcase" | "printful";
 };
 
-const BRAND_LABELS: Record<DeviceCatalogEntry["brand"], string> = {
+const BRAND_LABELS: Record<Exclude<BrandFilter, "all">, string> = {
   apple: "Apple",
   samsung: "Samsung",
+  google: "Pixel",
+  other: "More",
 };
+
+const STOCK_LABELS: Record<DeviceCatalogEntry["stockStatus"], string> = {
+  "in-stock": "In stock",
+  "low-stock": "Low stock",
+  backorder: "Backorder",
+  "coming-soon": "Coming soon",
+};
+
+const BRAND_ORDER: DeviceCatalogEntry["brand"][] = [
+  "apple",
+  "samsung",
+  "google",
+  "other",
+];
+
+const FILTER_CONFIG: { id: PickerFilterId; label: string; helper: string }[] = [
+  { id: "magsafe", label: "MagSafe-ready", helper: "Cases with MagSafe rings" },
+  { id: "stock", label: "In stock", helper: "Ready to ship now" },
+  { id: "template-fit", label: "Fits saved template", helper: "Template tested" },
+];
 
 function formatDeviceLabel(device: DeviceCatalogEntry | null): string | null {
   if (!device) {
@@ -103,10 +127,15 @@ function formatDateTime(timestamp: number | null | undefined): string | null {
 
 export default function DesignPage(): JSX.Element {
   const router = useRouter();
-  const catalog = useMemo(() => getDeviceCatalog(), []);
+  const [catalogStatus, setCatalogStatus] = useState<CatalogStatus>("loading");
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [catalog, setCatalog] = useState<DeviceCatalogEntry[]>([]);
   const deviceLookup = useMemo(() => {
     const map = new Map<number, DeviceCatalogEntry>();
     for (const entry of catalog) {
+      if (entry.selectable === false || !Number.isFinite(entry.variantId)) {
+        continue;
+      }
       map.set(entry.variantId, entry);
     }
     return map;
@@ -126,10 +155,84 @@ export default function DesignPage(): JSX.Element {
   const [designerResetToken, setDesignerResetToken] = useState(0);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState<Record<PickerFilterId, boolean>>({
+    magsafe: false,
+    stock: false,
+    "template-fit": false,
+  });
   const [, setIsHydrated] = useState(false);
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const lastPersistedVariantRef = useRef<number | null>(null);
   const lastCtaStateRef = useRef<string | null>(null);
+  const searchBlurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const loadCatalog = useCallback(async () => {
+    setCatalogStatus("loading");
+    setCatalogError(null);
+    try {
+      const entries = getDeviceCatalog();
+      setCatalog(entries);
+      setCatalogStatus("ready");
+    } catch (error) {
+      console.error("[design] Failed to load catalog", error);
+      setCatalogStatus("error");
+      setCatalogError(
+        error && typeof error === "object" && "message" in error
+          ? String((error as Error).message)
+          : "Unable to load the catalog. Please try again.",
+      );
+    }
+  }, []);
+
+  const activeFilterCount = useMemo(
+    () => Object.values(filters).filter(Boolean).length,
+    [filters],
+  );
+
+  const clearSearchBlurTimeout = useCallback(() => {
+    if (searchBlurTimeoutRef.current) {
+      clearTimeout(searchBlurTimeoutRef.current);
+      searchBlurTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handleSearchFocus = useCallback(() => {
+    clearSearchBlurTimeout();
+    setSearchFocused(true);
+    setShowSearchSuggestions(true);
+  }, [clearSearchBlurTimeout]);
+
+  const handleSearchBlur = useCallback(() => {
+    clearSearchBlurTimeout();
+    searchBlurTimeoutRef.current = setTimeout(() => {
+      setShowSearchSuggestions(false);
+    }, 120);
+    setSearchFocused(false);
+  }, [clearSearchBlurTimeout]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    setShowSearchSuggestions(true);
+  }, []);
+
+  const toggleFilter = useCallback((id: PickerFilterId) => {
+    setFilters((current) => ({
+      ...current,
+      [id]: !current[id],
+    }));
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setFilters({
+      magsafe: false,
+      stock: false,
+      "template-fit": false,
+    });
+  }, []);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -144,6 +247,16 @@ export default function DesignPage(): JSX.Element {
       }
     };
   }, []);
+
+  useEffect(() => {
+    loadCatalog();
+  }, [loadCatalog]);
+
+  useEffect(() => {
+    return () => {
+      clearSearchBlurTimeout();
+    };
+  }, [clearSearchBlurTimeout]);
 
   useEffect(() => {
     const context = loadDesignContext();
@@ -194,6 +307,13 @@ export default function DesignPage(): JSX.Element {
   }, [designSummary, pricingDetails]);
 
   const handleDeviceSelected = useCallback((entry: DeviceCatalogEntry) => {
+    if (entry.selectable === false || !Number.isFinite(entry.variantId)) {
+      return;
+    }
+    setShowSearchSuggestions(false);
+    setSearchQuery((current) =>
+      current.trim().length > 0 ? current : entry.model,
+    );
     setSelectedDevice(entry);
     setEdmSnapshot(null);
     setPricingDetails(null);
@@ -343,6 +463,18 @@ export default function DesignPage(): JSX.Element {
     [persistTemplateForVariant],
   );
 
+  const handleSuggestionSelect = useCallback(
+    (entry: DeviceCatalogEntry) => {
+      if (entry.selectable === false || !Number.isFinite(entry.variantId)) {
+        return;
+      }
+      handleDeviceSelected(entry);
+      setSearchQuery(entry.model);
+      setShowSearchSuggestions(false);
+    },
+    [handleDeviceSelected],
+  );
+
   const handleTemplateHydrated = useCallback(
     ({ templateId, variantId }: { templateId: string; variantId: number }) => {
       void persistTemplateForVariant(variantId, String(templateId), null);
@@ -367,6 +499,10 @@ export default function DesignPage(): JSX.Element {
             variantId: variantFromPrintful,
             externalProductId: catalogMatch.externalProductId,
             productId: catalogMatch.printfulProductId,
+            magsafe: false,
+            stockStatus: "in-stock",
+            templateReady: false,
+            selectable: true,
           }
         : selectedDevice);
 
@@ -423,17 +559,83 @@ export default function DesignPage(): JSX.Element {
   ]);
 
   const filteredCatalog = useMemo(() => {
+    if (catalogStatus !== "ready") {
+      return [];
+    }
     const normalizedQuery = searchQuery.trim().toLowerCase();
-    return catalog.filter((entry) => {
-      const matchesBrand = brandFilter === "all" || entry.brand === brandFilter;
-      const matchesQuery =
-        !normalizedQuery ||
-        `${entry.model} ${entry.externalProductId}`
-          .toLowerCase()
-          .includes(normalizedQuery);
-      return matchesBrand && matchesQuery;
-    });
-  }, [brandFilter, catalog, searchQuery]);
+    const isInStock = (entry: DeviceCatalogEntry) =>
+      entry.stockStatus === "in-stock" || entry.stockStatus === "low-stock";
+    const matchesFilter = (entry: DeviceCatalogEntry) => {
+      if (filters.magsafe && !entry.magsafe) return false;
+      if (filters.stock && !isInStock(entry)) return false;
+      if (filters["template-fit"] && entry.templateReady !== true) return false;
+      return true;
+    };
+    const matchesQuery = (entry: DeviceCatalogEntry) => {
+      if (!normalizedQuery) return true;
+      return `${entry.model} ${entry.externalProductId} ${BRAND_LABELS[entry.brand]}`
+        .toLowerCase()
+        .includes(normalizedQuery);
+    };
+    const matchesBrand = (entry: DeviceCatalogEntry) =>
+      brandFilter === "all" || entry.brand === brandFilter;
+
+    const ranked = catalog
+      .filter((entry) => matchesBrand(entry) && matchesQuery(entry) && matchesFilter(entry))
+      .sort((a, b) => {
+        const selectableScore =
+          Number((b.selectable ?? true) === true) - Number((a.selectable ?? true) === true);
+        if (selectableScore !== 0) return selectableScore;
+        const featuredScore = Number(Boolean(b.featured)) - Number(Boolean(a.featured));
+        if (featuredScore !== 0) return featuredScore;
+        const brandScore =
+          BRAND_ORDER.indexOf(a.brand) === BRAND_ORDER.indexOf(b.brand)
+            ? 0
+            : BRAND_ORDER.indexOf(a.brand) - BRAND_ORDER.indexOf(b.brand);
+        if (brandScore !== 0) return brandScore;
+        return a.model.localeCompare(b.model);
+      });
+    return ranked;
+  }, [brandFilter, catalog, catalogStatus, filters, searchQuery]);
+
+  const brandCounts = useMemo(() => {
+    const counts: Record<Exclude<BrandFilter, "all">, number> = {
+      apple: 0,
+      samsung: 0,
+      google: 0,
+      other: 0,
+    };
+    for (const entry of catalog) {
+      counts[entry.brand] += 1;
+    }
+    return counts;
+  }, [catalog]);
+
+  const selectableCatalogCount = useMemo(() => catalog.length, [catalog]);
+
+  const searchSuggestions = useMemo(() => {
+    if (catalogStatus !== "ready") {
+      return [];
+    }
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const pool =
+      normalizedQuery.length > 0
+        ? filteredCatalog
+        : catalog.filter((entry) =>
+            brandFilter === "all" ? entry.featured : entry.brand === brandFilter,
+          );
+    const unique: DeviceCatalogEntry[] = [];
+    for (const entry of pool) {
+      if (unique.find((item) => item.variantId === entry.variantId)) {
+        continue;
+      }
+      unique.push(entry);
+      if (unique.length >= 6) {
+        break;
+      }
+    }
+    return unique;
+  }, [brandFilter, catalog, catalogStatus, filteredCatalog, searchQuery]);
 
   const guardrailSummary = useMemo<GuardrailSummary>(() => {
     if (!edmSnapshot) {
@@ -667,30 +869,78 @@ export default function DesignPage(): JSX.Element {
     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {filteredCatalog.map((entry) => {
         const selected = selectedDevice?.variantId === entry.variantId;
+        const selectable = entry.selectable !== false && Number.isFinite(entry.variantId);
+        const stockTone =
+          entry.stockStatus === "in-stock"
+            ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+            : entry.stockStatus === "low-stock"
+              ? "border-amber-100 bg-amber-50 text-amber-700"
+              : entry.stockStatus === "backorder"
+                ? "border-orange-100 bg-orange-50 text-orange-700"
+                : "border-gray-200 bg-gray-100 text-gray-600";
         return (
           <button
             key={entry.variantId}
             type="button"
-            onClick={() => handleDeviceSelected(entry)}
-            className={`flex h-full flex-col justify-between rounded-2xl border px-4 py-3 text-left transition hover:border-gray-300 hover:shadow-sm ${
+            onClick={
+              selectable ? () => handleDeviceSelected(entry) : undefined
+            }
+            disabled={!selectable}
+            aria-disabled={!selectable}
+            className={`flex h-full flex-col justify-between rounded-2xl border px-4 py-3 text-left transition ${
               selected
                 ? "border-gray-900 shadow-md"
                 : "border-gray-200 bg-white"
+            } ${
+              selectable
+                ? "hover:border-gray-300 hover:shadow-sm"
+                : "cursor-not-allowed opacity-60"
             }`}
             data-testid={`device-option-${entry.variantId}`}
           >
-            <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                {BRAND_LABELS[entry.brand]}
-              </p>
-              <p className="text-lg font-semibold text-gray-900">
-                {entry.model}
-              </p>
-              <p className="text-sm text-gray-600">Snap Case</p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                  {BRAND_LABELS[entry.brand]}
+                </p>
+                <span
+                  className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${stockTone}`}
+                >
+                  {selectable ? STOCK_LABELS[entry.stockStatus] : "Coming soon"}
+                </span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-lg font-semibold text-gray-900">
+                  {entry.model}
+                </p>
+                <p className="text-sm text-gray-600">Snap Case</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {entry.magsafe ? (
+                  <span className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
+                    MagSafe
+                  </span>
+                ) : null}
+                {entry.templateReady ? (
+                  <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-700">
+                    Template fit
+                  </span>
+                ) : null}
+              </div>
             </div>
             <div className="flex items-center justify-between pt-3">
-              <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700">
-                {selected ? "Selected" : "Tap to lock"}
+              <span
+                className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
+                  selected
+                    ? "border-gray-900 bg-gray-900 text-white"
+                    : "border-gray-200 bg-gray-50 text-gray-700"
+                }`}
+              >
+                {!selectable
+                  ? "Unavailable"
+                  : selected
+                    ? "Selected"
+                    : "Tap to lock"}
               </span>
               <span
                 className={`flex h-5 w-5 items-center justify-center rounded-full border ${
@@ -723,8 +973,10 @@ export default function DesignPage(): JSX.Element {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex w-full flex-1 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-sm">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div
+          className={`relative flex w-full flex-1 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-sm focus-within:border-gray-300 ${searchFocused ? "ring-1 ring-gray-200" : ""}`}
+        >
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
@@ -738,33 +990,179 @@ export default function DesignPage(): JSX.Element {
           <input
             type="search"
             value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
+            onChange={(event) => handleSearchChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && searchSuggestions[0]) {
+                event.preventDefault();
+                handleSuggestionSelect(searchSuggestions[0]);
+              }
+            }}
             className="w-full bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-500"
             placeholder="Search by model or ID"
           />
+          {searchQuery ? (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setShowSearchSuggestions(false);
+              }}
+              className="rounded-full px-2 py-1 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
+            >
+              Clear
+            </button>
+          ) : null}
+          {showSearchSuggestions ? (
+            <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 rounded-2xl border border-gray-200 bg-white shadow-xl">
+              <div className="flex items-center justify-between px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Suggested devices
+                </p>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  {searchSuggestions.length} result{searchSuggestions.length === 1 ? "" : "s"}
+                </p>
+              </div>
+              {searchSuggestions.length > 0 ? (
+                <ul className="divide-y divide-gray-100">
+                  {searchSuggestions.map((entry) => {
+                    const selectable =
+                      entry.selectable !== false && Number.isFinite(entry.variantId);
+                    return (
+                      <li key={`suggestion-${entry.variantId}`}>
+                        <button
+                          type="button"
+                          onMouseDown={(event) => {
+                            event.preventDefault();
+                            if (selectable) {
+                              handleSuggestionSelect(entry);
+                            }
+                          }}
+                          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={!selectable}
+                        >
+                          <div className="space-y-1">
+                            <p className="text-sm font-semibold text-gray-900">
+                              {entry.model}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {BRAND_LABELS[entry.brand]} • {STOCK_LABELS[entry.stockStatus]}
+                            </p>
+                          </div>
+                          <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
+                            {selectable ? "Select" : "Coming soon"}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <div className="px-4 py-3 text-sm text-gray-600">
+                  No quick matches. Keep typing to search the full catalog.
+                </div>
+              )}
+            </div>
+          ) : null}
         </div>
+
         <div className="flex flex-wrap items-center gap-2">
-          {(["all", "apple", "samsung"] as BrandFilter[]).map(
-            (brand) => (
+          {FILTER_CONFIG.map((filter) => {
+            const active = filters[filter.id];
+            return (
               <button
-                key={brand}
+                key={filter.id}
                 type="button"
-                onClick={() => setBrandFilter(brand)}
-                className={`inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  brandFilter === brand
-                    ? "bg-gray-900 text-white"
-                    : "border border-gray-200 bg-white text-gray-800 hover:border-gray-300"
+                onClick={() => toggleFilter(filter.id)}
+                className={`inline-flex items-center justify-center rounded-full border px-3 py-2 text-sm font-semibold transition ${
+                  active
+                    ? "border-gray-900 bg-gray-900 text-white"
+                    : "border-gray-200 bg-white text-gray-800 hover:border-gray-300"
                 }`}
+                title={filter.helper}
+                aria-pressed={active}
               >
-                {brand === "all" ? "All devices" : BRAND_LABELS[brand]}
+                {filter.label}
               </button>
-            ),
-          )}
+            );
+          })}
+          {activeFilterCount > 0 ? (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center justify-center rounded-full border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              Clear filters
+            </button>
+          ) : null}
         </div>
       </div>
 
+      <div
+        className="flex flex-wrap items-center gap-2"
+        role="tablist"
+        aria-label="Device brands"
+      >
+        {(["all", ...BRAND_ORDER] as BrandFilter[]).map((brand) => {
+          const count =
+            brand === "all" ? selectableCatalogCount : brandCounts[brand as Exclude<BrandFilter, "all">];
+          return (
+            <button
+              key={brand}
+              type="button"
+              role="tab"
+              aria-selected={brandFilter === brand}
+              onClick={() => setBrandFilter(brand)}
+              className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                brandFilter === brand
+                  ? "bg-gray-900 text-white"
+                  : "border border-gray-200 bg-white text-gray-800 hover:border-gray-300"
+              }`}
+            >
+              <span>{brand === "all" ? "All devices" : BRAND_LABELS[brand as Exclude<BrandFilter, "all">]}</span>
+              <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="rounded-3xl border border-gray-200 bg-white/80 p-5 shadow-sm">
-        {filteredCatalog.length > 0 ? (
+        {catalogStatus === "loading" ? (
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {Array.from({ length: 10 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="h-40 animate-pulse rounded-2xl border border-gray-200 bg-gray-50"
+              />
+            ))}
+          </div>
+        ) : catalogStatus === "error" ? (
+          <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-red-200 bg-red-50/70 p-6 text-sm text-red-800">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-sm font-semibold text-red-700">
+                !
+              </span>
+              <p className="text-base font-semibold text-red-900">
+                We couldn&apos;t load the catalog.
+              </p>
+            </div>
+            <p className="text-sm text-red-800">
+              {catalogError ?? "Please retry. We keep your device lock safe."}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={loadCatalog}
+                className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        ) : filteredCatalog.length > 0 ? (
           deviceCards
         ) : (
           <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-700">
@@ -772,6 +1170,17 @@ export default function DesignPage(): JSX.Element {
             <p className="max-w-md text-gray-600">
               Clear filters or switch brands to see the full Apple, Samsung, and Pixel lineup.
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                clearFilters();
+                setBrandFilter("all");
+              }}
+              className="inline-flex items-center justify-center rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-800 transition hover:bg-gray-50"
+            >
+              Reset filters
+            </button>
           </div>
         )}
       </div>

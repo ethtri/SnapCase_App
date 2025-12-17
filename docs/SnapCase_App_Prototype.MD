@@ -73,6 +73,7 @@ Build a minimal but production‑ready web app at **`app.snapcase.ai`** where cu
   2. Editor surface (EDM iframe or Fabric.js canvas).
   3. Clear notes and helper UI:
      - Printful’s picker remains visible but locked; helper copy keeps variant changes in Step 1 (refs: `docs/Responsive_Blueprint.md` §Screen 2, `docs/Printful_EDM_KeyFacts.md` §Variant Selection & Data Flow).
+     - Typeahead search with suggestions, brand tabs (Apple/Samsung/Pixel/More) with counts, and filter chips for MagSafe-ready, In-stock/Low-stock, and template-fit variants. Coming-soon/non-selectable cards stay visible but disabled, and a compact error/retry tile replaces the verbose diagnostics state when the catalog fails to load.
      - Helper chip now ships as the compact summary above the iframe: “Your device: iPhone 15 Pro · Change device,” reinforcing the lock while keeping the editor layout clean (`docs/Responsive_Blueprint.md` §Screen 2 Layout & Messaging).
      - Guardrail summary card mirrors `onDesignStatusUpdate` payloads (designValid, errors, variant IDs) and drives CTA disablement; no duplicate SnapCase banners while EDM is active (`docs/Printful_EDM_Risk_Analysis.md` §1).
      - Guardrail toasts serialize through a single queue pinned above the ActionBar; DPI/content/policy warnings never stack or overlap Printful’s iframe per `docs/Responsive_Blueprint.md` §UX Decision Log #3.
