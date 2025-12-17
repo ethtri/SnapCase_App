@@ -1,0 +1,18 @@
+{
+  "timestamp": "20251217T224847",
+  "viewport": {
+    "width": 390,
+    "height": 664
+  },
+  "selectedVariantId": 712,
+  "selectedLabel": "Galaxy S24 Ultra",
+  "disabledVariantIds": [
+    91000,
+    91001,
+    81001,
+    643
+  ],
+  "route": "/design",
+  "mode": "mobile",
+  "device": "iPhone 13 Pro"
+}

@@ -35,7 +35,7 @@ declare global {
 
 type BrandFilter = DeviceCatalogEntry["brand"] | "all";
 type DesignView = "picker" | "designer";
-type PickerFilterId = "magsafe" | "stock" | "template-fit";
+type PickerFilterId = "magsafe";
 type CatalogStatus = "loading" | "ready" | "error";
 
 type GuardrailSummary = {
@@ -81,8 +81,6 @@ const BRAND_ORDER: DeviceCatalogEntry["brand"][] = [
 
 const FILTER_CONFIG: { id: PickerFilterId; label: string; helper: string }[] = [
   { id: "magsafe", label: "MagSafe-ready", helper: "Cases with MagSafe rings" },
-  { id: "stock", label: "In stock", helper: "Ready to ship now" },
-  { id: "template-fit", label: "Fits saved template", helper: "Template tested" },
 ];
 
 function formatDeviceLabel(device: DeviceCatalogEntry | null): string | null {
@@ -158,8 +156,6 @@ export default function DesignPage(): JSX.Element {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<Record<PickerFilterId, boolean>>({
     magsafe: false,
-    stock: false,
-    "template-fit": false,
   });
   const [, setIsHydrated] = useState(false);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
@@ -230,8 +226,6 @@ export default function DesignPage(): JSX.Element {
   const clearFilters = useCallback(() => {
     setFilters({
       magsafe: false,
-      stock: false,
-      "template-fit": false,
     });
   }, []);
 
@@ -572,12 +566,8 @@ export default function DesignPage(): JSX.Element {
       return [];
     }
     const normalizedQuery = searchQuery.trim().toLowerCase();
-    const isInStock = (entry: DeviceCatalogEntry) =>
-      entry.stockStatus === "in-stock" || entry.stockStatus === "low-stock";
     const matchesFilter = (entry: DeviceCatalogEntry) => {
       if (filters.magsafe && !entry.magsafe) return false;
-      if (filters.stock && !isInStock(entry)) return false;
-      if (filters["template-fit"] && entry.templateReady !== true) return false;
       return true;
     };
     const matchesQuery = (entry: DeviceCatalogEntry) => {
@@ -597,11 +587,11 @@ export default function DesignPage(): JSX.Element {
             ? 0
             : BRAND_ORDER.indexOf(a.brand) - BRAND_ORDER.indexOf(b.brand);
         if (brandScore !== 0) return brandScore;
+        const modelScore = a.model.localeCompare(b.model);
+        if (modelScore !== 0) return modelScore;
         const selectableScore =
           Number((b.selectable ?? true) === true) - Number((a.selectable ?? true) === true);
         if (selectableScore !== 0) return selectableScore;
-        const modelScore = a.model.localeCompare(b.model);
-        if (modelScore !== 0) return modelScore;
         return (a.variantId ?? 0) - (b.variantId ?? 0);
       });
     return ranked;
@@ -878,8 +868,15 @@ export default function DesignPage(): JSX.Element {
     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {filteredCatalog.map((entry) => {
         const selected = selectedDevice?.variantId === entry.variantId;
-        const selectable = entry.selectable !== false && Number.isFinite(entry.variantId);
+        const isOutOfStock = entry.stockStatus === "backorder";
+        const isComingSoon = entry.stockStatus === "coming-soon" || entry.selectable === false;
+        const selectable =
+          entry.selectable !== false &&
+          Number.isFinite(entry.variantId) &&
+          !isOutOfStock &&
+          entry.stockStatus !== "coming-soon";
         const isDisabled = !selectable;
+        const disabledReason = isOutOfStock ? "Out of stock" : isComingSoon ? "Coming soon" : "Unavailable";
         const selectionStyle =
           selected && !isDisabled
             ? {
@@ -904,15 +901,25 @@ export default function DesignPage(): JSX.Element {
             disabled={!selectable}
             aria-disabled={!selectable}
             aria-pressed={selected}
-            className={`relative flex h-full flex-col justify-between rounded-2xl border bg-white p-4 text-left shadow-sm transition ${
+            className={`relative flex h-full flex-col justify-between rounded-2xl border bg-white p-5 text-left shadow-sm transition ${
               selected ? "shadow-md" : ""
             } ${
               selectable
                 ? "hover:-translate-y-[1px] hover:shadow-sm"
                 : "cursor-not-allowed"
-            }`}
+            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2`}
             data-testid={`device-option-${entry.variantId}`}
             style={{ ...(disabledStyle ?? {}), ...(selectionStyle ?? {}) }}
+            aria-label={`${entry.model} - ${BRAND_LABELS[entry.brand]}${isDisabled ? ` (${disabledReason})` : ""}`}
+            title={isDisabled ? disabledReason : undefined}
+            tabIndex={selectable ? 0 : -1}
+            onKeyDown={(event) => {
+              if ((event.key === "Enter" || event.key === " ") && selectable) {
+                event.preventDefault();
+                handleDeviceSelected(entry);
+              }
+            }}
+            onFocus={() => setShowSearchSuggestions(false)}
           >
             {selected ? (
               <span
@@ -934,12 +941,10 @@ export default function DesignPage(): JSX.Element {
               <p className="text-lg font-semibold text-gray-900">
                 {entry.model}
               </p>
-              <p className="text-sm text-gray-600">
-              {BRAND_LABELS[entry.brand]} · Snap Case
-              </p>
+              <p className="text-sm text-gray-600">{BRAND_LABELS[entry.brand]}</p>
               {isDisabled ? (
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-700">
-                  Coming soon
+                  {disabledReason}
                 </p>
               ) : null}
             </div>
