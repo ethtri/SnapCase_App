@@ -4,25 +4,27 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 **Preflight (every prompt):**
 - Use `docs/PROMPT_TEMPLATE.md` (strict controls) before editing.
-- Run `git worktree list` then `git status` (stop if another worktree is dirty; stash with `git stash push -m "<TaskID> context"` if cleanup is needed).
-- If `git status` mentions “rebase/merge in progress”, stop. Either finish/abort it first or exit and ask the PM; do not continue work in that state.
-- Start every prompt with a clean tree. If you see modified/untracked files unrelated to the task, stash or commit them before proceeding.
-- Be on the correct task branch (e.g., `task/Sprint03-Task43-edm-live-smoke`); do not work on the wrong branch.
-- Lint config guard: if `npm run lint` prompts to create an ESLint config, do not generate one; pull the existing config from `origin/main` or stop and report if none exists.
+- Run `git worktree list` then `git status` to enforce a **max of 3 worktrees**; retire any worktree older than 7 days or in a detached state before editing. Stop if another worktree is dirty.
+- If `git status` mentions “rebase/merge in progress”, stop. Either finish/abort it first or exit and ask the PM; do not continue work in that state. Start with a clean tree.
+- Be on the correct task branch (e.g., `task/Sprint03-Task43-edm-live-smoke`). If you see modified/untracked files unrelated to the task, stash or commit them before proceeding.
+- Stash discipline: new stashes use `git stash push -m "<TaskID> context"`. Review `git stash list` for entries older than 48 hours, retire them once validated, and log those actions in `PROGRESS.md`.
+- Lint-config preflight: pull the config from `origin/main`; if lint prompts to create a config or the config is missing after pull, stop and report—never generate one locally.
 - `git pull` from the task branch before starting so you have the latest TaskPipeline and docs.
-- Keep changes scoped. Update `PROGRESS.md` and the relevant `docs/AgentReports/` file before handoff; leave the tree clean.
+- Keep changes scoped. Update `PROGRESS.md`, the relevant `docs/AgentReports/` file, and diagnostics before handoff; leave the tree clean.
 
 **Definition of Done (DoD) for all prompts:**
 - Code/files updated; new assets in `Images/diagnostics/` when applicable.
-- Evidence in AgentReport with artifact paths, test results, and decisions.
+- Evidence in AgentReport with artifact paths, test results, decisions, and the compare/PR URL after pushing the branch.
 - Tests run as specified; if failing, log why and what was attempted.
-- `PROGRESS.md` updated; move prompt to Archive when complete.
+- `PROGRESS.md` updated; move prompt to Archive when complete. Log compare/PR URL in both `PROGRESS.md` and the AgentReport.
+- Doc integrity check before merge/handoff: confirm required docs exist (AgentReport file, `PROGRESS.md` entry, TaskPipeline status, and any referenced specs). Stop and resolve if any are missing.
 
 ## Active Prompts
 
 | Task ID | Goal (Sponsor Language) | Prep & References | Agent Kickoff |
 | --- | --- | --- | --- |
-| Sprint04-Task08 | Persist design when returning from checkout and add the short pricing transparency helper in checkout. | Read: PROGRESS.md, docs/Responsive_Blueprint.md (save/resume + pricing helper), docs/SnapCase_App_Prototype.MD, docs/UXCX_Guidelines.MD. Branch: `task/Sprint04-Task08-save-resume-pricing`. Pricing helper approved by sponsor. | **Agent Kickoff:** “Task ID: Sprint04-Task08-save-resume-pricing. Branch: task/Sprint04-Task08-save-resume-pricing. Objective: Persist selected device + latest template/design context when returning from checkout so /design rehydrates state and CTA. Add the approved pricing transparency helper line near totals on checkout (desktop/mobile). Keep checkout logic/Stripe/Printful intact; no deps/env changes. Scope: src/app/design/* (state rehydrate/persistence), src/app/checkout/* (helper copy + banner persistence), shared context/storage helpers if needed. Docs: update docs/Responsive_Blueprint.md (save/resume + pricing helper), docs/SnapCase_App_Prototype.MD, PROGRESS.md, AgentReport docs/AgentReports/Sprint04-Task08.md. Verification: npm run lint; npm run build; manual smoke returning from checkout; optional targeted integration if available. Diagnostics: JSON showing persisted design context before/after; checkout screenshots with helper text under Images/diagnostics/<ts>-checkout-pricing-*.png/json. Completion Gate: AgentReport + PROGRESS updated + docs updated + diagnostics linked + clean git status + TaskPipeline updated.” |
+| Sprint04-Task14 | Build the modern device picker as its own screen (search, brand tabs, filters) so users can choose devices faster. | Read: docs/AgentReports/Sprint03-Task54-cx-picker-audit.md (proposal + wireframe), docs/Responsive_Blueprint.md (picker section), docs/UXCX_Guidelines.MD (device picker single source of truth), docs/SnapCase_App_Prototype.MD (Design flow), PROGRESS.md. Branch: task/Sprint04-Task14-device-picker-screen. | **Agent Kickoff:** Task ID: Sprint04-Task14-device-picker-screen. Branch: task/Sprint04-Task14-device-picker-screen. Objective: Implement a dedicated device picker screen per Task54 proposal: search/typeahead, brand tabs (Apple/Samsung/Pixel/More), filter chips (e.g., MagSafe, stock, template-fit), lock-aware CTA, compact error/retry state; keep existing CTA/variant lock behavior intact. Scope: src/app/design/* (picker screen + navigation into editor), shared picker components/hooks as needed; no API/dep/env changes. Docs: update docs/Responsive_Blueprint.md (picker section), docs/SnapCase_App_Prototype.MD, PROGRESS.md, AgentReport docs/AgentReports/Sprint04-Task14.md. Verification: npm run lint; npm run build; manual smoke (choose Samsung/Pixel, ensure selection flows into editor/checkout); screenshots of picker (desktop/mobile) + helper/error states under Images/diagnostics/<ts>-picker-{desktop,mobile}.png/json. Exit: AgentReport + PROGRESS updated + TaskPipeline archived + compare/PR URL logged + clean git status. |
+| Sprint04-Task08 | Persist design when returning from checkout and add the short pricing transparency helper in checkout. | Read: PROGRESS.md, docs/Responsive_Blueprint.md (save/resume + pricing helper), docs/SnapCase_App_Prototype.MD, docs/UXCX_Guidelines.MD. Branch: task/Sprint04-Task08-save-resume-pricing. Pricing helper approved by sponsor. | **Agent Kickoff:** Task ID: Sprint04-Task08-save-resume-pricing. Branch: task/Sprint04-Task08-save-resume-pricing. Objective: Persist selected device + latest template/design context when returning from checkout so /design rehydrates state and CTA. Add the approved pricing transparency helper line near totals on checkout (desktop/mobile). Keep checkout logic/Stripe/Printful intact; no deps/env changes. Scope: src/app/design/* (state rehydrate/persistence), src/app/checkout/* (helper copy + banner persistence), shared context/storage helpers if needed. Docs: update docs/Responsive_Blueprint.md (save/resume + pricing helper), docs/SnapCase_App_Prototype.MD, PROGRESS.md, AgentReport docs/AgentReports/Sprint04-Task08.md. Verification: npm run lint; npm run build; manual smoke returning from checkout; optional targeted integration if available. Diagnostics: JSON showing persisted design context before/after; checkout screenshots with helper text under Images/diagnostics/<ts>-checkout-pricing-*.png/json. Completion Gate: AgentReport + PROGRESS updated + docs updated + diagnostics linked + clean git status + TaskPipeline updated. |
 
 > These prompts are ready to run in parallel; each owns its branch and AgentReport. Keep sponsor updated via `PROGRESS.md`.
 
@@ -39,8 +41,8 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Status | Notes |
 | --- | --- | --- |
-| Sprint04-Task14 | DONE | Device picker screen shipped with brand tabs/typeahead/filter chips + compact error/retry state; catalog enriched with stock/template metadata and Pixel/Other entries. Docs + diagnostics updated (see `docs/AgentReports/Sprint04-Task14.md`). |
 | Sprint04-Task07 | DONE | Option A picker + editor-only flow shipped (sticky CTA + summary chip, blank proof box removed). Diagnostics: `Images/diagnostics/2025-12-16T02-05-51-402Z-design-after-{picker,editor}.png` + `...-status.json`. Tests: `npm run build` (pass); `npm run lint` blocked (no ESLint config on origin/main). See `docs/AgentReports/Sprint04-Task07.md`. |
+| Sprint04-Task11A1 | DONE | Hygiene audit: removed detached `SnapCase_App_task43_clean`; worktrees still 27 (many dirty Sprint03 trees) so further removals deferred; stash@{7..35} inspected and retained. Docs: `docs/AgentReports/Sprint04-Task11A1.md`, `PROGRESS.md`. |
 | Sprint03-Task48 | DONE | Product-tab overlay hardened (clamped size/max width, border, shadow), CTA gating intact; deployed `snapcase-eopqpujyk-snapcase.vercel.app` aliased to `dev.snapcase.ai`. See `docs/AgentReports/Sprint03-Task48-overlay-hardening.md` and `Images/diagnostics/2025-12-10T175354781Z-after-*.png/json`. Known: mobile Playwright automation can fail to unlock CTA; manual upload succeeds. |
 | Sprint03-Task47 | DONE | CX refresh: Product tab guarded/hidden, mask height lowered, Flow/Scene + Printful/variant IDs removed, Snapcase voice applied. See `docs/AgentReports/Sprint03-Task47-CX-refresh.md` and `Images/diagnostics/20251210T034229Z-after-design-{desktop,mobile}.png`. |
 | Sprint03-Task45 | DONE | Sponsor refresh with Printful variant lock + relaxed checkout validation; see `docs/AgentReports/Sprint03-Task45.md` and `Images/diagnostics/20251210T012645-*`. |
@@ -57,6 +59,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 | Sprint03-Task32 | DONE | `/design` now boots directly into Printful EDM; see `docs/AgentReports/Sprint03-Task32.md`. |
 | Sprint03-Task33 | DONE* | DNS/alias flipped; Stripe secret still pending sponsor handoff. See `docs/AgentReports/Sprint03-Task33.md`. |
 | Sprint03-Task34 | DONE | Segment QA + production promotion finished; see `docs/AgentReports/Sprint03-Task34.md`. |
+| Sprint04-Task15 | DONE | Design screen sponsor feedback captured; plan/DoD in `docs/UXCX_DesignScreen_Feedback.md`; PROGRESS updated. |
 | Sprint03-Task43 | DONE | Live masked-picker smoke with Printful; CTA gating/pricing simplified per PO decision; see `docs/AgentReports/Sprint03-Task43.md`. |
 | Sprint03-Task37 | DONE | Lint + telemetry refresh complete; see `docs/AgentReports/Sprint03-Task37.md`. |
 | Sprint03-Task38 | DONE | Printful v2 order flow implemented; see `docs/AgentReports/Sprint03-Task38.md`. |
@@ -65,3 +68,8 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 | Sprint03-Task40 | DONE | Stripe prod secrets verified across scopes; live `/api/checkout` session captured. See `docs/AgentReports/Sprint03-Task40.md`. |
 | Sprint03-Task41 | DONE | Sponsor readiness sweep complete with fresh screenshots + Segment debugger evidence. See `docs/AgentReports/Sprint03-Task41.md`. |
 | Sprint03-Task42 | DONE | SnapCase-first picker with masked Printful row; Playwright e2e passing; new `/design` screenshots captured. See `docs/AgentReports/Sprint03-Task42.md`. |
+
+
+
+
+
