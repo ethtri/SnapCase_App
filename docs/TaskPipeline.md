@@ -3,20 +3,21 @@
 This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbatim into a new Codex chat. Move items to **Archive** once their AgentReports land in `docs/AgentReports/`.
 
 **Preflight (every prompt):**
-- Use `docs/PROMPT_TEMPLATE.md` (strict controls) before editing.
-- Run `git worktree list` then `git status` (stop if another worktree is dirty; stash with `git stash push -m "<TaskID> context"` if cleanup is needed).
-- If `git status` mentions “rebase/merge in progress”, stop. Either finish/abort it first or exit and ask the PM; do not continue work in that state.
-- Start every prompt with a clean tree. If you see modified/untracked files unrelated to the task, stash or commit them before proceeding.
-- Be on the correct task branch (e.g., `task/Sprint03-Task43-edm-live-smoke`); do not work on the wrong branch.
+- Work from `C:\Repos\SnapCase_App` only (no OneDrive paths) on the task branch (`task/SprintNN-TaskXX-*`).
+- Stop if `git status` is not clean or another worktree is dirty. If dirty: restore any `Snapcase-Flow-Mockups/*` deletions from `origin/main`, delete or stash stray diagnostics/unrelated files, then rerun `git status` before proceeding. Halt on any rebase/merge in progress.
+- Treat `Snapcase-Flow-Mockups/*` as read-only reference assets; restore deletions before editing.
+- Run `git worktree list` (cap at 3) + `git status` before editing; stash cleanup uses `git stash push -m "<TaskID> context"`.
+- Diagnostics hygiene: keep only final captures; commit the relevant `Images/diagnostics/*` files or clean them before exit.
+- Use `docs/PROMPT_TEMPLATE.md` (strict controls) before editing; for UX prompts default to the mockups + `docs/Responsive_Blueprint.md` instead of scattering across multiple UX docs unless a blocker requires it.
 - Lint config guard: if `npm run lint` prompts to create an ESLint config, do not generate one; pull the existing config from `origin/main` or stop and report if none exists.
 - `git pull` from the task branch before starting so you have the latest TaskPipeline and docs.
 - Keep changes scoped. Update `PROGRESS.md` and the relevant `docs/AgentReports/` file before handoff; leave the tree clean.
 
 **Definition of Done (DoD) for all prompts:**
-- Code/files updated; new assets in `Images/diagnostics/` when applicable.
-- Evidence in AgentReport with artifact paths, test results, and decisions.
+- Code/files updated; new assets in `Images/diagnostics/` when applicable; `git status` clean on exit.
+- Evidence in AgentReport with artifact paths, test results, decisions, and the compare/PR URL after pushing the branch.
 - Tests run as specified; if failing, log why and what was attempted.
-- `PROGRESS.md` updated; move prompt to Archive when complete.
+- `PROGRESS.md` updated; move prompt to Archive when complete; log the compare/PR URL in both `PROGRESS.md` and the AgentReport.
 
 ## Active Prompts
 
