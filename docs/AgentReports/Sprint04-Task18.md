@@ -7,11 +7,13 @@
 - Diagnostics captured: see below. OneDrive worktree (`C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App`) was left dirty/untouched per instructions.
 
 Compare/PR: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task18-restore-picker
+Deploy: https://snapcase-bhrszgl42-snapcase.vercel.app (aliased to https://dev.snapcase.ai)
 
 ## Verification
 - `npm run lint`
 - `npm run build`
 - Manual smoke: `/design` shows the restored picker; selecting a device flows to the designer-only shell with the merged status/summary chip, change-device controls, skeleton overlay, and CTA gating intact.
+- Post-deploy checks: `curl -I https://dev.snapcase.ai/design` (200). `/api/health` returns 404 (endpoint absent), noted for awareness.
 
 ## Diagnostics
 - Images/diagnostics/20251218T212401-design-picker-desktop.png
