@@ -61,5 +61,6 @@
 - Manual smoke: search/tabs on desktop/mobile, only available devices surface, selection/CTA states update, sticky CTA stays reachable.
 
 ### Diagnostics
-- Picker screenshots/JSON: `Images/diagnostics/20251217T214250-picker-parity-simple-desktop.{png,json}`, `Images/diagnostics/20251217T214250-picker-parity-simple-mobile.{png,json}`.
+- Picker screenshots/JSON: `Images/diagnostics/20251218T093126-picker-parity-simple-desktop.{png,json}`, `Images/diagnostics/20251218T093126-picker-parity-simple-mobile.{png,json}` (supersedes `20251217T214250-*`).
+- Latest tweaks: brand subtitles removed from cards; sticky CTA enlarged with no helper banner.
 - Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task14-device-picker-screen
