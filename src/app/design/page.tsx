@@ -843,15 +843,14 @@ export default function DesignPage(): JSX.Element {
           className="mx-auto max-w-screen-md rounded-2xl border border-[var(--snap-cloud-border)] bg-white/95 px-4 py-3 shadow-[var(--shadow-md)] backdrop-blur supports-[backdrop-filter]:backdrop-blur"
           style={{ borderRadius: "var(--radius-xl)" }}
         >
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-gray-700">{ctaState.helperText}</p>
+          <div className="flex items-center justify-end">
             <button
               type="button"
               onClick={handlePrimaryCta}
               disabled={ctaState.disabled}
-              className="inline-flex items-center justify-center rounded-full px-5 text-sm font-semibold text-white shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-full px-6 text-base font-semibold text-white shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               style={{
-                minHeight: CONTROL_HEIGHT,
+                minHeight: "calc(var(--control-height) + 8px)",
                 backgroundColor: "var(--snap-violet)",
               }}
               data-testid="continue-button"
@@ -866,14 +865,13 @@ export default function DesignPage(): JSX.Element {
           className="flex items-center gap-3 rounded-2xl border border-[var(--snap-cloud-border)] bg-white/95 px-5 py-4 text-sm shadow-[var(--shadow-md)]"
           style={{ borderRadius: "var(--radius-xl)" }}
         >
-          <p className="text-xs text-gray-700">{ctaState.helperText}</p>
           <button
             type="button"
             onClick={handlePrimaryCta}
             disabled={ctaState.disabled}
-            className="inline-flex items-center justify-center rounded-full px-5 text-sm font-semibold text-white shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center justify-center rounded-full px-6 text-base font-semibold text-white shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             style={{
-              minHeight: CONTROL_HEIGHT,
+              minHeight: "calc(var(--control-height) + 8px)",
               backgroundColor: "var(--snap-violet)",
             }}
             data-testid="continue-button-desktop"
