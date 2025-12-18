@@ -4,16 +4,19 @@ Use this boilerplate at the top of each prompt to keep worktree discipline and d
 
 ```
 Context
-- Worktree: <absolute path>
+- Worktree: C:\Repos\SnapCase_App (no OneDrive)
 - Branch: task/SprintNN-TaskXX-<slug>
+- Role: Senior <domain> (e.g., Senior UX Engineer, Senior Frontend Engineer)
 
 Preflight
-- Run `git worktree list` then `git status` (stop if another worktree is dirty).
+- Run `git worktree list` (cap at 3) then `git status`; stop if any worktree is dirty or if rebase/merge is in progress. If dirty: restore `Snapcase-Flow-Mockups/*` deletions from `origin/main`, delete or stash stray diagnostics/unrelated files, rerun `git status` before proceeding.
+- Treat `Snapcase-Flow-Mockups/*` as read-only; restore any deletions before editing.
 - Copy `.vercel` from the main worktree if missing; run `vercel whoami`.
-- Confirm you will not touch other worktrees or stashes.
+- Lint-config preflight: pull the config from `origin/main`; if lint prompts to create one or it is missing after pull, stop and report.
+- Diagnostics hygiene: keep only the final captures; commit relevant `Images/diagnostics/*` or clean them before exit.
 
 Guardrails
-- One worktree per task; no duplicate worktrees or resets.
+- One worktree per task; no duplicate worktrees or resets; do not touch other worktrees.
 - Do not touch others' stashes; new stashes use `git stash push -m "<TaskID> context"` and are logged in `PROGRESS.md`.
 - No secrets committed to the repo; keep secrets in env only.
 
@@ -24,7 +27,9 @@ Deliverables
 - AgentReport path: docs/AgentReports/<TaskID>.md
 - `PROGRESS.md` entry updated
 - `docs/TaskPipeline.md` updated if status changes
+- Compare/PR URL logged in `PROGRESS.md` and the AgentReport after pushing the branch
 - Tests to run/report: [...]
 - Artifacts saved (e.g., Images/diagnostics/...): [...]
 - Exit with `git status` clean
 ```
+

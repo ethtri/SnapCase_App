@@ -18,18 +18,17 @@ This guide covers the complete deployment process for the SnapCase application, 
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🔁 Preview → Alias Workflow (_vercel_share + dev.snapcase.ai)
+## Preview to Alias Workflow (_vercel_share + dev.snapcase.ai)
 
-Follow this workflow every time you need Printful to exercise a new build. It keeps preview slugs stable, creates review links, and ensures the EDM iframe no longer throws `invalid origin` (see `docs/TECHNICAL_ARCHITECTURE.md#🚀 Deployment Architecture` for the network layout).
+Use this every time you need Printful to exercise a new build. On Windows, rely on the Vercel remote builder (cloud) instead of local `vercel build` so lightningcss/Next native modules compile on Linux.
 
-1. **Push the feature branch** → Vercel automatically builds a preview with protection enabled.
-2. **Generate a share link** → On the deployment page click **Share > Create link**. Distribute the resulting `https://<slug>.vercel.app?_vercel_share=<token>` URL to stakeholders who do *not* need Printful access (it respects preview protection while still surfacing the UI).
-3. **Disable preview protection for Printful** → In Vercel: *Project > Settings > Deployment Protection*. Add an exception for `dev.snapcase.ai` and the specific `_vercel_share` token if support needs to inspect the raw preview. Protection must remain disabled (or skipped) before Printful requests a nonce, otherwise the EDM iframe raises `messageListener invalidOrigin`.
-4. **Attach the dev alias** → From the CLI run `vercel alias set <deployment-url> dev.snapcase.ai` (or use the Dashboard → Preview Deployment → Aliases → **Assign**). This keeps a stable hostname that already sits on Printful’s allowlist.
-5. **Verify the alias** → Run `curl https://dev.snapcase.ai/api/health`, load `/design` to confirm the in-app diagnostics panel shows `origin: https://dev.snapcase.ai`, and send the alias to Printful so their EDM team can test the Embedded Designer from a trusted domain.
+1. Push the feature branch (or run `vercel deploy --yes` from a clean tree to trigger the remote builder) and let Vercel produce the preview.
+2. Create the `_vercel_share` link from the deployment page for reviewers who do not need Printful access.
+3. In Vercel Settings -> Deployment Protection, disable preview protection for `dev.snapcase.ai` and that `_vercel_share` token so Printful can request a nonce.
+4. Attach `dev.snapcase.ai` to the deployment (`vercel alias set <deployment-url> dev.snapcase.ai`), then verify with `curl https://dev.snapcase.ai/api/health` and `/design` diagnostics before sharing.
 
-> **Reminder:** Preview slugs (`snapcase-app-git-*.vercel.app`) change per push, but the `dev.snapcase.ai` alias persists. Always break the protection + alias steps before sharing links intended for Printful or Squarespace integrations to avoid another EDM lockout.
-> `_vercel_share` links expire when the underlying deployment is replaced—regenerate and resend them whenever you push new commits or promote a different preview.
+> Reminder: Preview slugs (`snapcase-app-git-*.vercel.app`) change per push, but the `dev.snapcase.ai` alias persists. Always break the protection + alias steps before sharing links intended for Printful or Squarespace integrations to avoid another EDM lockout.
+> `_vercel_share` links expire when the underlying deployment is replaced - regenerate and resend them whenever you push new commits or promote a different preview.
 
 ### Post-Alias Checklist
 - [ ] `vercel alias ls` shows `dev.snapcase.ai` attached to the intended deployment.
