@@ -927,7 +927,6 @@ export default function DesignPage(): JSX.Element {
               <p className="text-base font-semibold text-gray-900">
                 {entry.model}
               </p>
-              <p className="text-xs text-gray-600">{BRAND_LABELS[entry.brand]}</p>
             </div>
           </button>
         );
