@@ -9,6 +9,7 @@ export type DeviceCatalogEntry = {
   productId?: number;
   magsafe: boolean;
   stockStatus: StockStatus;
+  displayOrder?: number;
   templateReady?: boolean;
   featured?: boolean;
   selectable?: boolean;
@@ -22,6 +23,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 712,
     externalProductId: "SNAP_S24U_SNAP",
     magsafe: false,
+    displayOrder: 101,
     stockStatus: "in-stock",
     templateReady: true,
     featured: true,
@@ -33,6 +35,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 711,
     externalProductId: "SNAP_S24P_SNAP",
     magsafe: false,
+    displayOrder: 102,
     stockStatus: "in-stock",
     templateReady: true,
   },
@@ -43,6 +46,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 710,
     externalProductId: "SNAP_S24_SNAP",
     magsafe: false,
+    displayOrder: 103,
     stockStatus: "low-stock",
   },
   {
@@ -52,6 +56,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 613,
     externalProductId: "SNAP_IP17PRO_SNAP",
     magsafe: true,
+    displayOrder: 102,
     stockStatus: "in-stock",
     templateReady: true,
     featured: true,
@@ -63,6 +68,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 611,
     externalProductId: "SNAP_IP17_SNAP",
     magsafe: true,
+    displayOrder: 103,
     stockStatus: "in-stock",
   },
   {
@@ -72,6 +78,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 614,
     externalProductId: "SNAP_IP17PM_SNAP",
     magsafe: true,
+    displayOrder: 101,
     stockStatus: "in-stock",
   },
   {
@@ -81,6 +88,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 612,
     externalProductId: "SNAP_IP17AIR_SNAP",
     magsafe: true,
+    displayOrder: 104,
     stockStatus: "low-stock",
   },
   {
@@ -90,6 +98,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 623,
     externalProductId: "SNAP_IP16PRO_SNAP",
     magsafe: true,
+    displayOrder: 202,
     stockStatus: "in-stock",
   },
   {
@@ -99,6 +108,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 621,
     externalProductId: "SNAP_IP16_SNAP",
     magsafe: true,
+    displayOrder: 203,
     stockStatus: "in-stock",
   },
   {
@@ -108,6 +118,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 624,
     externalProductId: "SNAP_IP16PM_SNAP",
     magsafe: true,
+    displayOrder: 201,
     stockStatus: "in-stock",
   },
   {
@@ -117,6 +128,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 622,
     externalProductId: "SNAP_IP16PLUS_SNAP",
     magsafe: true,
+    displayOrder: 204,
     stockStatus: "in-stock",
   },
   {
@@ -126,6 +138,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 632,
     externalProductId: "SNAP_IP15PRO_SNAP",
     magsafe: true,
+    displayOrder: 302,
     stockStatus: "in-stock",
     templateReady: true,
   },
@@ -136,6 +149,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 631,
     externalProductId: "SNAP_IP15_SNAP",
     magsafe: true,
+    displayOrder: 303,
     stockStatus: "in-stock",
   },
   {
@@ -145,6 +159,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 633,
     externalProductId: "SNAP_IP15PM_SNAP",
     magsafe: true,
+    displayOrder: 301,
     stockStatus: "in-stock",
   },
   {
@@ -154,6 +169,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 642,
     externalProductId: "SNAP_IP14PRO_SNAP",
     magsafe: false,
+    displayOrder: 402,
     stockStatus: "low-stock",
   },
   {
@@ -163,6 +179,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 641,
     externalProductId: "SNAP_IP14_SNAP",
     magsafe: false,
+    displayOrder: 403,
     stockStatus: "low-stock",
   },
   {
@@ -172,6 +189,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 643,
     externalProductId: "SNAP_IP14PM_SNAP",
     magsafe: false,
+    displayOrder: 401,
     stockStatus: "backorder",
   },
   {
@@ -181,6 +199,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 91001,
     externalProductId: "SNAP_PIXEL9PRO_SNAP",
     magsafe: false,
+    displayOrder: 101,
     stockStatus: "coming-soon",
     selectable: false,
   },
@@ -191,6 +210,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 91000,
     externalProductId: "SNAP_PIXEL9_SNAP",
     magsafe: false,
+    displayOrder: 102,
     stockStatus: "coming-soon",
     selectable: false,
   },
@@ -201,6 +221,7 @@ const DEVICE_CATALOG: DeviceCatalogEntry[] = [
     variantId: 81001,
     externalProductId: "SNAP_OP13_SNAP",
     magsafe: false,
+    displayOrder: 101,
     stockStatus: "coming-soon",
     selectable: false,
   },

@@ -35,7 +35,6 @@ declare global {
 
 type BrandFilter = DeviceCatalogEntry["brand"] | "all";
 type DesignView = "picker" | "designer";
-type PickerFilterId = "magsafe";
 type CatalogStatus = "loading" | "ready" | "error";
 
 type GuardrailSummary = {
@@ -68,7 +67,7 @@ const BRAND_LABELS: Record<Exclude<BrandFilter, "all">, string> = {
 const STOCK_LABELS: Record<DeviceCatalogEntry["stockStatus"], string> = {
   "in-stock": "In stock",
   "low-stock": "Low stock",
-  backorder: "Backorder",
+  backorder: "Out of stock",
   "coming-soon": "Coming soon",
 };
 
@@ -79,9 +78,63 @@ const BRAND_ORDER: DeviceCatalogEntry["brand"][] = [
   "other",
 ];
 
-const FILTER_CONFIG: { id: PickerFilterId; label: string; helper: string }[] = [
-  { id: "magsafe", label: "MagSafe-ready", helper: "Cases with MagSafe rings" },
+const VARIANT_PRIORITIES = [
+  "pro max",
+  "ultra",
+  "pro",
+  "plus",
+  "+",
+  "air",
 ];
+
+function deriveDisplayOrder(entry: DeviceCatalogEntry): number {
+  if (Number.isFinite(entry.displayOrder)) {
+    return entry.displayOrder as number;
+  }
+  const normalizedModel = entry.model.toLowerCase();
+  const generationMatch = normalizedModel.match(/(\d{2}|\d)/);
+  const generation = generationMatch ? Number(generationMatch[1]) : 0;
+  const variantPriority =
+    VARIANT_PRIORITIES.findIndex((keyword) => normalizedModel.includes(keyword)) ?? -1;
+  const variantScore =
+    variantPriority >= 0 ? variantPriority : VARIANT_PRIORITIES.length;
+  return generation > 0
+    ? generation * 10 + variantScore
+    : Number.MAX_SAFE_INTEGER;
+}
+
+function compareCatalogEntries(
+  a: DeviceCatalogEntry,
+  b: DeviceCatalogEntry,
+): number {
+  const brandScore =
+    BRAND_ORDER.indexOf(a.brand) - BRAND_ORDER.indexOf(b.brand);
+  if (brandScore !== 0) return brandScore;
+
+  const orderScore = deriveDisplayOrder(a) - deriveDisplayOrder(b);
+  if (orderScore !== 0) return orderScore;
+
+  return a.model.localeCompare(b.model);
+}
+
+function isSelectableDevice(entry: DeviceCatalogEntry): boolean {
+  return (
+    entry.selectable !== false &&
+    entry.stockStatus !== "backorder" &&
+    entry.stockStatus !== "coming-soon" &&
+    Number.isFinite(entry.variantId)
+  );
+}
+
+function getDisabledReason(entry: DeviceCatalogEntry): string | null {
+  if (entry.stockStatus === "coming-soon" || entry.selectable === false) {
+    return "Coming soon";
+  }
+  if (entry.stockStatus === "backorder") {
+    return "Out of stock";
+  }
+  return null;
+}
 
 function formatDeviceLabel(device: DeviceCatalogEntry | null): string | null {
   if (!device) {
@@ -132,7 +185,7 @@ export default function DesignPage(): JSX.Element {
   const deviceLookup = useMemo(() => {
     const map = new Map<number, DeviceCatalogEntry>();
     for (const entry of catalog) {
-      if (entry.selectable === false || !Number.isFinite(entry.variantId)) {
+      if (!isSelectableDevice(entry)) {
         continue;
       }
       map.set(entry.variantId, entry);
@@ -154,9 +207,6 @@ export default function DesignPage(): JSX.Element {
   const [designerResetToken, setDesignerResetToken] = useState(0);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<Record<PickerFilterId, boolean>>({
-    magsafe: false,
-  });
   const [, setIsHydrated] = useState(false);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -185,11 +235,6 @@ export default function DesignPage(): JSX.Element {
     }
   }, []);
 
-  const activeFilterCount = useMemo(
-    () => Object.values(filters).filter(Boolean).length,
-    [filters],
-  );
-
   const clearSearchBlurTimeout = useCallback(() => {
     if (searchBlurTimeoutRef.current) {
       clearTimeout(searchBlurTimeoutRef.current);
@@ -216,17 +261,10 @@ export default function DesignPage(): JSX.Element {
     setShowSearchSuggestions(true);
   }, []);
 
-  const toggleFilter = useCallback((id: PickerFilterId) => {
-    setFilters((current) => ({
-      ...current,
-      [id]: !current[id],
-    }));
-  }, []);
-
-  const clearFilters = useCallback(() => {
-    setFilters({
-      magsafe: false,
-    });
+  const resetPickerControls = useCallback(() => {
+    setSearchQuery("");
+    setBrandFilter("all");
+    setShowSearchSuggestions(false);
   }, []);
 
   useEffect(() => {
@@ -566,10 +604,6 @@ export default function DesignPage(): JSX.Element {
       return [];
     }
     const normalizedQuery = searchQuery.trim().toLowerCase();
-    const matchesFilter = (entry: DeviceCatalogEntry) => {
-      if (filters.magsafe && !entry.magsafe) return false;
-      return true;
-    };
     const matchesQuery = (entry: DeviceCatalogEntry) => {
       if (!normalizedQuery) return true;
       return `${entry.model} ${entry.externalProductId} ${BRAND_LABELS[entry.brand]}`
@@ -579,23 +613,10 @@ export default function DesignPage(): JSX.Element {
     const matchesBrand = (entry: DeviceCatalogEntry) =>
       brandFilter === "all" || entry.brand === brandFilter;
 
-    const ranked = catalog
-      .filter((entry) => matchesBrand(entry) && matchesQuery(entry) && matchesFilter(entry))
-      .sort((a, b) => {
-        const brandScore =
-          BRAND_ORDER.indexOf(a.brand) === BRAND_ORDER.indexOf(b.brand)
-            ? 0
-            : BRAND_ORDER.indexOf(a.brand) - BRAND_ORDER.indexOf(b.brand);
-        if (brandScore !== 0) return brandScore;
-        const modelScore = a.model.localeCompare(b.model);
-        if (modelScore !== 0) return modelScore;
-        const selectableScore =
-          Number((b.selectable ?? true) === true) - Number((a.selectable ?? true) === true);
-        if (selectableScore !== 0) return selectableScore;
-        return (a.variantId ?? 0) - (b.variantId ?? 0);
-      });
-    return ranked;
-  }, [brandFilter, catalog, catalogStatus, filters, searchQuery]);
+    return catalog
+      .filter((entry) => matchesBrand(entry) && matchesQuery(entry))
+      .sort(compareCatalogEntries);
+  }, [brandFilter, catalog, catalogStatus, searchQuery]);
 
   const brandCounts = useMemo(() => {
     const counts: Record<Exclude<BrandFilter, "all">, number> = {
@@ -707,7 +728,7 @@ export default function DesignPage(): JSX.Element {
       return {
         id: "ready-to-design",
         label: "Continue to design",
-        helperText: "Your device is selected. Continue to design.",
+        helperText: "Your device is ready. Continue to design.",
         disabled: false,
         source: "snapcase",
       };
@@ -720,8 +741,8 @@ export default function DesignPage(): JSX.Element {
     ) {
       return {
         id: "printful-blocked",
-        label: "Resolve the Printful banner above",
-        helperText: "Fix the banner, then continue to checkout.",
+        label: "Resolve the banner above",
+        helperText: "Fix the issues, then continue to checkout.",
         disabled: true,
         source: "printful",
       };
@@ -738,7 +759,7 @@ export default function DesignPage(): JSX.Element {
     return {
       id: "printful-ready",
       label: "Continue to checkout",
-      helperText: "Design saved and device locked for checkout.",
+      helperText: "Design saved. Continue to checkout.",
       disabled: false,
       source: "printful",
     };
@@ -865,53 +886,45 @@ export default function DesignPage(): JSX.Element {
   );
 
   const deviceCards = (
-    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {filteredCatalog.map((entry) => {
         const selected = selectedDevice?.variantId === entry.variantId;
-        const isOutOfStock = entry.stockStatus === "backorder";
-        const isComingSoon = entry.stockStatus === "coming-soon" || entry.selectable === false;
-        const selectable =
-          entry.selectable !== false &&
-          Number.isFinite(entry.variantId) &&
-          !isOutOfStock &&
-          entry.stockStatus !== "coming-soon";
-        const isDisabled = !selectable;
-        const disabledReason = isOutOfStock ? "Out of stock" : isComingSoon ? "Coming soon" : "Unavailable";
-        const selectionStyle =
-          selected && !isDisabled
+        const selectable = isSelectableDevice(entry);
+        const disabledReason = getDisabledReason(entry);
+        const selectedStyle =
+          selected && selectable
             ? {
                 borderColor: "var(--snap-violet)",
-                boxShadow: "0 0 0 3px var(--snap-violet), var(--shadow-md)",
+                boxShadow: "0 0 0 2px var(--snap-violet)",
+                backgroundColor: "var(--snap-violet-50)",
               }
             : undefined;
-        const disabledStyle = isDisabled
+        const disabledStyle = !selectable
           ? {
               borderColor: "var(--snap-cloud-border)",
-              opacity: 0.7,
-              filter: "saturate(0.7)",
+              backgroundColor: "var(--snap-cloud)",
+              filter: "saturate(0.75)",
             }
           : undefined;
         return (
           <button
             key={entry.variantId}
             type="button"
-            onClick={
-              selectable ? () => handleDeviceSelected(entry) : undefined
-            }
+            onClick={selectable ? () => handleDeviceSelected(entry) : undefined}
             disabled={!selectable}
             aria-disabled={!selectable}
             aria-pressed={selected}
-            className={`relative flex h-full flex-col justify-between rounded-2xl border bg-white p-5 text-left shadow-sm transition ${
-              selected ? "shadow-md" : ""
+            className={`relative flex h-full flex-col gap-3 rounded-2xl border bg-white p-5 text-left shadow-sm transition ${
+              selected && selectable ? "shadow-md" : ""
             } ${
               selectable
-                ? "hover:-translate-y-[1px] hover:shadow-sm"
+                ? "hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2"
                 : "cursor-not-allowed"
-            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2`}
+            }`}
             data-testid={`device-option-${entry.variantId}`}
-            style={{ ...(disabledStyle ?? {}), ...(selectionStyle ?? {}) }}
-            aria-label={`${entry.model} - ${BRAND_LABELS[entry.brand]}${isDisabled ? ` (${disabledReason})` : ""}`}
-            title={isDisabled ? disabledReason : undefined}
+            style={{ ...(disabledStyle ?? {}), ...(selectedStyle ?? {}) }}
+            aria-label={`${entry.model} - ${BRAND_LABELS[entry.brand]}${disabledReason ? ` (${disabledReason})` : ""}`}
+            title={disabledReason ?? undefined}
             tabIndex={selectable ? 0 : -1}
             onKeyDown={(event) => {
               if ((event.key === "Enter" || event.key === " ") && selectable) {
@@ -921,11 +934,8 @@ export default function DesignPage(): JSX.Element {
             }}
             onFocus={() => setShowSearchSuggestions(false)}
           >
-            {selected ? (
-              <span
-                className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold text-white"
-                style={{ backgroundColor: "var(--snap-violet)" }}
-              >
+            {selected && selectable ? (
+              <span className="absolute right-3 top-3 inline-flex items-center justify-center rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-[var(--snap-violet)] ring-1 ring-[var(--snap-violet)] shadow-sm">
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 16 16"
@@ -934,20 +944,19 @@ export default function DesignPage(): JSX.Element {
                 >
                   <path d="M6.707 10.293 4.414 8l-.828.828 3.121 3.121a1 1 0 0 0 1.414 0l5.364-5.364-.828-.828-4.657 4.657z" />
                 </svg>
-                Selected
               </span>
             ) : null}
             <div className="space-y-1">
               <p className="text-lg font-semibold text-gray-900">
                 {entry.model}
               </p>
-              <p className="text-sm text-gray-600">{BRAND_LABELS[entry.brand]}</p>
-              {isDisabled ? (
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-700">
-                  {disabledReason}
-                </p>
-              ) : null}
+              <p className="text-sm text-gray-700">{BRAND_LABELS[entry.brand]}</p>
             </div>
+            {disabledReason ? (
+              <span className="inline-flex w-fit items-center rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-gray-800 ring-1 ring-[var(--snap-cloud-border)]">
+                {disabledReason}
+              </span>
+            ) : null}
           </button>
         );
       })}
@@ -955,8 +964,8 @@ export default function DesignPage(): JSX.Element {
   );
 
   const pickerView = (
-    <div className="mx-auto max-w-screen-2xl space-y-6">
-      <div className="space-y-2">
+    <div className="mx-auto max-w-screen-2xl space-y-7 pb-28 lg:pb-20">
+      <div className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
           Step 1: Pick your device
         </p>
@@ -968,19 +977,18 @@ export default function DesignPage(): JSX.Element {
         </p>
         {selectedDevice ? (
           <div
-            className="inline-flex flex-wrap items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-sm font-semibold text-gray-900 shadow-sm"
+            className="inline-flex flex-wrap items-center gap-2 rounded-full border border-[var(--snap-cloud-border)] bg-[var(--snap-cloud)] px-4 py-1.5 text-sm font-semibold text-gray-900 shadow-sm"
             role="status"
             aria-live="polite"
           >
             <span>{`Your device: ${formatDeviceLabel(selectedDevice)}`}</span>
-            <span aria-hidden="true" className="text-gray-400">
-              ·
+            <span aria-hidden="true" className="text-gray-500">
+              &middot;
             </span>
             <button
               type="button"
               onClick={handleClearSelection}
-              className="inline-flex items-center justify-center rounded-full px-2.5 py-1 text-xs font-semibold text-[color:var(--snap-violet)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2"
-              style={{ backgroundColor: "var(--snap-cloud)" }}
+              className="inline-flex items-center justify-center rounded-full bg-white/80 px-2.5 py-1 text-xs font-semibold text-[var(--snap-violet)] ring-1 ring-[var(--snap-cloud-border)] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2"
             >
               Change device
             </button>
@@ -988,7 +996,7 @@ export default function DesignPage(): JSX.Element {
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+      <div className="space-y-4">
         <div
           className={`relative flex w-full flex-1 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-sm focus-within:border-gray-300 ${searchFocused ? "ring-1 ring-gray-200" : ""}`}
         >
@@ -1042,8 +1050,8 @@ export default function DesignPage(): JSX.Element {
               {searchSuggestions.length > 0 ? (
                 <ul className="divide-y divide-gray-100">
                   {searchSuggestions.map((entry) => {
-                    const selectable =
-                      entry.selectable !== false && Number.isFinite(entry.variantId);
+                    const selectable = isSelectableDevice(entry);
+                    const disabledReason = getDisabledReason(entry) ?? "Unavailable";
                     return (
                       <li key={`suggestion-${entry.variantId}`}>
                         <button
@@ -1054,7 +1062,7 @@ export default function DesignPage(): JSX.Element {
                               handleSuggestionSelect(entry);
                             }
                           }}
-                          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70"
                           disabled={!selectable}
                         >
                           <div className="space-y-1">
@@ -1062,11 +1070,11 @@ export default function DesignPage(): JSX.Element {
                               {entry.model}
                             </p>
                             <p className="text-xs text-gray-600">
-                              {BRAND_LABELS[entry.brand]} · {STOCK_LABELS[entry.stockStatus]}
+                              {BRAND_LABELS[entry.brand]} &middot; {STOCK_LABELS[entry.stockStatus]}
                             </p>
                           </div>
-                          <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
-                            {selectable ? "Select" : "Coming soon"}
+                          <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-semibold text-gray-800">
+                            {selectable ? "Select" : disabledReason}
                           </span>
                         </button>
                       </li>
@@ -1082,122 +1090,88 @@ export default function DesignPage(): JSX.Element {
           ) : null}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {FILTER_CONFIG.map((filter) => {
-            const active = filters[filter.id];
+        <div
+          className="flex flex-wrap items-center gap-2"
+          role="tablist"
+          aria-label="Device brands"
+        >
+          {(["all", ...BRAND_ORDER] as BrandFilter[]).map((brand) => {
+            const count =
+              brand === "all" ? selectableCatalogCount : brandCounts[brand as Exclude<BrandFilter, "all">];
+            const isActive = brandFilter === brand;
             return (
               <button
-                key={filter.id}
+                key={brand}
                 type="button"
-                onClick={() => toggleFilter(filter.id)}
-                className={`inline-flex items-center justify-center rounded-full border px-3 py-2 text-sm font-semibold transition ${
-                  active
-                    ? "border-gray-900 bg-gray-900 text-white"
-                    : "border-gray-200 bg-white text-gray-800 hover:border-gray-300"
-                }`}
-                title={filter.helper}
-                aria-pressed={active}
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setBrandFilter(brand)}
+                className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  isActive
+                    ? "bg-gray-900 text-white shadow-sm"
+                    : "border border-gray-200 bg-white text-gray-800 hover:border-gray-300"
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2`}
               >
-                {filter.label}
+                <span>{brand === "all" ? "All devices" : BRAND_LABELS[brand as Exclude<BrandFilter, "all">]}</span>
+                <span className="rounded-full border border-gray-200 bg-[var(--snap-cloud)] px-2 py-0.5 text-[11px] font-semibold text-gray-800">
+                  {count}
+                </span>
               </button>
             );
           })}
-          {activeFilterCount > 0 ? (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="inline-flex items-center justify-center rounded-full border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-            >
-              Clear filters
-            </button>
-          ) : null}
         </div>
-      </div>
 
-      <div
-        className="flex flex-wrap items-center gap-2"
-        role="tablist"
-        aria-label="Device brands"
-      >
-        {(["all", ...BRAND_ORDER] as BrandFilter[]).map((brand) => {
-          const count =
-            brand === "all" ? selectableCatalogCount : brandCounts[brand as Exclude<BrandFilter, "all">];
-          return (
-            <button
-              key={brand}
-              type="button"
-              role="tab"
-              aria-selected={brandFilter === brand}
-              onClick={() => setBrandFilter(brand)}
-              className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
-                brandFilter === brand
-                  ? "bg-gray-900 text-white"
-                  : "border border-gray-200 bg-white text-gray-800 hover:border-gray-300"
-              }`}
-            >
-              <span>{brand === "all" ? "All devices" : BRAND_LABELS[brand as Exclude<BrandFilter, "all">]}</span>
-              <span className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-700">
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="rounded-3xl border border-gray-200 bg-white/80 p-5 shadow-sm">
-        {catalogStatus === "loading" ? (
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {Array.from({ length: 10 }).map((_, index) => (
-              <div
-                key={`skeleton-${index}`}
-                className="h-40 animate-pulse rounded-2xl border border-gray-200 bg-gray-50"
-              />
-            ))}
-          </div>
-        ) : catalogStatus === "error" ? (
-          <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-red-200 bg-red-50/70 p-6 text-sm text-red-800">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-sm font-semibold text-red-700">
-                !
-              </span>
-              <p className="text-base font-semibold text-red-900">
-                We couldn&apos;t load the catalog.
-              </p>
+        <div className="rounded-3xl border border-[var(--snap-cloud-border)] bg-[var(--snap-cloud)] p-5 shadow-sm lg:p-6">
+          {catalogStatus === "loading" ? (
+            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {Array.from({ length: 10 }).map((_, index) => (
+                <div
+                  key={`skeleton-${index}`}
+                  className="h-40 animate-pulse rounded-2xl border border-gray-200 bg-white"
+                />
+              ))}
             </div>
-            <p className="text-sm text-red-800">
-              {catalogError ?? "Please retry. Your selection stays saved."}
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
+          ) : catalogStatus === "error" ? (
+            <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-red-200 bg-red-50/70 p-6 text-sm text-red-800">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-sm font-semibold text-red-700">
+                  !
+                </span>
+                <p className="text-base font-semibold text-red-900">
+                  We couldn&apos;t load the catalog.
+                </p>
+              </div>
+              <p className="text-sm text-red-800">
+                {catalogError ?? "Please retry. Your selection stays saved."}
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={loadCatalog}
+                  className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : filteredCatalog.length > 0 ? (
+            deviceCards
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-700">
+              <p className="font-semibold text-gray-900">No devices match that search.</p>
+              <p className="max-w-md text-gray-600">
+                Try another brand or clear your search to see the full lineup.
+              </p>
               <button
                 type="button"
-                onClick={loadCatalog}
-                className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
+                onClick={resetPickerControls}
+                className="inline-flex items-center justify-center rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 transition hover:bg-gray-50"
               >
-                Retry
+                Reset search
               </button>
             </div>
-          </div>
-        ) : filteredCatalog.length > 0 ? (
-          deviceCards
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-700">
-            <p className="font-semibold text-gray-900">No devices match that search.</p>
-            <p className="max-w-md text-gray-600">
-              Clear filters or switch brands to see the full Apple, Samsung, and Pixel lineup.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery("");
-                clearFilters();
-                setBrandFilter("all");
-              }}
-              className="inline-flex items-center justify-center rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-800 transition hover:bg-gray-50"
-            >
-              Reset filters
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1215,24 +1189,21 @@ export default function DesignPage(): JSX.Element {
             Upload your art and let Printful clear checks. Your device stays selected.
           </p>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-full border border-[var(--snap-cloud-border)] bg-[var(--snap-cloud)] px-4 py-2 text-sm shadow-sm">
           <div className="flex flex-wrap items-center gap-2 font-medium text-gray-900">
             <span>{`Your device: ${summaryDeviceLabel}`}</span>
-            <span aria-hidden="true" className="text-gray-400">
-              ·
+            <span aria-hidden="true" className="text-gray-500">
+              &middot;
             </span>
             <button
               type="button"
               onClick={() => setView("picker")}
-              className="inline-flex items-center justify-center rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-800 transition hover:bg-gray-100"
+              className="inline-flex items-center justify-center rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-[var(--snap-violet)] ring-1 ring-[var(--snap-cloud-border)] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2"
             >
               Change device
             </button>
           </div>
-          <span className="text-xs font-semibold uppercase tracking-wide text-gray-600">
-            Locked for checkout
-          </span>
-        </div>
+          </div>
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-md">
