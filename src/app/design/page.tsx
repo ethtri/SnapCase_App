@@ -78,6 +78,8 @@ const BRAND_ORDER: DeviceCatalogEntry["brand"][] = [
   "other",
 ];
 
+const CONTROL_HEIGHT = "var(--control-height)";
+
 const VARIANT_PRIORITIES = [
   "pro max",
   "ultra",
@@ -750,7 +752,7 @@ export default function DesignPage(): JSX.Element {
     if (!edmSnapshot || edmSnapshot.designValid !== true) {
       return {
         id: "printful-validating",
-        label: "Waiting on your upload",
+        label: "Waiting for designer…",
         helperText: "We check your art automatically.",
         disabled: true,
         source: "printful",
@@ -770,6 +772,11 @@ export default function DesignPage(): JSX.Element {
     selectedDevice?.variantId ??
     designSummary?.variantId ??
     null;
+
+  const selectionLiveMessage =
+    selectedDevice != null
+      ? `Selected ${formatDeviceLabel(selectedDevice)}`
+      : "No device selected";
 
   useEffect(() => {
     const key = `${view}:${ctaState.id}:${currentVariantId ?? "none"}`;
@@ -862,6 +869,7 @@ export default function DesignPage(): JSX.Element {
             onClick={handlePrimaryCta}
             disabled={ctaState.disabled}
             className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300"
+            style={{ minHeight: CONTROL_HEIGHT }}
             data-testid="continue-button"
           >
             {ctaState.label}
@@ -876,6 +884,7 @@ export default function DesignPage(): JSX.Element {
             onClick={handlePrimaryCta}
             disabled={ctaState.disabled}
             className="inline-flex items-center justify-center rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300"
+            style={{ minHeight: CONTROL_HEIGHT }}
             data-testid="continue-button-desktop"
           >
             {ctaState.label}
@@ -903,7 +912,7 @@ export default function DesignPage(): JSX.Element {
           ? {
               borderColor: "var(--snap-cloud-border)",
               backgroundColor: "var(--snap-cloud)",
-              filter: "saturate(0.75)",
+              filter: "saturate(0.8)",
             }
           : undefined;
         return (
@@ -935,11 +944,11 @@ export default function DesignPage(): JSX.Element {
             onFocus={() => setShowSearchSuggestions(false)}
           >
             {selected && selectable ? (
-              <span className="absolute right-3 top-3 inline-flex items-center justify-center rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-[var(--snap-violet)] ring-1 ring-[var(--snap-violet)] shadow-sm">
+              <span className="absolute right-3 top-3 inline-flex items-center justify-center rounded-full bg-white/90 px-1.5 py-0.5 text-[11px] font-semibold text-[var(--snap-violet)] ring-1 ring-[var(--snap-violet)] shadow-sm">
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 16 16"
-                  className="h-3.5 w-3.5"
+                  className="h-3 w-3"
                   fill="currentColor"
                 >
                   <path d="M6.707 10.293 4.414 8l-.828.828 3.121 3.121a1 1 0 0 0 1.414 0l5.364-5.364-.828-.828-4.657 4.657z" />
@@ -953,7 +962,7 @@ export default function DesignPage(): JSX.Element {
               <p className="text-sm text-gray-700">{BRAND_LABELS[entry.brand]}</p>
             </div>
             {disabledReason ? (
-              <span className="inline-flex w-fit items-center rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-gray-800 ring-1 ring-[var(--snap-cloud-border)]">
+              <span className="inline-flex w-fit items-center rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-gray-600 ring-1 ring-[var(--snap-cloud-border)]">
                 {disabledReason}
               </span>
             ) : null}
@@ -999,6 +1008,7 @@ export default function DesignPage(): JSX.Element {
       <div className="space-y-4">
         <div
           className={`relative flex w-full flex-1 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-sm focus-within:border-gray-300 ${searchFocused ? "ring-1 ring-gray-200" : ""}`}
+          style={{ minHeight: CONTROL_HEIGHT }}
         >
           <svg
             aria-hidden="true"
@@ -1111,6 +1121,7 @@ export default function DesignPage(): JSX.Element {
                     ? "bg-gray-900 text-white shadow-sm"
                     : "border border-gray-200 bg-white text-gray-800 hover:border-gray-300"
                 } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2`}
+                style={{ minHeight: CONTROL_HEIGHT }}
               >
                 <span>{brand === "all" ? "All devices" : BRAND_LABELS[brand as Exclude<BrandFilter, "all">]}</span>
                 <span className="rounded-full border border-gray-200 bg-[var(--snap-cloud)] px-2 py-0.5 text-[11px] font-semibold text-gray-800">
@@ -1268,6 +1279,7 @@ export default function DesignPage(): JSX.Element {
                 onClick={handleContinueToCheckout}
                 disabled={ctaState.disabled}
                 className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+                style={{ minHeight: CONTROL_HEIGHT }}
               >
                 {ctaState.disabled ? "Waiting on your upload" : "Continue to checkout"}
               </button>
@@ -1335,6 +1347,9 @@ export default function DesignPage(): JSX.Element {
   return (
     <main className="min-h-screen bg-[var(--snap-gray-50)] pb-28 lg:pb-32">
       <div className="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
+        <div className="sr-only" aria-live="polite">
+          {selectionLiveMessage}
+        </div>
         {view === "picker" ? pickerView : designerView}
       </div>
       {actionBar}
