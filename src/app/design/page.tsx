@@ -839,39 +839,31 @@ export default function DesignPage(): JSX.Element {
   const actionBar = (
     <>
       <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 pt-2 lg:hidden">
-        <div
-          className="mx-auto max-w-screen-md rounded-2xl border border-[var(--snap-cloud-border)] bg-white/95 px-4 py-3 shadow-[var(--shadow-md)] backdrop-blur supports-[backdrop-filter]:backdrop-blur"
-          style={{ borderRadius: "var(--radius-xl)" }}
-        >
-          <div className="flex items-center justify-end">
-            <button
-              type="button"
-              onClick={handlePrimaryCta}
-              disabled={ctaState.disabled}
-              className="inline-flex items-center justify-center rounded-full px-6 text-base font-semibold text-white shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{
-                minHeight: "calc(var(--control-height) + 8px)",
-                backgroundColor: "var(--snap-violet)",
-              }}
-              data-testid="continue-button"
-            >
-              {ctaState.label}
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="fixed bottom-7 right-7 z-30 hidden lg:flex">
-        <div
-          className="flex items-center gap-3 rounded-2xl border border-[var(--snap-cloud-border)] bg-white/95 px-5 py-4 text-sm shadow-[var(--shadow-md)]"
-          style={{ borderRadius: "var(--radius-xl)" }}
-        >
+        <div className="mx-auto flex max-w-screen-md justify-end">
           <button
             type="button"
             onClick={handlePrimaryCta}
             disabled={ctaState.disabled}
-            className="inline-flex items-center justify-center rounded-full px-6 text-base font-semibold text-white shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center justify-center rounded-full px-7 text-base font-semibold text-white shadow-[var(--shadow-md)] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             style={{
-              minHeight: "calc(var(--control-height) + 8px)",
+              minHeight: "calc(var(--control-height) + 12px)",
+              backgroundColor: "var(--snap-violet)",
+            }}
+            data-testid="continue-button"
+          >
+            {ctaState.label}
+          </button>
+        </div>
+      </div>
+      <div className="fixed bottom-7 right-7 z-30 hidden lg:flex">
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={handlePrimaryCta}
+            disabled={ctaState.disabled}
+            className="inline-flex items-center justify-center rounded-full px-7 text-base font-semibold text-white shadow-[var(--shadow-md)] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              minHeight: "calc(var(--control-height) + 12px)",
               backgroundColor: "var(--snap-violet)",
             }}
             data-testid="continue-button-desktop"
