@@ -43,3 +43,23 @@
 
 ### Diagnostics
 - Picker screenshots/JSON: `Images/diagnostics/20251217T232857-picker-polish-desktop.{png,json}`, `Images/diagnostics/20251217T232857-picker-polish-mobile.{png,json}`
+
+## Sprint04-Task14H - Picker parity simple
+
+### Summary
+- Hid coming-soon/backorder/non-selectable devices from the grid and search; cards now show only model + brand subtitle with a thinner violet outline, light tint, and compact check chip.
+- Simplified search/brand tabs (no counts/badges), added breathing room with the cloud panel, and refreshed the sticky CTA with consistent control heights on desktop/mobile.
+- Sorting now locks to brand + catalog displayOrder for deterministic newest-to-oldest ordering.
+
+### Changes
+- `src/app/design/page.tsx`: filtered the catalog to available devices, refreshed card/selection styling, streamlined search suggestions and brand tabs, and updated CTA/helper copy to the sponsor-approved voice.
+- Diagnostics captured for desktop/mobile showing a selected Apple device with unavailable devices removed from the grid.
+
+### Tests
+- `npm run lint`
+- `npm run build`
+- Manual smoke: search/tabs on desktop/mobile, only available devices surface, selection/CTA states update, sticky CTA stays reachable.
+
+### Diagnostics
+- Picker screenshots/JSON: `Images/diagnostics/20251217T214250-picker-parity-simple-desktop.{png,json}`, `Images/diagnostics/20251217T214250-picker-parity-simple-mobile.{png,json}`.
+- Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task14-device-picker-screen

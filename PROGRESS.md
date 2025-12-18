@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: December 16, 2025
+**Last Updated**: December 17, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -34,6 +34,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Recently Resolved
 
+- **Sprint04-Task14H picker parity simple (2025-12-17):** Simplified the device picker cards (model + optional brand, no badges), hid coming-soon/backorder variants, tuned selection to a thin violet outline plus a violet-50 tint and compact check chip, and cleaned search/tabs spacing with the cloud panel and sticky CTA. Sorting now relies on catalog brand/displayOrder only. Tests: `npm run lint`, `npm run build`. Artifacts: `Images/diagnostics/20251217T214250-picker-parity-simple-desktop.{png,json}`, `Images/diagnostics/20251217T214250-picker-parity-simple-mobile.{png,json}`.
 - **Sprint04-Task12 issue triage (2025-12-16):** Restored `.eslintrc.cjs` (extends `next`, `next/core-web-vitals`) and kept the Task07A CTA dependencies `[edmSnapshot, selectedDevice, view]` with the `<Image>` swap. `npm run lint` and `npm run build` now run clean.
 - **Sprint03-Task56 CX realignment (2025-12-11):** Restored `Snapcase-Flow-Mockups` references, refreshed design/checkout/thank-you to the design system tokens (colors/radii/spacing/shadows), and scrubbed vendor mentions from customer copy while keeping variant lock and CTA gating intact. Checkout panel now sticks on desktop, payment copy is provider-agnostic, and thank-you uses tokenized hero/cards plus neutral timeline helpers. Tests: `npm run build`. Artifacts: `Images/diagnostics/2025-12-11T22-07-25-505Z-before-{design,checkout,thank-you}-{desktop,mobile}.png`, `Images/diagnostics/2025-12-11T22-26-13-456Z-after-{design,checkout,thank-you}-{desktop,mobile}.png`, diagnostics `Images/diagnostics/2025-12-11T22-26-13-456Z-cx-diagnostics.json`.
 - **Sprint03-Task54 CX/UX audit + device picker proposal (2025-12-11):** Audited design/checkout/thank-you for on-brand copy (no new Printful/template leaks) and documented a modern full-catalog device picker (search/filter, Samsung/Pixel emphasis, lock-aware CTA). Design still surfaces verbose diagnostics on failure; recommended a compact error/retry state and hiding JSON behind a toggle. Tests: doc-only (no code changes). Artifacts: `Images/diagnostics/2025-12-11T20-43-41-546Z-{design,checkout,thank-you}-desktop.png`, `Images/diagnostics/2025-12-11T20-43-41-546Z-picker-wireframe.png`. Backlog: implement the picker proposal and design error-state polish.
