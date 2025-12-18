@@ -21,6 +21,7 @@ import { findPrintfulCatalogEntryByVariantId } from "@/data/printful-catalog";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import {
   loadDesignContext,
+  clearDesignContext,
   markCheckoutAttempt,
   saveDesignContext,
   type DesignContext,
@@ -32,8 +33,10 @@ declare global {
   }
 }
 
-type BrandFilter = DeviceCatalogEntry["brand"] | "all";
+type PickerBrand = CatalogEntry["brand"] | "google" | "other";
+type BrandFilter = PickerBrand | "all";
 type DesignView = "picker" | "designer";
+type CatalogStatus = "loading" | "ready" | "error";
 
 type GuardrailSummary = {
   tone: "error" | "warn" | "success" | "neutral";
@@ -55,12 +58,80 @@ type DesignCtaState = {
   source: "snapcase" | "printful";
 };
 
-const BRAND_LABELS: Record<DeviceCatalogEntry["brand"], string> = {
-  apple: "Apple",
-  samsung: "Samsung",
+type CatalogEntry = DeviceCatalogEntry & {
+  selectable?: boolean;
+  stockStatus?: string;
+  featured?: boolean;
+  displayOrder?: number;
+  caseType?: string;
+  magsafe?: boolean;
+  templateReady?: boolean;
+  productId?: number | null;
 };
 
-function formatDeviceLabel(device: DeviceCatalogEntry | null): string | null {
+const BRAND_LABELS: Record<PickerBrand, string> = {
+  apple: "Apple",
+  samsung: "Samsung",
+  google: "Pixel",
+  other: "More",
+};
+
+const BRAND_ORDER: PickerBrand[] = [
+  "apple",
+  "samsung",
+  "google",
+  "other",
+];
+
+const CONTROL_HEIGHT = "var(--control-height)";
+
+const VARIANT_PRIORITIES = [
+  "pro max",
+  "ultra",
+  "pro",
+  "plus",
+  "+",
+  "air",
+];
+
+function deriveDisplayOrder(entry: CatalogEntry): number {
+  const displayOrder = (entry as { displayOrder?: number }).displayOrder;
+  if (Number.isFinite(displayOrder)) {
+    return Number(displayOrder);
+  }
+  const normalizedModel = entry.model.toLowerCase();
+  const generationMatch = normalizedModel.match(/(\d{2}|\d)/);
+  const generation = generationMatch ? Number(generationMatch[1]) : 0;
+  const variantPriority =
+    VARIANT_PRIORITIES.findIndex((keyword) => normalizedModel.includes(keyword)) ?? -1;
+  const variantScore =
+    variantPriority >= 0 ? variantPriority : VARIANT_PRIORITIES.length;
+  return generation > 0
+    ? generation * 10 + variantScore
+    : Number.MAX_SAFE_INTEGER;
+}
+
+function compareCatalogEntries(a: CatalogEntry, b: CatalogEntry): number {
+  const brandScore =
+    BRAND_ORDER.indexOf(a.brand) - BRAND_ORDER.indexOf(b.brand);
+  if (brandScore !== 0) return brandScore;
+
+  const orderScore = deriveDisplayOrder(a) - deriveDisplayOrder(b);
+  if (orderScore !== 0) return orderScore;
+
+  return a.model.localeCompare(b.model);
+}
+
+function isSelectableDevice(entry: CatalogEntry): boolean {
+  return (
+    entry.selectable !== false &&
+    entry.stockStatus !== "backorder" &&
+    entry.stockStatus !== "coming-soon" &&
+    Number.isFinite(entry.variantId)
+  );
+}
+
+function formatDeviceLabel(device: CatalogEntry | null): string | null {
   if (!device) {
     return null;
   }
@@ -103,18 +174,31 @@ function formatDateTime(timestamp: number | null | undefined): string | null {
 
 export default function DesignPage(): JSX.Element {
   const router = useRouter();
-  const catalog = useMemo(() => getDeviceCatalog(), []);
+  const [catalogStatus, setCatalogStatus] = useState<CatalogStatus>("loading");
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
   const deviceLookup = useMemo(() => {
-    const map = new Map<number, DeviceCatalogEntry>();
+    const map = new Map<number, CatalogEntry>();
     for (const entry of catalog) {
+      if (!isSelectableDevice(entry)) {
+        continue;
+      }
       map.set(entry.variantId, entry);
     }
     return map;
   }, [catalog]);
 
+  const availableCatalog = useMemo(() => {
+    if (catalogStatus !== "ready") {
+      return [];
+    }
+    return catalog.filter((entry) => isSelectableDevice(entry));
+  }, [catalog, catalogStatus]);
+
   const [view, setView] = useState<DesignView>("picker");
-  const [selectedDevice, setSelectedDevice] =
-    useState<DeviceCatalogEntry | null>(null);
+  const [selectedDevice, setSelectedDevice] = useState<CatalogEntry | null>(
+    null,
+  );
   const [edmSnapshot, setEdmSnapshot] =
     useState<EdmGuardrailSnapshot | null>(null);
   const [designSummary, setDesignSummary] = useState<DesignContext | null>(
@@ -124,12 +208,67 @@ export default function DesignPage(): JSX.Element {
     useState<PrintfulPricingDetails | null>(null);
   const [lastTemplateId, setLastTemplateId] = useState<string | null>(null);
   const [designerResetToken, setDesignerResetToken] = useState(0);
+  const [designerReady, setDesignerReady] = useState(false);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [, setIsHydrated] = useState(false);
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const lastPersistedVariantRef = useRef<number | null>(null);
   const lastCtaStateRef = useRef<string | null>(null);
+  const designerSkeletonTimeoutRef = useRef<number | null>(null);
+  const searchBlurTimeoutRef = useRef<number | null>(null);
+
+  const loadCatalog = useCallback(async () => {
+    setCatalogStatus("loading");
+    setCatalogError(null);
+    try {
+      const entries = getDeviceCatalog();
+      setCatalog(entries);
+      setCatalogStatus("ready");
+    } catch (error) {
+      console.error("[design] Failed to load catalog", error);
+      setCatalogStatus("error");
+      setCatalogError(
+        error && typeof error === "object" && "message" in error
+          ? String((error as Error).message)
+          : "Unable to load the catalog. Please try again.",
+      );
+    }
+  }, []);
+
+  const clearSearchBlurTimeout = useCallback(() => {
+    if (searchBlurTimeoutRef.current) {
+      window.clearTimeout(searchBlurTimeoutRef.current);
+      searchBlurTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handleSearchFocus = useCallback(() => {
+    clearSearchBlurTimeout();
+    setSearchFocused(true);
+    setShowSearchSuggestions(true);
+  }, [clearSearchBlurTimeout]);
+
+  const handleSearchBlur = useCallback(() => {
+    clearSearchBlurTimeout();
+    searchBlurTimeoutRef.current = window.setTimeout(() => {
+      setShowSearchSuggestions(false);
+    }, 120);
+    setSearchFocused(false);
+  }, [clearSearchBlurTimeout]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    setShowSearchSuggestions(true);
+  }, []);
+
+  const resetPickerControls = useCallback(() => {
+    setSearchQuery("");
+    setBrandFilter("all");
+    setShowSearchSuggestions(false);
+  }, []);
 
   useEffect(() => {
     setIsHydrated(true);
@@ -144,6 +283,16 @@ export default function DesignPage(): JSX.Element {
       }
     };
   }, []);
+
+  useEffect(() => {
+    loadCatalog();
+  }, [loadCatalog]);
+
+  useEffect(() => {
+    return () => {
+      clearSearchBlurTimeout();
+    };
+  }, [clearSearchBlurTimeout]);
 
   useEffect(() => {
     const context = loadDesignContext();
@@ -193,7 +342,46 @@ export default function DesignPage(): JSX.Element {
     }
   }, [designSummary, pricingDetails]);
 
-  const handleDeviceSelected = useCallback((entry: DeviceCatalogEntry) => {
+  useEffect(() => {
+    if (designerSkeletonTimeoutRef.current) {
+      window.clearTimeout(designerSkeletonTimeoutRef.current);
+      designerSkeletonTimeoutRef.current = null;
+    }
+    if (view !== "designer" || !selectedDevice) {
+      setDesignerReady(false);
+      return;
+    }
+    setDesignerReady(false);
+    const timeoutId = window.setTimeout(() => {
+      setDesignerReady(true);
+    }, 8000);
+    designerSkeletonTimeoutRef.current = timeoutId;
+    return () => {
+      if (designerSkeletonTimeoutRef.current) {
+        window.clearTimeout(designerSkeletonTimeoutRef.current);
+        designerSkeletonTimeoutRef.current = null;
+      }
+    };
+  }, [designerResetToken, selectedDevice, view]);
+
+  useEffect(() => {
+    if (view !== "designer") {
+      return;
+    }
+    if (edmSnapshot) {
+      setDesignerReady(true);
+      if (designerSkeletonTimeoutRef.current) {
+        window.clearTimeout(designerSkeletonTimeoutRef.current);
+        designerSkeletonTimeoutRef.current = null;
+      }
+    }
+  }, [edmSnapshot, view]);
+
+  const handleDeviceSelected = useCallback((entry: CatalogEntry) => {
+    if (entry.selectable === false || !Number.isFinite(entry.variantId)) {
+      return;
+    }
+    setShowSearchSuggestions(false);
     setSelectedDevice(entry);
     setEdmSnapshot(null);
     setPricingDetails(null);
@@ -223,6 +411,18 @@ export default function DesignPage(): JSX.Element {
       variantId: entry.variantId,
       externalProductId: entry.externalProductId,
     });
+  }, []);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedDevice(null);
+    setEdmSnapshot(null);
+    setPricingDetails(null);
+    setLastTemplateId(null);
+    setDesignerResetToken((token) => token + 1);
+    setDesignSummary(null);
+    lastPersistedVariantRef.current = null;
+    setShowSearchSuggestions(false);
+    clearDesignContext();
   }, []);
   const persistTemplateForVariant = useCallback(
     async (variantId: number, templateId: string, previewUrl: string | null) => {
@@ -343,12 +543,30 @@ export default function DesignPage(): JSX.Element {
     [persistTemplateForVariant],
   );
 
+  const handleSuggestionSelect = useCallback(
+    (entry: CatalogEntry) => {
+      if (entry.selectable === false || !Number.isFinite(entry.variantId)) {
+        return;
+      }
+      handleDeviceSelected(entry);
+      setShowSearchSuggestions(false);
+    },
+    [handleDeviceSelected],
+  );
+
   const handleTemplateHydrated = useCallback(
     ({ templateId, variantId }: { templateId: string; variantId: number }) => {
       void persistTemplateForVariant(variantId, String(templateId), null);
     },
     [persistTemplateForVariant],
   );
+
+  const handleChangeDevice = useCallback((): void => {
+    setView("picker");
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, []);
 
   useEffect(() => {
     const variantFromPrintful = edmSnapshot?.selectedVariantIds?.[0];
@@ -357,7 +575,7 @@ export default function DesignPage(): JSX.Element {
     }
     const catalogMatch = findPrintfulCatalogEntryByVariantId(variantFromPrintful);
     const deviceMatch = deviceLookup.get(variantFromPrintful) ?? null;
-    const derivedDevice: DeviceCatalogEntry | null =
+    const derivedDevice: CatalogEntry | null =
       deviceMatch ??
       (catalogMatch
         ? {
@@ -367,6 +585,10 @@ export default function DesignPage(): JSX.Element {
             variantId: variantFromPrintful,
             externalProductId: catalogMatch.externalProductId,
             productId: catalogMatch.printfulProductId,
+            magsafe: false,
+            stockStatus: "in-stock",
+            templateReady: false,
+            selectable: true,
           }
         : selectedDevice);
 
@@ -423,17 +645,49 @@ export default function DesignPage(): JSX.Element {
   ]);
 
   const filteredCatalog = useMemo(() => {
+    if (catalogStatus !== "ready") {
+      return [];
+    }
     const normalizedQuery = searchQuery.trim().toLowerCase();
-    return catalog.filter((entry) => {
-      const matchesBrand = brandFilter === "all" || entry.brand === brandFilter;
-      const matchesQuery =
-        !normalizedQuery ||
-        `${entry.model} ${entry.externalProductId}`
-          .toLowerCase()
-          .includes(normalizedQuery);
-      return matchesBrand && matchesQuery;
-    });
-  }, [brandFilter, catalog, searchQuery]);
+    const matchesQuery = (entry: CatalogEntry) => {
+      if (!normalizedQuery) return true;
+      return `${entry.model} ${entry.externalProductId} ${BRAND_LABELS[entry.brand]}`
+        .toLowerCase()
+        .includes(normalizedQuery);
+    };
+    const matchesBrand = (entry: CatalogEntry) =>
+      brandFilter === "all" || entry.brand === brandFilter;
+
+    return availableCatalog
+      .filter((entry) => matchesBrand(entry) && matchesQuery(entry))
+      .sort(compareCatalogEntries);
+  }, [availableCatalog, brandFilter, catalogStatus, searchQuery]);
+
+  const searchSuggestions = useMemo(() => {
+    if (catalogStatus !== "ready") {
+      return [];
+    }
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const pool =
+      normalizedQuery.length > 0
+        ? filteredCatalog
+        : availableCatalog
+            .filter((entry) =>
+              brandFilter === "all" ? entry.featured : entry.brand === brandFilter,
+            )
+            .sort(compareCatalogEntries);
+    const unique: CatalogEntry[] = [];
+    for (const entry of pool) {
+      if (unique.find((item) => item.variantId === entry.variantId)) {
+        continue;
+      }
+      unique.push(entry);
+      if (unique.length >= 6) {
+        break;
+      }
+    }
+    return unique;
+  }, [availableCatalog, brandFilter, catalogStatus, filteredCatalog, searchQuery]);
 
   const guardrailSummary = useMemo<GuardrailSummary>(() => {
     if (!edmSnapshot) {
@@ -450,14 +704,14 @@ export default function DesignPage(): JSX.Element {
         tone: "error",
         message:
           edmSnapshot.blockingIssues[0] ??
-          "Resolve the Printful banner above to continue.",
+          "Fix the issues above to continue.",
       };
     }
     if (edmSnapshot.variantMismatch) {
       return {
         tone: "warn",
         message:
-          "Printful reported a different device. Change it in Snapcase before saving.",
+          "Device mismatch detected. Change it in Snapcase before saving.",
       };
     }
     if (edmSnapshot.warningMessages.length > 0) {
@@ -469,7 +723,7 @@ export default function DesignPage(): JSX.Element {
     if (edmSnapshot.designValid) {
       return {
         tone: "success",
-        message: "Ready to checkout. Your device and design stay locked.",
+        message: "Ready for checkout. Your design looks good.",
       };
     }
     return {
@@ -498,7 +752,7 @@ export default function DesignPage(): JSX.Element {
         return {
           id: "select-device",
           label: "Select a device",
-          helperText: "Pick your phone to start designing.",
+          helperText: "Search or choose a brand to continue.",
           disabled: true,
           source: "snapcase",
         };
@@ -506,7 +760,7 @@ export default function DesignPage(): JSX.Element {
       return {
         id: "ready-to-design",
         label: "Continue to design",
-        helperText: "Device locked. Continue to the designer.",
+        helperText: "Device selected. Continue to the designer.",
         disabled: false,
         source: "snapcase",
       };
@@ -519,8 +773,8 @@ export default function DesignPage(): JSX.Element {
     ) {
       return {
         id: "printful-blocked",
-        label: "Resolve the Printful banner above",
-        helperText: "Fix the banner, then continue to checkout.",
+        label: "Fix the issues above",
+        helperText: "Resolve the issues, then continue to checkout.",
         disabled: true,
         source: "printful",
       };
@@ -537,7 +791,7 @@ export default function DesignPage(): JSX.Element {
     return {
       id: "printful-ready",
       label: "Continue to checkout",
-      helperText: "Design saved and device locked for checkout.",
+      helperText: "Design saved for checkout.",
       disabled: false,
       source: "printful",
     };
@@ -548,6 +802,11 @@ export default function DesignPage(): JSX.Element {
     selectedDevice?.variantId ??
     designSummary?.variantId ??
     null;
+
+  const selectionLiveMessage =
+    selectedDevice != null
+      ? `Selected ${formatDeviceLabel(selectedDevice)}`
+      : "No device selected";
 
   useEffect(() => {
     const key = `${view}:${ctaState.id}:${currentVariantId ?? "none"}`;
@@ -608,21 +867,82 @@ export default function DesignPage(): JSX.Element {
     handleContinueToCheckout();
   }, [handleContinueToCheckout, selectedDevice, view]);
 
-  const guardrailToneClass =
-    guardrailSummary.tone === "error"
-      ? "text-red-700"
-      : guardrailSummary.tone === "warn"
-        ? "text-amber-700"
-        : guardrailSummary.tone === "success"
-          ? "text-emerald-700"
-          : "text-gray-700";
+  const finishLabel =
+    selectedDevice?.caseType === "snap"
+      ? "Snap case"
+      : selectedDevice?.caseType ?? null;
 
-  const shouldShowDesignSummary =
-    Boolean(lastTemplateId ?? designSummary?.templateId) ||
-    Boolean(designSummary?.exportedImage) ||
-    pricingDetails?.amountCents != null ||
-    designSummary?.unitPriceCents != null ||
-    Boolean(designSummary?.lastCheckoutAttemptAt);
+  const designStatus = useMemo(
+    (): { tone: GuardrailSummary["tone"]; label: string; message: string } => {
+      if (!selectedDevice) {
+        return {
+          tone: "neutral",
+          label: "Choose a device",
+          message: "Pick a device to load the designer.",
+        };
+      }
+      if (!edmSnapshot) {
+        return {
+          tone: "neutral",
+          label: "Loading designer",
+          message: "Starting your editor session.",
+        };
+      }
+      if (
+        edmSnapshot.designValid === false ||
+        edmSnapshot.blockingIssues.length > 0
+      ) {
+        return {
+          tone: "error",
+          label: "Needs fixes",
+          message: guardrailSummary.message,
+        };
+      }
+      if (edmSnapshot.variantMismatch) {
+        return {
+          tone: "warn",
+          label: "Relock device",
+          message: guardrailSummary.message,
+        };
+      }
+      if (edmSnapshot.warningMessages.length > 0) {
+        return {
+          tone: "warn",
+          label: "Check warnings",
+          message: guardrailSummary.message,
+        };
+      }
+      if (edmSnapshot.designValid) {
+        return {
+          tone: "success",
+          label: "Ready for checkout",
+          message: "Design saved for your device.",
+        };
+      }
+      return {
+        tone: "neutral",
+        label: "Validating",
+        message: guardrailSummary.message,
+      };
+    },
+    [edmSnapshot, guardrailSummary, selectedDevice],
+  );
+
+  const statusToneStyles: Record<GuardrailSummary["tone"], string> = {
+    success:
+      "border-[var(--snap-success)] bg-[var(--snap-success-soft)] text-[var(--snap-success-ink)]",
+    warn:
+      "border-[var(--snap-warning)] bg-[var(--snap-warning-soft)] text-[var(--snap-warning-ink)]",
+    error:
+      "border-[color:rgba(239,68,68,0.35)] bg-[color:rgba(239,68,68,0.1)] text-[var(--snap-error)]",
+    neutral:
+      "border-[var(--snap-cloud-border)] bg-[var(--snap-cloud)] text-[var(--snap-gray-700)]",
+  };
+
+  const showDesignerSkeleton =
+    view === "designer" && Boolean(selectedDevice) && !designerReady;
+
+  const shouldShowDesignSummary = view === "designer" && Boolean(selectedDevice);
 
   const lastSavedLabel = designSummary?.templateStoredAt
     ? formatDateTime(designSummary.templateStoredAt)
@@ -632,28 +952,34 @@ export default function DesignPage(): JSX.Element {
 
   const actionBar = (
     <>
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur supports-[backdrop-filter]:backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-screen-lg items-center justify-between gap-3">
-          <p className="text-xs text-gray-600">{ctaState.helperText}</p>
+      <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 pt-2 lg:hidden">
+        <div className="mx-auto flex max-w-screen-md justify-end">
           <button
             type="button"
             onClick={handlePrimaryCta}
             disabled={ctaState.disabled}
-            className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="inline-flex items-center justify-center rounded-full px-7 text-base font-semibold text-white shadow-[var(--shadow-md)] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              minHeight: "calc(var(--control-height) + 12px)",
+              backgroundColor: "var(--snap-violet)",
+            }}
             data-testid="continue-button"
           >
             {ctaState.label}
           </button>
         </div>
       </div>
-      <div className="fixed bottom-6 right-6 z-30 hidden lg:flex">
-        <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white/95 px-5 py-4 text-sm shadow-2xl shadow-slate-900/10">
-          <p className="text-xs text-gray-600">{ctaState.helperText}</p>
+      <div className="fixed bottom-7 right-7 z-30 hidden lg:flex">
+        <div className="flex items-center justify-end">
           <button
             type="button"
             onClick={handlePrimaryCta}
             disabled={ctaState.disabled}
-            className="inline-flex items-center justify-center rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="inline-flex items-center justify-center rounded-full px-7 text-base font-semibold text-white shadow-[var(--shadow-md)] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              minHeight: "calc(var(--control-height) + 12px)",
+              backgroundColor: "var(--snap-violet)",
+            }}
             data-testid="continue-button-desktop"
           >
             {ctaState.label}
@@ -664,7 +990,10 @@ export default function DesignPage(): JSX.Element {
   );
 
   const deviceCards = (
-    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div
+      className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+      style={{ gap: "var(--space-5)" }}
+    >
       {filteredCatalog.map((entry) => {
         const selected = selectedDevice?.variantId === entry.variantId;
         return (
@@ -672,36 +1001,46 @@ export default function DesignPage(): JSX.Element {
             key={entry.variantId}
             type="button"
             onClick={() => handleDeviceSelected(entry)}
-            className={`flex h-full flex-col justify-between rounded-2xl border px-4 py-3 text-left transition hover:border-gray-300 hover:shadow-sm ${
-              selected
-                ? "border-gray-900 shadow-md"
-                : "border-gray-200 bg-white"
-            }`}
+            aria-pressed={selected}
+            className={`group relative flex h-full flex-col justify-between rounded-2xl border border-[var(--snap-cloud-border)] bg-white/90 px-4 py-5 text-left transition ${
+              selected ? "shadow-md" : "shadow-sm"
+            } hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2`}
             data-testid={`device-option-${entry.variantId}`}
+            style={{
+              borderRadius: "var(--radius-xl)",
+              ...(selected
+                ? {
+                    borderColor: "var(--snap-violet)",
+                    boxShadow: "0 0 0 1.5px var(--snap-violet)",
+                    backgroundColor: "var(--snap-violet-50)",
+                  }
+                : {}),
+            }}
+            aria-label={`${entry.model} - ${BRAND_LABELS[entry.brand]}`}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                handleDeviceSelected(entry);
+              }
+            }}
+            onFocus={() => setShowSearchSuggestions(false)}
           >
-            <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                {BRAND_LABELS[entry.brand]}
-              </p>
-              <p className="text-lg font-semibold text-gray-900">
+            {selected ? (
+              <span className="absolute right-3 top-3 inline-flex items-center justify-center rounded-full bg-white/95 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--snap-violet)] ring-1 ring-[var(--snap-violet)] shadow-sm">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 16 16"
+                  className="h-3 w-3"
+                  fill="currentColor"
+                >
+                  <path d="M6.707 10.293 4.414 8l-.828.828 3.121 3.121a1 1 0 0 0 1.414 0l5.364-5.364-.828-.828-4.657 4.657z" />
+                </svg>
+              </span>
+            ) : null}
+            <div className="space-y-1">
+              <p className="text-base font-semibold text-gray-900">
                 {entry.model}
               </p>
-              <p className="text-sm text-gray-600">Snap Case</p>
-            </div>
-            <div className="flex items-center justify-between pt-3">
-              <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700">
-                {selected ? "Selected" : "Tap to lock"}
-              </span>
-              <span
-                className={`flex h-5 w-5 items-center justify-center rounded-full border ${
-                  selected ? "border-gray-900 bg-gray-900 text-white" : "border-gray-300 bg-white"
-                }`}
-                aria-hidden="true"
-              >
-                {selected ? (
-                  <span className="block h-2.5 w-2.5 rounded-full bg-current" />
-                ) : null}
-              </span>
             </div>
           </button>
         );
@@ -710,21 +1049,43 @@ export default function DesignPage(): JSX.Element {
   );
 
   const pickerView = (
-    <div className="mx-auto max-w-screen-2xl space-y-6">
+    <div className="mx-auto max-w-screen-2xl space-y-6 pb-32 lg:pb-24">
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Step 1: Pick your device
-        </p>
+        <p className="text-sm font-semibold text-gray-700">Pick your device</p>
         <h1 className="text-3xl font-semibold text-gray-900">
-          Choose your phone and case.
+          Choose a phone to start designing.
         </h1>
         <p className="text-base text-gray-600">
-          Lock your Snapcase variant, then jump into the designer. Continue when you&apos;re ready.
+          Use search or the brand tabs to find your device. Continue to design when ready.
         </p>
+        {selectedDevice ? (
+          <div
+            className="inline-flex flex-wrap items-center gap-2 rounded-full border border-[var(--snap-cloud-border)] bg-[var(--snap-cloud)] px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm"
+            role="status"
+            aria-live="polite"
+            style={{ borderRadius: "var(--radius-xl)" }}
+          >
+            <span>{`Your device: ${formatDeviceLabel(selectedDevice)}`}</span>
+            <span aria-hidden="true" className="text-gray-500">
+              &middot;
+            </span>
+            <button
+              type="button"
+              onClick={handleClearSelection}
+              className="inline-flex items-center justify-center rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-[var(--snap-violet)] ring-1 ring-[var(--snap-cloud-border)] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2"
+              style={{ borderRadius: "999px" }}
+            >
+              Change device
+            </button>
+          </div>
+        ) : null}
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex w-full flex-1 items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-sm">
+      <div className="space-y-5">
+        <div
+          className={`relative flex w-full flex-1 items-center gap-3 rounded-full bg-white/95 px-4 shadow-[var(--shadow-sm)] ring-1 ring-[var(--snap-cloud-border)] transition ${searchFocused ? "ring-[var(--snap-violet)]" : ""}`}
+          style={{ minHeight: CONTROL_HEIGHT }}
+        >
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
@@ -738,211 +1099,343 @@ export default function DesignPage(): JSX.Element {
           <input
             type="search"
             value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
+            onChange={(event) => handleSearchChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && searchSuggestions[0]) {
+                event.preventDefault();
+                handleSuggestionSelect(searchSuggestions[0]);
+              }
+            }}
             className="w-full bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-500"
             placeholder="Search by model or ID"
           />
+          {searchQuery ? (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setShowSearchSuggestions(false);
+              }}
+              className="rounded-full px-2 py-1 text-xs font-semibold text-gray-600 transition hover:bg-gray-100"
+            >
+              Clear
+            </button>
+          ) : null}
+          {showSearchSuggestions ? (
+            <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-20 overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-md)] ring-1 ring-[var(--snap-cloud-border)]">
+              <div className="flex items-center justify-between px-4 py-3">
+                <p className="text-xs font-semibold text-gray-700">
+                  Suggested devices
+                </p>
+                <p className="text-[11px] font-semibold text-gray-500">
+                  {searchSuggestions.length} result{searchSuggestions.length === 1 ? "" : "s"}
+                </p>
+              </div>
+              {searchSuggestions.length > 0 ? (
+                <ul className="divide-y divide-[var(--snap-cloud-border)]">
+                  {searchSuggestions.map((entry) => (
+                    <li key={`suggestion-${entry.variantId}`}>
+                      <button
+                        type="button"
+                        onMouseDown={(event) => {
+                          event.preventDefault();
+                          handleSuggestionSelect(entry);
+                        }}
+                        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-[var(--snap-cloud)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2"
+                      >
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-gray-900">
+                            {entry.model}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {BRAND_LABELS[entry.brand]}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-[var(--snap-violet-50)] px-3 py-1 text-[11px] font-semibold text-[var(--snap-violet)] ring-1 ring-[var(--snap-violet)]">
+                          Select
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="px-4 py-3 text-sm text-gray-600">
+                  No quick matches. Keep typing to search the full catalog.
+                </div>
+              )}
+            </div>
+          ) : null}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {(["all", "apple", "samsung"] as BrandFilter[]).map(
-            (brand) => (
+
+        <div
+          className="flex flex-wrap items-center gap-2"
+          role="tablist"
+          aria-label="Device brands"
+        >
+          {(["all", ...BRAND_ORDER] as BrandFilter[]).map((brand) => {
+            const isActive = brandFilter === brand;
+            return (
               <button
                 key={brand}
                 type="button"
+                role="tab"
+                aria-selected={isActive}
                 onClick={() => setBrandFilter(brand)}
-                className={`inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  brandFilter === brand
-                    ? "bg-gray-900 text-white"
-                    : "border border-gray-200 bg-white text-gray-800 hover:border-gray-300"
-                }`}
+                className={`inline-flex items-center justify-center rounded-full px-4 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--snap-violet)] focus-visible:ring-offset-2 ${isActive ? "bg-[var(--snap-violet-50)] text-[var(--snap-violet)] ring-1 ring-[var(--snap-violet)]" : "bg-white text-gray-800 ring-1 ring-[var(--snap-cloud-border)] hover:ring-[var(--snap-violet)]"}`}
+                style={{ minHeight: CONTROL_HEIGHT }}
               >
-                {brand === "all" ? "All devices" : BRAND_LABELS[brand]}
+                <span>{brand === "all" ? "All devices" : BRAND_LABELS[brand as Exclude<BrandFilter, "all">]}</span>
               </button>
-            ),
+            );
+          })}
+        </div>
+
+        <div
+          className="rounded-3xl border border-[var(--snap-cloud-border)] bg-[var(--snap-cloud)] shadow-sm"
+          style={{ padding: "var(--space-6)" }}
+        >
+          {catalogStatus === "loading" ? (
+            <div
+              className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+              style={{ gap: "var(--space-5)" }}
+            >
+              {Array.from({ length: 10 }).map((_, index) => (
+                <div
+                  key={`skeleton-${index}`}
+                  className="h-40 animate-pulse rounded-2xl border border-[var(--snap-cloud-border)] bg-white"
+                />
+              ))}
+            </div>
+          ) : catalogStatus === "error" ? (
+            <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-red-200 bg-red-50/70 p-6 text-sm text-red-800">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-sm font-semibold text-red-700">
+                  !
+                </span>
+                <p className="text-base font-semibold text-red-900">
+                  We couldn&apos;t load the catalog.
+                </p>
+              </div>
+              <p className="text-sm text-red-800">
+                {catalogError ?? "Please retry. Your selection stays saved."}
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={loadCatalog}
+                  className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : filteredCatalog.length > 0 ? (
+            deviceCards
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-700">
+              <p className="font-semibold text-gray-900">No devices match that search.</p>
+              <p className="max-w-md text-gray-600">
+                Try another brand or clear your search to see the full lineup.
+              </p>
+              <button
+                type="button"
+                onClick={resetPickerControls}
+                className="inline-flex items-center justify-center rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 transition hover:bg-gray-50"
+              >
+                Reset search
+              </button>
+            </div>
           )}
         </div>
-      </div>
-
-      <div className="rounded-3xl border border-gray-200 bg-white/80 p-5 shadow-sm">
-        {filteredCatalog.length > 0 ? (
-          deviceCards
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-700">
-            <p className="font-semibold text-gray-900">No devices match that search.</p>
-            <p className="max-w-md text-gray-600">
-              Clear filters or switch brands to see the full Apple, Samsung, and Pixel lineup.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );
   const designerView = (
     <div className="mx-auto flex max-w-screen-2xl flex-col gap-6">
       <div className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Step 2: Design
-        </p>
-        <div className="space-y-1 sm:flex sm:items-center sm:justify-between">
-          <h1 className="text-3xl font-semibold text-gray-900">
-            Design your Snapcase.
-          </h1>
-          <p className="text-base text-gray-600">
-            Upload your art and let Printful clear checks. Your device stays locked.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm shadow-sm">
-          <div className="flex flex-wrap items-center gap-2 font-medium text-gray-900">
-            <span>{`Your device: ${summaryDeviceLabel}`}</span>
-            <span aria-hidden="true" className="text-gray-400">
-              ·
-            </span>
-            <button
-              type="button"
-              onClick={() => setView("picker")}
-              className="inline-flex items-center justify-center rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-800 transition hover:bg-gray-100"
-            >
-              Change device
-            </button>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Step 2: Design
+            </p>
+            <h1 className="text-3xl font-semibold text-gray-900">
+              Design your Snapcase.
+            </h1>
+            <p className="text-base text-gray-600">
+              Upload your art for your selected device. We check it automatically.
+            </p>
           </div>
-          <span className="text-xs font-semibold uppercase tracking-wide text-gray-600">
-            Locked for checkout
+          <button
+            type="button"
+            onClick={handleChangeDevice}
+            className="inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-[var(--snap-violet)] transition hover:bg-[var(--snap-violet-50)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--snap-focus-ring)]"
+          >
+            Change device
+          </button>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 rounded-full border border-[var(--snap-cloud-border)] bg-white px-4 py-2 text-sm shadow-sm">
+          <span className="font-semibold text-gray-900">{`Your device: ${summaryDeviceLabel}`}</span>
+          <span aria-hidden="true" className="text-gray-400">
+            |
           </span>
+          <button
+            type="button"
+            onClick={handleChangeDevice}
+            className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold text-[var(--snap-violet)] transition hover:bg-[var(--snap-violet-50)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--snap-focus-ring)]"
+          >
+            Change
+          </button>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-md">
-        {selectedDevice ? (
-          <EdmEditor
-            key={`${selectedDevice.variantId}-${designerResetToken}`}
-            variantId={selectedDevice.variantId}
-            externalProductId={selectedDevice.externalProductId}
-            onTemplateSaved={handleTemplateSaved}
-            onTemplateHydrated={handleTemplateHydrated}
-            onDesignStatusChange={setEdmSnapshot}
-            onPricingChange={setPricingDetails}
-          />
-        ) : (
-          <div className="flex min-h-[320px] flex-col items-center justify-center gap-2 p-10 text-center text-sm text-gray-700">
-            <p className="text-base font-semibold text-gray-900">
-              Pick a device to load the designer.
-            </p>
-            <p className="max-w-md text-gray-600">
-              We only launch Printful after you choose a phone. Return to the picker to lock your Snapcase.
-            </p>
-            <button
-              type="button"
-              onClick={() => setView("picker")}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
-            >
-              Back to picker
-            </button>
+      <div className="relative">
+        {showDesignerSkeleton ? (
+          <div className="pointer-events-none absolute inset-0 z-10 rounded-[var(--radius-2xl)] border border-transparent bg-gradient-to-b from-white/90 via-white/80 to-white/60">
+            <div className="h-full w-full animate-pulse p-4 sm:p-6">
+              <div className="mb-3 h-4 w-32 rounded-full bg-[var(--snap-cloud-border)]" />
+              <div className="mb-4 h-10 w-full rounded-[var(--radius-lg)] bg-[var(--snap-cloud)]" />
+              <div className="h-[calc(100%-3rem)] rounded-[var(--radius-xl)] border border-[var(--snap-cloud-border)] bg-[var(--snap-cloud)]" />
+            </div>
           </div>
-        )}
-      </div>
-
-      <div className="space-y-4">
-        <div
-          className="space-y-2 rounded-3xl border border-gray-100 bg-gray-50 px-5 py-4 text-sm text-gray-700"
-          data-testid="guardrail-card"
-        >
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-            Design status
-          </p>
-          <p className={`text-base font-medium ${guardrailToneClass}`}>
-            {guardrailSummary.message}
-          </p>
-          <p className="text-xs text-gray-500">
-            {ctaState.helperText}
-          </p>
-        </div>
-
-        {shouldShowDesignSummary ? (
-          <div className="space-y-4 rounded-3xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Design summary
-                </p>
-                <p className="text-sm text-gray-700">
-                  Snapshot for checkout. We only show it once data is available.
-                </p>
-              </div>
+        ) : null}
+        <div className="overflow-hidden rounded-[var(--radius-2xl)] border border-[var(--snap-cloud-border)] bg-white shadow-[var(--shadow-md)]">
+          {selectedDevice ? (
+            <EdmEditor
+              key={`${selectedDevice.variantId}-${designerResetToken}`}
+              variantId={selectedDevice.variantId}
+              externalProductId={selectedDevice.externalProductId}
+              onTemplateSaved={handleTemplateSaved}
+              onTemplateHydrated={handleTemplateHydrated}
+              onDesignStatusChange={setEdmSnapshot}
+              onPricingChange={setPricingDetails}
+            />
+          ) : (
+            <div className="flex min-h-[320px] flex-col items-center justify-center gap-2 p-10 text-center text-sm text-gray-700">
+              <p className="text-base font-semibold text-gray-900">
+                Pick a device to load the designer.
+              </p>
+              <p className="max-w-md text-gray-600">
+                We launch the designer after you choose a phone. Return to the picker to pick your Snapcase.
+              </p>
               <button
                 type="button"
-                onClick={handleContinueToCheckout}
-                disabled={ctaState.disabled}
-                className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+                onClick={handleChangeDevice}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
               >
-                {ctaState.disabled ? "Waiting on your upload" : "Continue to checkout"}
+                Back to picker
               </button>
             </div>
-            {designSummary?.exportedImage ? (
-              <div className="relative h-56 w-full overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
-                <Image
-                  src={designSummary.exportedImage}
-                  alt="Saved proof preview"
-                  fill
-                  sizes="(min-width: 1024px) 480px, 100vw"
-                  className="object-cover"
-                  unoptimized
+          )}
+        </div>
+      </div>
+
+      {shouldShowDesignSummary ? (
+        <div className="space-y-[var(--space-4)] rounded-[var(--radius-xl)] border border-[var(--snap-cloud-border)] bg-white p-[var(--space-5)] shadow-[var(--shadow-md)] sm:p-[var(--space-6)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${statusToneStyles[designStatus.tone]}`}
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-2.5 w-2.5 rounded-full bg-current"
                 />
-              </div>
-            ) : null}
-            <dl className="grid gap-3 sm:grid-cols-2 sm:gap-4 text-sm text-gray-800">
-              <div className="flex items-start justify-between gap-3">
+                <span>{designStatus.label}</span>
+              </span>
+              <p className="text-sm text-gray-700">{designStatus.message}</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleContinueToCheckout}
+              disabled={ctaState.disabled}
+              className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--snap-focus-ring)] disabled:cursor-not-allowed disabled:bg-gray-300"
+            >
+              {ctaState.disabled ? "Waiting on your upload" : "Continue to checkout"}
+            </button>
+          </div>
+          {designSummary?.exportedImage ? (
+            <div className="relative w-full max-w-[260px] overflow-hidden rounded-[var(--radius-lg)] border border-[var(--snap-cloud-border)] bg-[var(--snap-cloud)]">
+              <Image
+                src={designSummary.exportedImage}
+                alt="Saved proof preview"
+                fill
+                sizes="(min-width: 1024px) 320px, 100vw"
+                className="object-contain"
+                unoptimized
+              />
+            </div>
+          ) : null}
+          <div className="flex flex-col gap-[var(--space-4)] sm:flex-row sm:items-start">
+            <dl className="grid flex-1 gap-[var(--space-3)] text-sm text-gray-900 sm:grid-cols-2">
+              <div className="space-y-1">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Device
                 </dt>
-                <dd className="text-right font-semibold text-gray-900">
+                <dd className="font-semibold text-gray-900">
                   {summaryDeviceLabel}
                 </dd>
               </div>
-              <div className="flex items-start justify-between gap-3">
+              {finishLabel ? (
+                <div className="space-y-1">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Finish
+                  </dt>
+                  <dd className="font-semibold text-gray-900">{finishLabel}</dd>
+                </div>
+              ) : null}
+              <div className="space-y-1">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Design state
                 </dt>
-                <dd className="text-right text-gray-900">
+                <dd className="font-semibold text-gray-900">
                   {lastTemplateId ? "Design saved" : "Save in the designer"}
                 </dd>
               </div>
-              <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Price
                 </dt>
-                <dd className="text-right text-gray-900">
-                  {priceLabel ?? "Waiting on designer"}
+                <dd className="font-semibold text-gray-900">
+                  {priceLabel ?? "Pending"}
                 </dd>
               </div>
-              <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Last saved
                 </dt>
-                <dd className="text-right text-gray-900">
+                <dd className="font-semibold text-gray-900">
                   {lastSavedLabel ?? "Pending"}
                 </dd>
               </div>
               {lastAttemptLabel ? (
-                <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
                   <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Last checkout attempt
                   </dt>
-                  <dd className="text-right text-gray-900">{lastAttemptLabel}</dd>
+                  <dd className="font-semibold text-gray-900">
+                    {lastAttemptLabel}
+                  </dd>
                 </div>
               ) : null}
             </dl>
           </div>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 
   return (
     <main className="min-h-screen bg-[var(--snap-gray-50)] pb-28 lg:pb-32">
-      <div className="px-4 py-8 sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-10">
+        <div className="sr-only" aria-live="polite">
+          {selectionLiveMessage}
+        </div>
         {view === "picker" ? pickerView : designerView}
       </div>
       {actionBar}
     </main>
   );
 }
+

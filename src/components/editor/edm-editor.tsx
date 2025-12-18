@@ -1688,22 +1688,25 @@ export function EdmEditor({
       />
 
       <div
-        className="relative w-full overflow-hidden rounded-[32px] border border-gray-200 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.12)]"
+        className="relative w-full overflow-hidden rounded-[var(--radius-2xl)] bg-white"
         data-testid="edm-designer-shell"
       >
         <div
-          className="absolute left-0 top-0 z-[3] h-[clamp(60px,8vw,80px)] w-[clamp(108px,14vw,156px)] max-w-[42%] rounded-br-2xl border border-gray-200/80 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.08)]"
-          aria-hidden="true"
+          className="absolute left-0 top-0 z-[3] h-[clamp(60px,8vw,80px)] w-[clamp(108px,14vw,156px)] max-w-[42%]"
           data-testid="printful-product-guard"
-          title="Product tab disabled"
-        />
+          aria-label="Device selection is locked. Change devices from the Snapcase controls above."
+        >
+          <span className="sr-only">
+            Device selection is locked. Change devices from the Snapcase controls above.
+          </span>
+        </div>
         <div
           id={canvasId}
           ref={containerRef}
-          className="h-[min(90vh,900px)] min-h-[640px] w-full bg-gray-900/5"
+          className="h-[min(92vh,960px)] min-h-[680px] w-full bg-gray-900/5"
         />
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-12 bg-gradient-to-b from-white via-white/90 to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-10 bg-gradient-to-b from-white via-white/80 to-transparent"
           aria-hidden="true"
           data-testid="printful-picker-mask"
         />
