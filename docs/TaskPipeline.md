@@ -33,6 +33,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Status | Notes |
 | --- | --- | --- |
+| Sprint04-Task28 | DONE | Added `.github/workflows/ci.yml` to run lint/build on push/PR (Node 20, telemetry disabled), plus docs updates (`docs/PROJECT_MANAGEMENT.md`, `PROGRESS.md`, `docs/AgentReports/Sprint04-Task28.md`). Tests: `npm run lint`, `npm run build`. Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task28-ci-pipeline. |
 | Sprint03-Task29 | Blocked | Hold until Tasks 31-34 land; sponsor walkthrough requires a complete Design + Checkout flow. |
 | Sprint03-Task30 | Blocked | Resume once `/design` stops using the Fabric layout so downstream polish isn't wasted. |
 
