@@ -6,6 +6,7 @@
 - Touched: `src/app/design/page.tsx`.
 
 Deploy (preview): https://snapcase-pgz7j4zcj-snapcase.vercel.app
+Compare: https://github.com/ethtri/SnapCase_App/compare/task/Sprint04-Task18-restore-picker...task/Sprint04-Task21-summary-hotfix
 Branch: `task/Sprint04-Task21-summary-hotfix` (baseline `origin/task/Sprint04-Task18-restore-picker`)
 
 ## Verification
