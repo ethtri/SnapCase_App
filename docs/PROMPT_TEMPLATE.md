@@ -13,12 +13,14 @@ Preflight
 - Treat `Snapcase-Flow-Mockups/*` as read-only; restore any deletions before editing.
 - Copy `.vercel` from the main worktree if missing; run `vercel whoami`.
 - Lint-config preflight: pull the config from `origin/main`; if lint prompts to create one or it is missing after pull, stop and report.
+- Dev alias guard: do not repoint `dev.snapcase.ai` unless approved. Follow `docs/Deployment/Alias_Runbook.md` and use `node scripts/alias-dev.mjs` (dry-run if verifying) so rollback/compare links are logged.
 - Diagnostics hygiene: keep only the final captures; commit relevant `Images/diagnostics/*` or clean them before exit.
 
 Guardrails
 - One worktree per task; no duplicate worktrees or resets; do not touch other worktrees.
 - Do not touch others' stashes; new stashes use `git stash push -m "<TaskID> context"` and are logged in `PROGRESS.md`.
 - No secrets committed to the repo; keep secrets in env only.
+- Do not move `dev.snapcase.ai` without approval + runbook logging; use `scripts/alias-dev.mjs` with rollback noted.
 
 Tasks / DoD
 - [list scoped tasks and Definition of Done for this prompt]

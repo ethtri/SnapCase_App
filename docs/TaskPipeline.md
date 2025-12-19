@@ -10,6 +10,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 - Diagnostics hygiene: keep only final captures; commit the relevant `Images/diagnostics/*` files or clean them before exit.
 - Use `docs/PROMPT_TEMPLATE.md` (strict controls) before editing; for UX prompts default to the mockups + `docs/Responsive_Blueprint.md` instead of scattering across multiple UX docs unless a blocker requires it.
 - Lint config guard: if `npm run lint` prompts to create an ESLint config, do not generate one; pull the existing config from `origin/main` or stop and report if none exists.
+- Dev alias guard: do not repoint `dev.snapcase.ai` unless approved. Follow `docs/Deployment/Alias_Runbook.md` with `node scripts/alias-dev.mjs` (dry-run allowed) and log rollback + compare/PR URLs.
 - `git pull` from the task branch before starting so you have the latest TaskPipeline and docs.
 - Keep changes scoped. Update `PROGRESS.md` and the relevant `docs/AgentReports/` file before handoff; leave the tree clean.
 

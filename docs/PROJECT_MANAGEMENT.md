@@ -27,6 +27,7 @@ This playbook defines how we plan, document, and collaborate with AI coding agen
 - **Diagnostics hygiene:** Keep only the final relevant captures. Commit the last set to `Images/diagnostics/` or clean them before exit so the tree stays tidy.
 - **Worktree & lint discipline:** One worktree per task, max 3. Run `git worktree list` + `git status` before/after prompts; stop if another worktree is dirty. Copy `.vercel` from the main worktree if missing, run `vercel whoami`, and pull lint config from `origin/main` (never generate a new one).
 - **Stash + handoff:** Name stashes `git stash push -m "<TaskID> context"` and log them in `PROGRESS.md`; never drop or edit others' stashes. At handoff, either commit/push the task branch or stash with the Task ID - never leave a dirty tree.
+- **Dev alias guard:** Only promote `dev.snapcase.ai` from `main` or a sponsor-approved branch. Use `docs/Deployment/Alias_Runbook.md` and `node scripts/alias-dev.mjs` (dry-run allowed) to capture rollback + compare/PR URLs; do not bypass lint/build or the baseline check.
 - **Active prompt cap:** Limit concurrent engineering prompts to **two**. Start a third only after one branch has been merged, pushed for review, or stashed. The PM should track active branches in `PROGRESS.md`.
 - **Prompt boilerplate:** Include the preflight checklist (clean tree, correct branch, mock protection, diagnostics hygiene) in every engineering prompt so reviewers can confirm gates were applied.
 
