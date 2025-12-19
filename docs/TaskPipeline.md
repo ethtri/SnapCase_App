@@ -1,4 +1,4 @@
-# Task Pipeline Tracker
+﻿# Task Pipeline Tracker
 
 This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbatim into a new Codex chat. Move items to **Archive** once their AgentReports land in `docs/AgentReports/`.
 
@@ -40,6 +40,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 
 | Task ID | Status | Notes |
 | --- | --- | --- |
+| Sprint04-Task22 | DONE | Summary card polished to status chip/helper + device + price (finish row removed); not-ready CTA copy now “Add your design to continue”; picker/shell/CTA gating unchanged. Tests: `npm run lint`, `npm run build`. Diagnostics: `Images/diagnostics/20251219T023220Z-design-{picker,shell}-{desktop,mobile}.png`. Preview: https://snapcase-ikedc1s8f-snapcase.vercel.app. Dev alias unchanged; rollback target: https://snapcase-hwbcudj5f-snapcase.vercel.app. |
 | Sprint04-Task21 | DONE | Simplified `/design` summary card to status chip + helper, device/finish, price; picker/shell/CTA gating unchanged. Tests: `npm run lint`, `npm run build`. Diagnostics: `Images/diagnostics/20251218T163146-design-{picker,shell}-{desktop,mobile}.png`. Preview: https://snapcase-pgz7j4zcj-snapcase.vercel.app. Branch: `task/Sprint04-Task21-summary-hotfix`. Dev alias untouched. |
 | Sprint04-Task18 | DONE | Restored Screen 1 picker (Task14 baseline: deterministic sort, search/suggestions, brand tabs incl Pixel/More, Option A FAB/ActionBar) and kept Task17 design shell polish (change-device controls, merged status chip + summary, designer skeleton, transparent picker guard). Diagnostics: `Images/diagnostics/20251218T212401-design-{picker,shell}-{desktop,mobile}.png`. Tests: `npm run lint`, `npm run build`. AgentReport: `docs/AgentReports/Sprint04-Task18.md`. Branch: `task/Sprint04-Task18-restore-picker` (C:\Repos\SnapCase_App_task18). OneDrive worktree remains dirty per instructions. |
 | Sprint04-Task07 | DONE | Option A picker + editor-only flow shipped (sticky CTA + summary chip, blank proof box removed). Diagnostics: `Images/diagnostics/2025-12-16T02-05-51-402Z-design-after-{picker,editor}.png` + `...-status.json`. Tests: `npm run build` (pass); `npm run lint` blocked (no ESLint config on origin/main). See `docs/AgentReports/Sprint04-Task07.md`. |
