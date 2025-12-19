@@ -1,6 +1,5 @@
 ﻿"use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -160,18 +159,6 @@ function formatPrice(
   }
 }
 
-function formatDateTime(timestamp: number | null | undefined): string | null {
-  if (!timestamp) {
-    return null;
-  }
-  return new Date(timestamp).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function DesignPage(): JSX.Element {
   const router = useRouter();
   const [catalogStatus, setCatalogStatus] = useState<CatalogStatus>("loading");
@@ -206,7 +193,6 @@ export default function DesignPage(): JSX.Element {
   );
   const [pricingDetails, setPricingDetails] =
     useState<PrintfulPricingDetails | null>(null);
-  const [lastTemplateId, setLastTemplateId] = useState<string | null>(null);
   const [designerResetToken, setDesignerResetToken] = useState(0);
   const [designerReady, setDesignerReady] = useState(false);
   const [brandFilter, setBrandFilter] = useState<BrandFilter>("all");
@@ -300,9 +286,6 @@ export default function DesignPage(): JSX.Element {
       return;
     }
     setDesignSummary(context);
-    if (context.templateId) {
-      setLastTemplateId(context.templateId);
-    }
     const matchByVariant =
       typeof context.variantId === "number"
         ? deviceLookup.get(context.variantId) ?? null
@@ -385,7 +368,6 @@ export default function DesignPage(): JSX.Element {
     setSelectedDevice(entry);
     setEdmSnapshot(null);
     setPricingDetails(null);
-    setLastTemplateId(null);
     setDesignerResetToken((token) => token + 1);
     lastPersistedVariantRef.current = entry.variantId;
 
@@ -417,7 +399,6 @@ export default function DesignPage(): JSX.Element {
     setSelectedDevice(null);
     setEdmSnapshot(null);
     setPricingDetails(null);
-    setLastTemplateId(null);
     setDesignerResetToken((token) => token + 1);
     setDesignSummary(null);
     lastPersistedVariantRef.current = null;
@@ -515,8 +496,6 @@ export default function DesignPage(): JSX.Element {
           persistLocally();
         }
       }
-
-      setLastTemplateId(templateId);
       if (entry) {
         setSelectedDevice(entry);
       }
@@ -944,12 +923,6 @@ export default function DesignPage(): JSX.Element {
 
   const shouldShowDesignSummary = view === "designer" && Boolean(selectedDevice);
 
-  const lastSavedLabel = designSummary?.templateStoredAt
-    ? formatDateTime(designSummary.templateStoredAt)
-    : null;
-
-  const lastAttemptLabel = formatDateTime(designSummary?.lastCheckoutAttemptAt);
-
   const actionBar = (
     <>
       <div className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 pt-2 lg:hidden">
@@ -1333,7 +1306,7 @@ export default function DesignPage(): JSX.Element {
 
       {shouldShowDesignSummary ? (
         <div className="space-y-[var(--space-4)] rounded-[var(--radius-xl)] border border-[var(--snap-cloud-border)] bg-white p-[var(--space-5)] shadow-[var(--shadow-md)] sm:p-[var(--space-6)]">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3">
               <span
                 className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${statusToneStyles[designStatus.tone]}`}
@@ -1346,81 +1319,41 @@ export default function DesignPage(): JSX.Element {
               </span>
               <p className="text-sm text-gray-700">{designStatus.message}</p>
             </div>
-            <button
-              type="button"
-              onClick={handleContinueToCheckout}
-              disabled={ctaState.disabled}
-              className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--snap-focus-ring)] disabled:cursor-not-allowed disabled:bg-gray-300"
-            >
-              {ctaState.disabled ? "Waiting on your upload" : "Continue to checkout"}
-            </button>
-          </div>
-          {designSummary?.exportedImage ? (
-            <div className="relative w-full max-w-[260px] overflow-hidden rounded-[var(--radius-lg)] border border-[var(--snap-cloud-border)] bg-[var(--snap-cloud)]">
-              <Image
-                src={designSummary.exportedImage}
-                alt="Saved proof preview"
-                fill
-                sizes="(min-width: 1024px) 320px, 100vw"
-                className="object-contain"
-                unoptimized
-              />
-            </div>
-          ) : null}
-          <div className="flex flex-col gap-[var(--space-4)] sm:flex-row sm:items-start">
-            <dl className="grid flex-1 gap-[var(--space-3)] text-sm text-gray-900 sm:grid-cols-2">
-              <div className="space-y-1">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Device
-                </dt>
-                <dd className="font-semibold text-gray-900">
-                  {summaryDeviceLabel}
-                </dd>
-              </div>
-              {finishLabel ? (
-                <div className="space-y-1">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Finish
-                  </dt>
-                  <dd className="font-semibold text-gray-900">{finishLabel}</dd>
-                </div>
-              ) : null}
-              <div className="space-y-1">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Design state
-                </dt>
-                <dd className="font-semibold text-gray-900">
-                  {lastTemplateId ? "Design saved" : "Save in the designer"}
-                </dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="space-y-1 text-right">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Price
-                </dt>
-                <dd className="font-semibold text-gray-900">
+                </p>
+                <p className="text-base font-semibold text-gray-900">
                   {priceLabel ?? "Pending"}
-                </dd>
+                </p>
               </div>
+              <button
+                type="button"
+                onClick={handleContinueToCheckout}
+                disabled={ctaState.disabled}
+                className="inline-flex items-center justify-center rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--snap-focus-ring)] disabled:cursor-not-allowed disabled:bg-gray-300"
+              >
+                {ctaState.label}
+              </button>
+            </div>
+          </div>
+          <dl className="grid gap-[var(--space-4)] text-sm text-gray-900 sm:grid-cols-2">
+            <div className="space-y-1">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                Device
+              </dt>
+              <dd className="font-semibold text-gray-900">{summaryDeviceLabel}</dd>
+            </div>
+            {finishLabel ? (
               <div className="space-y-1">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Last saved
+                  Finish
                 </dt>
-                <dd className="font-semibold text-gray-900">
-                  {lastSavedLabel ?? "Pending"}
-                </dd>
+                <dd className="font-semibold text-gray-900">{finishLabel}</dd>
               </div>
-              {lastAttemptLabel ? (
-                <div className="space-y-1">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Last checkout attempt
-                  </dt>
-                  <dd className="font-semibold text-gray-900">
-                    {lastAttemptLabel}
-                  </dd>
-                </div>
-              ) : null}
-            </dl>
-          </div>
+            ) : null}
+          </dl>
         </div>
       ) : null}
     </div>

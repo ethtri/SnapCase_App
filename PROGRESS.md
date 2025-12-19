@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: December 16, 2025
+**Last Updated**: December 18, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -248,6 +248,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Latest Updates
 
+  - 2025-12-18: Sprint04-Task21 simplified the `/design` summary card to only show the status chip + helper, device/finish, and price while keeping the Task18 picker/shell untouched. Tests: `npm run lint`, `npm run build`. Preview: https://snapcase-pgz7j4zcj-snapcase.vercel.app. Diagnostics: `Images/diagnostics/20251218T163146-design-{picker,shell}-{desktop,mobile}.png`. Dev alias untouched (preview only).
   - 2025-12-18: Sprint04-Task18 restored the Screen 1 picker (Task14 baseline: deterministic sort, search + suggestions, brand tabs incl. Pixel/More, picker skeleton/error handling, Option A ActionBar/FAB gating) while keeping the Task17 design shell polish (change-device controls, merged status chip + summary, designer skeleton, transparent picker guard). Branch: task/Sprint04-Task18-restore-picker (`C:\Repos\SnapCase_App_task18`). AgentReport: docs/AgentReports/Sprint04-Task18.md. Diagnostics: Images/diagnostics/20251218T212401-design-{picker,shell}-{desktop,mobile}.png. Tests: `npm run lint`, `npm run build`. Deploy: https://snapcase-bhrszgl42-snapcase.vercel.app aliased to https://dev.snapcase.ai (health endpoint absent, /design 200). Note: OneDrive worktree remains dirty/untouched per instructions. Compare after push: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task18-restore-picker.
   - 2025-12-18: Sprint04-Task16 controls audit tightened PM/TaskPipeline/Prompt template gates (clean-tree playbook, Snapcase-Flow-Mockups read-only, C:\Repos\SnapCase_App only, diagnostics hygiene, UX refs default to mockups + Responsive_Blueprint), added explicit agent role guidance in the prompt template, added the copy/paste preflight snippet, and refreshed the Deployment Guide with the Windows remote-builder reminder plus a concise alias flow. Branch: task/Sprint04-Task16-controls-audit (C:\Repos\SnapCase_App). AgentReport: docs/AgentReports/Sprint04-Task16.md. Compare after push: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task16-controls-audit. Tests: n/a (docs).
   - 2025-12-16: Sprint04-Task07 (Option A flow) implemented. `/design` now uses the dedicated picker screen (full-width grid + sticky ActionBar/FAB) before an editor-only view with the compact “Your device: <model> · Change device” summary chip. The empty Proof/Checkout box is gone; the design summary card now renders only when real data (template/price/thumbnail) exists. Diagnostics: Images/diagnostics/2025-12-16T02-05-51-402Z-design-after-picker.png, Images/diagnostics/2025-12-16T02-05-51-402Z-design-after-editor.png, Images/diagnostics/2025-12-16T02-05-51-402Z-design-after-status.json. Tests: `npm run lint` (clean) and `npm run build` (clean). Docs refreshed: docs/Responsive_Blueprint.md, docs/SnapCase_App_Prototype.MD, docs/AgentReports/Sprint04-Task07.md, TaskPipeline.md, PROGRESS.md.
