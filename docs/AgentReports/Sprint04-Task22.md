@@ -20,8 +20,11 @@
 
 ## Deployments
 - Preview: https://snapcase-ikedc1s8f-snapcase.vercel.app
-- Dev alias: unchanged (rollback target retained) https://snapcase-hwbcudj5f-snapcase.vercel.app
+- Dev alias: https://dev.snapcase.ai -> https://snapcase-ikedc1s8f-snapcase.vercel.app  
+  - Command used: `vercel alias set https://snapcase-ikedc1s8f-snapcase.vercel.app dev.snapcase.ai --scope snapcase`  
+  - Rollback: `vercel alias set https://snapcase-hwbcudj5f-snapcase.vercel.app dev.snapcase.ai --scope snapcase`
 - Compare: https://github.com/ethtri/SnapCase_App/compare/task/Sprint04-Task21-summary-hotfix...task/Sprint04-Task22-summary-cta-polish
 
 ## Notes / Follow-ups
-- Dev alias not updated pending sponsor approval; use the rollback target above if aliasing is requested later.
+
+- Verification (dev): `curl -I https://dev.snapcase.ai/design` 200; screenshot `Images/diagnostics/20251219T052059Z-dev-design-shell-desktop.png` (modern summary + CTA copy). Await sponsor feedback before further alias changes.
