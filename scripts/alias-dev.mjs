@@ -204,7 +204,7 @@ async function main() {
   console.log(`Requested target: ${target}`);
 
   const currentTarget = fetchCurrentDevTarget(args.scope);
-  const rollback = `vercel alias set ${currentTarget} dev.snapcase.ai --scope ${args.scope} --yes`;
+  const rollback = `vercel alias set ${currentTarget} dev.snapcase.ai --scope ${args.scope}`;
 
   console.log(`Current dev target: ${currentTarget}`);
   console.log(`Rollback command: ${rollback}`);
@@ -227,7 +227,6 @@ async function main() {
     'dev.snapcase.ai',
     '--scope',
     args.scope,
-    '--yes',
   ];
 
   if (args.dryRun) {
