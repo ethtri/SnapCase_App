@@ -752,7 +752,7 @@ export default function DesignPage(): JSX.Element {
     ) {
       return {
         id: "printful-blocked",
-        label: "Fix the issues above",
+        label: "Add your design to continue",
         helperText: "Resolve the issues, then continue to checkout.",
         disabled: true,
         source: "printful",
@@ -845,11 +845,6 @@ export default function DesignPage(): JSX.Element {
     }
     handleContinueToCheckout();
   }, [handleContinueToCheckout, selectedDevice, view]);
-
-  const finishLabel =
-    selectedDevice?.caseType === "snap"
-      ? "Snap case"
-      : selectedDevice?.caseType ?? null;
 
   const designStatus = useMemo(
     (): { tone: GuardrailSummary["tone"]; label: string; message: string } => {
@@ -1305,28 +1300,20 @@ export default function DesignPage(): JSX.Element {
       </div>
 
       {shouldShowDesignSummary ? (
-        <div className="space-y-[var(--space-4)] rounded-[var(--radius-xl)] border border-[var(--snap-cloud-border)] bg-white p-[var(--space-5)] shadow-[var(--shadow-md)] sm:p-[var(--space-6)]">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <span
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${statusToneStyles[designStatus.tone]}`}
-              >
+        <div className="rounded-[var(--radius-xl)] border border-[var(--snap-cloud-border)] bg-white shadow-[var(--shadow-md)]">
+          <div className="space-y-[var(--space-4)] p-[var(--space-5)] sm:p-[var(--space-6)]">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <span
-                  aria-hidden="true"
-                  className="h-2.5 w-2.5 rounded-full bg-current"
-                />
-                <span>{designStatus.label}</span>
-              </span>
-              <p className="text-sm text-gray-700">{designStatus.message}</p>
-            </div>
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="space-y-1 text-right">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Price
-                </p>
-                <p className="text-base font-semibold text-gray-900">
-                  {priceLabel ?? "Pending"}
-                </p>
+                  className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${statusToneStyles[designStatus.tone]}`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="h-2.5 w-2.5 rounded-full bg-current"
+                  />
+                  <span>{designStatus.label}</span>
+                </span>
+                <p className="text-sm text-gray-700">{designStatus.message}</p>
               </div>
               <button
                 type="button"
@@ -1337,23 +1324,21 @@ export default function DesignPage(): JSX.Element {
                 {ctaState.label}
               </button>
             </div>
-          </div>
-          <dl className="grid gap-[var(--space-4)] text-sm text-gray-900 sm:grid-cols-2">
-            <div className="space-y-1">
-              <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Device
-              </dt>
-              <dd className="font-semibold text-gray-900">{summaryDeviceLabel}</dd>
-            </div>
-            {finishLabel ? (
+            <dl className="grid gap-[var(--space-4)] text-sm text-gray-900 sm:grid-cols-2">
               <div className="space-y-1">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Finish
+                  Device
                 </dt>
-                <dd className="font-semibold text-gray-900">{finishLabel}</dd>
+                <dd className="font-semibold text-gray-900">{summaryDeviceLabel}</dd>
               </div>
-            ) : null}
-          </dl>
+              <div className="space-y-1">
+                <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Price
+                </dt>
+                <dd className="font-semibold text-gray-900">{priceLabel ?? "Pending"}</dd>
+              </div>
+            </dl>
+          </div>
         </div>
       ) : null}
     </div>
