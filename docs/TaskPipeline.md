@@ -7,6 +7,7 @@ This tracker lists ready-to-run prompts. Copy the **Agent Kickoff** line verbati
 - Stop if `git status` is not clean or another worktree is dirty. If dirty: restore any `Snapcase-Flow-Mockups/*` deletions from `origin/main`, delete or stash stray diagnostics/unrelated files, then rerun `git status` before proceeding. Halt on any rebase/merge in progress.
 - Treat `Snapcase-Flow-Mockups/*` as read-only reference assets; restore deletions before editing.
 - Run `git worktree list` (cap at 3) + `git status` before editing; stash cleanup uses `git stash push -m "<TaskID> context"`.
+- Run `npm run preflight` before editing; use `npm run preflight:full` for release or alias work.
 - Diagnostics hygiene: keep only final captures; commit the relevant `Images/diagnostics/*` files or clean them before exit.
 - Use `docs/PROMPT_TEMPLATE.md` (strict controls) before editing; for UX prompts default to the mockups + `docs/Responsive_Blueprint.md` instead of scattering across multiple UX docs unless a blocker requires it.
 - Lint config guard: if `npm run lint` prompts to create an ESLint config, do not generate one; pull the existing config from `origin/main` or stop and report if none exists.

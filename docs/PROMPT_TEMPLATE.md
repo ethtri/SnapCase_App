@@ -10,6 +10,7 @@ Context
 
 Preflight
 - Run `git worktree list` (cap at 3) then `git status`; stop if any worktree is dirty or if rebase/merge is in progress. If dirty: restore `Snapcase-Flow-Mockups/*` deletions from `origin/main`, delete or stash stray diagnostics/unrelated files, rerun `git status` before proceeding.
+- Run `npm run preflight` before editing.
 - Treat `Snapcase-Flow-Mockups/*` as read-only; restore any deletions before editing.
 - Copy `.vercel` from the main worktree if missing; run `vercel whoami`.
 - Lint-config preflight: pull the config from `origin/main`; if lint prompts to create one or it is missing after pull, stop and report.

@@ -138,6 +138,7 @@ Deliverables:
 - Stop if `git status` isn't clean. If dirty: restore `Snapcase-Flow-Mockups/*` from `origin/main`, delete or stash stray diagnostics/unrelated files, rerun `git status`.
 - Treat `Snapcase-Flow-Mockups/*` as read-only; restore any deletions before editing.
 - Run `git worktree list` (max 3) + `git status`; halt if another worktree is dirty or if rebase/merge is in progress.
+- Run `npm run preflight` before editing; use `npm run preflight:full` for release or alias work.
 - Keep diagnostics tidy: save only the final captures in `Images/diagnostics/` or clean them before exit.
 
 ---
