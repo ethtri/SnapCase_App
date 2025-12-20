@@ -19,8 +19,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 ### Current Blockers
 
 - Dev alias: dev.snapcase.ai points to https://snapcase-ikedc1s8f-snapcase.vercel.app (rollback: https://snapcase-hwbcudj5f-snapcase.vercel.app; verified 2025-12-20).
-- Worktree hygiene: main is clean; active task worktree remains at C:\Repos\SnapCase_App_task22 (dirty). C:\Repos\SnapCase_App_task24 removed, but .git\worktrees\SnapCase_App_task24 cleanup failed with "Permission denied". C:\Repos\SnapCase_App_task20 deletion is still blocked by an external lock.
-- OneDrive stub cleanup pending: C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App delete failed due to locked C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App\.git\objects\pack\pack-d5f3ae0e2298870b98f03af9d6113c6d884fedfc.pack; retry after handles clear.
+- Cleanup pending (non-blocking): OneDrive stub folder `C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App` still exists but is no longer a worktree; remove once handles clear.
 
 ### End-of-Day Snapshot (2025-12-20)
 - Sponsor feedback still open: /design summary card feels dated and redundant; remove the helper badge and redesign later. Task08 persistence flow (checkout -> back to design) not yet verified on dev.
@@ -30,6 +29,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Recently Resolved
 
+- **2025-12-20: Hygiene cleanup:** Deleted `C:\Repos\SnapCase_App_task20`; worktrees remain clean (`C:\Repos\SnapCase_App_main`, `C:\Repos\SnapCase_App_task22`, `C:\Repos\SnapCase_App_task32`). OneDrive stub removal still pending once handles clear.
 - **2025-12-19: Sprint04-Task35 preflight/alias guardrails:** Tightened the prompt template with mandatory fail-fast preflight language and updated `scripts/alias-dev.mjs` to auto-refresh PROGRESS after real alias changes (no updates on dry-run; warns but does not fail on update errors). Verification: `npm run preflight`, `node scripts/alias-dev.mjs --target https://snapcase-ikedc1s8f-snapcase.vercel.app --allow-branch task/Sprint04-Task35-preflight-alias-guard-tighten --dry-run` (PROGRESS unchanged). Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task35-preflight-alias-guard-tighten.
 - **2025-12-20: Sprint04-Task34 post-mortem:** Completed incident post-mortem analysis for dev alias rollback and time loss (Dec 18-20). Documented root causes (alias logging gaps, worktree violations, doc drift), timeline, fixes, and prevention measures. See `docs/Engineering/Incident_Postmortem_2025-12-20.md` for full analysis.
 - **2025-12-20: Sprint04-Task33 dev rollback:** Re-aliased `dev.snapcase.ai` to the Task22 stable build `https://snapcase-ikedc1s8f-snapcase.vercel.app` via `vercel alias set https://snapcase-ikedc1s8f-snapcase.vercel.app dev.snapcase.ai --scope snapcase`. Alias check: `vercel alias list --scope snapcase | rg dev.snapcase.ai` shows `snapcase-ikedc1s8f-snapcase.vercel.app` mapped to `dev.snapcase.ai`. Verification: `curl -I https://dev.snapcase.ai/design` (200 OK). Screenshot: `Images/diagnostics/20251220T033101Z-dev-design.png` from `https://dev.snapcase.ai/design?v=20251220T033101Z`.
