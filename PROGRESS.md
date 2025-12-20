@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: December 19, 2025
+**Last Updated**: December 20, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -18,12 +18,14 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Current Blockers
 
-- Dev alias: dev.snapcase.ai points to https://snapcase-ikedc1s8f-snapcase.vercel.app (rollback: https://snapcase-hwbcudj5f-snapcase.vercel.app).
+- Dev alias: dev.snapcase.ai points to https://snapcase-ikedc1s8f-snapcase.vercel.app (rollback: https://snapcase-hwbcudj5f-snapcase.vercel.app; verified 2025-12-20).
 - Worktree hygiene: main is clean; active task worktree remains at C:\Repos\SnapCase_App_task22 (dirty). C:\Repos\SnapCase_App_task24 removed, but .git\worktrees\SnapCase_App_task24 cleanup failed with "Permission denied". C:\Repos\SnapCase_App_task20 deletion is still blocked by an external lock.
 - OneDrive stub cleanup pending: C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App delete failed due to locked C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App\.git\objects\pack\pack-d5f3ae0e2298870b98f03af9d6113c6d884fedfc.pack; retry after handles clear.
 
 ### Recently Resolved
 
+- **2025-12-20: Sprint04-Task34 post-mortem:** Completed incident post-mortem analysis for dev alias rollback and time loss (Dec 18-20). Documented root causes (alias logging gaps, worktree violations, doc drift), timeline, fixes, and prevention measures. See `docs/Engineering/Incident_Postmortem_2025-12-20.md` for full analysis.
+- **2025-12-20: Sprint04-Task33 dev rollback:** Re-aliased `dev.snapcase.ai` to the Task22 stable build `https://snapcase-ikedc1s8f-snapcase.vercel.app` via `vercel alias set https://snapcase-ikedc1s8f-snapcase.vercel.app dev.snapcase.ai --scope snapcase`. Alias check: `vercel alias list --scope snapcase | rg dev.snapcase.ai` shows `snapcase-ikedc1s8f-snapcase.vercel.app` mapped to `dev.snapcase.ai`. Verification: `curl -I https://dev.snapcase.ai/design` (200 OK). Screenshot: `Images/diagnostics/20251220T033101Z-dev-design.png` from `https://dev.snapcase.ai/design?v=20251220T033101Z`.
 - **2025-12-19: Sprint04-Task27 preflight automation:** Added `scripts/preflight.mjs` to enforce worktree count, OneDrive checks, clean status, and branch guard with `--allow-main`/`--full` flags; added `npm run preflight` scripts and documented usage in `docs/PROJECT_MANAGEMENT.md`, `docs/PROMPT_TEMPLATE.md`, and `docs/TaskPipeline.md`. Verification: `npm run preflight` (pass). Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task27-preflight-automation.
 - **2025-12-19: Sprint04-Task28 CI pipeline:** Added a minimal GitHub Actions workflow for `npm run lint` + `npm run build` on push/PR (Node 20, `NEXT_TELEMETRY_DISABLED=1`), documented the CI gate in `docs/PROJECT_MANAGEMENT.md`, and logged `docs/AgentReports/Sprint04-Task28.md`. Preflight: merged `origin/main` (no changes), `scripts/preflight.mjs` missing, `npm run preflight` still fails (missing script). Local verification: `npm ci` (warnings/vulns noted; no fixes applied); `npm run lint` (pass) and `npm run build` (pass). Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task28-ci-pipeline.
 - **2025-12-19: Sprint04-Task26 hygiene/tracking cleanup:** Removed the dirty standalone clone `C:\Repos\SnapCase_App` and worktree `C:\Repos\SnapCase_App_task25`; current clean worktrees: `C:\Repos\SnapCase_App_main`, `C:\Repos\SnapCase_App_task22`, `C:\Repos\SnapCase_App_task24`. Deletion of `C:\Repos\SnapCase_App_task20` and OneDrive stub `C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App` is blocked by locked files (`.git\objects\pack\pack-d5f3ae0e2298870b98f03af9d6113c6d884fedfc.pack`, `.git\objects\pack\pack-ff9d32288bd57239ee0ac45907d911ca32b4d138.pack`, `worktrees\SnapCase_App_task20\COMMIT_EDITMSG*`); pending manual unlock.
@@ -787,7 +789,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ---
 
-**Last Updated**: December 10, 2025
+**Last Updated**: December 20, 2025
 
 **Next Review**: Weekly
 
