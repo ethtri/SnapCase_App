@@ -14,3 +14,6 @@
 
 ## Notes
 - Dry-run only; no alias changes. Baseline confirmation answered via stdin to avoid interactive prompt.
+
+## Links
+- Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task35-preflight-alias-guard-tighten
