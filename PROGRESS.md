@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: December 19, 2025
+**Last Updated**: December 20, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -24,6 +24,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Recently Resolved
 
+- **2025-12-20: Sprint04-Task29 Task08 rebase recovery (rollback):** Rolled `dev.snapcase.ai` back to the stable Task22 build (`https://snapcase-ikedc1s8f-snapcase.vercel.app`) after Task08 regression; verification `vercel alias list --scope snapcase` shows `dev.snapcase.ai` attached to the stable deployment and `curl -I https://dev.snapcase.ai/design` returns `200`. Screenshot: `Images/diagnostics/2025-12-20T00-13-12-104Z-dev-design.png`.
 - **2025-12-19: Sprint04-Task27 preflight automation:** Added `scripts/preflight.mjs` to enforce worktree count, OneDrive checks, clean status, and branch guard with `--allow-main`/`--full` flags; added `npm run preflight` scripts and documented usage in `docs/PROJECT_MANAGEMENT.md`, `docs/PROMPT_TEMPLATE.md`, and `docs/TaskPipeline.md`. Verification: `npm run preflight` (pass). Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task27-preflight-automation.
 - **2025-12-19: Sprint04-Task28 CI pipeline:** Added a minimal GitHub Actions workflow for `npm run lint` + `npm run build` on push/PR (Node 20, `NEXT_TELEMETRY_DISABLED=1`), documented the CI gate in `docs/PROJECT_MANAGEMENT.md`, and logged `docs/AgentReports/Sprint04-Task28.md`. Preflight: merged `origin/main` (no changes), `scripts/preflight.mjs` missing, `npm run preflight` still fails (missing script). Local verification: `npm ci` (warnings/vulns noted; no fixes applied); `npm run lint` (pass) and `npm run build` (pass). Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task28-ci-pipeline.
 - **2025-12-19: Sprint04-Task26 hygiene/tracking cleanup:** Removed the dirty standalone clone `C:\Repos\SnapCase_App` and worktree `C:\Repos\SnapCase_App_task25`; current clean worktrees: `C:\Repos\SnapCase_App_main`, `C:\Repos\SnapCase_App_task22`, `C:\Repos\SnapCase_App_task24`. Deletion of `C:\Repos\SnapCase_App_task20` and OneDrive stub `C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App` is blocked by locked files (`.git\objects\pack\pack-d5f3ae0e2298870b98f03af9d6113c6d884fedfc.pack`, `.git\objects\pack\pack-ff9d32288bd57239ee0ac45907d911ca32b4d138.pack`, `worktrees\SnapCase_App_task20\COMMIT_EDITMSG*`); pending manual unlock.
