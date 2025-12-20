@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: December 19, 2025
+**Last Updated**: December 20, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -18,12 +18,13 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Current Blockers
 
-- Dev alias: dev.snapcase.ai points to https://snapcase-ikedc1s8f-snapcase.vercel.app (rollback: https://snapcase-hwbcudj5f-snapcase.vercel.app).
-- Worktree hygiene: main is clean; active task worktree remains at C:\Repos\SnapCase_App_task22 (dirty). C:\Repos\SnapCase_App_task24 removed, but .git\worktrees\SnapCase_App_task24 cleanup failed with "Permission denied". C:\Repos\SnapCase_App_task20 deletion is still blocked by an external lock.
+- Dev alias: dev.snapcase.ai points to https://snapcase-m33zfqs65-snapcase.vercel.app (rollback: https://snapcase-ikedc1s8f-snapcase.vercel.app).
+- Worktree hygiene: main is clean; active worktrees at C:\Repos\SnapCase_App_task22 and C:\Repos\SnapCase_App_task32 are clean. C:\Repos\SnapCase_App_task24 removed, but .git\worktrees\SnapCase_App_task24 cleanup failed with "Permission denied". C:\Repos\SnapCase_App_task20 deletion is still blocked by an external lock.
 - OneDrive stub cleanup pending: C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App delete failed due to locked C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App\.git\objects\pack\pack-d5f3ae0e2298870b98f03af9d6113c6d884fedfc.pack; retry after handles clear.
 
 ### Recently Resolved
 
+- **2025-12-20: Sprint04-Task32 Task08 recovery:** Restored save/resume pricing context in `/design` and `/checkout` from `wip/dirty-backup-20251219` (commit `c988d88`) scoped to `src/lib/design-context.ts`, `src/app/design/page.tsx`, and `src/app/checkout/page.tsx`. Tests: `npm run lint`, `npm run build`. Preview: https://snapcase-m33zfqs65-snapcase.vercel.app; dev alias set to that target (rollback: https://snapcase-ikedc1s8f-snapcase.vercel.app). Verification: `curl -I https://dev.snapcase.ai/design` (200) + screenshot `Images/diagnostics/2025-12-20T02-12-34-390Z-dev-design-cachebust.png`; diagnostics `Images/diagnostics/task32-dev-diagnostics.json`. Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task32-task08-recovery.
 - **2025-12-19: Sprint04-Task27 preflight automation:** Added `scripts/preflight.mjs` to enforce worktree count, OneDrive checks, clean status, and branch guard with `--allow-main`/`--full` flags; added `npm run preflight` scripts and documented usage in `docs/PROJECT_MANAGEMENT.md`, `docs/PROMPT_TEMPLATE.md`, and `docs/TaskPipeline.md`. Verification: `npm run preflight` (pass). Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task27-preflight-automation.
 - **2025-12-19: Sprint04-Task28 CI pipeline:** Added a minimal GitHub Actions workflow for `npm run lint` + `npm run build` on push/PR (Node 20, `NEXT_TELEMETRY_DISABLED=1`), documented the CI gate in `docs/PROJECT_MANAGEMENT.md`, and logged `docs/AgentReports/Sprint04-Task28.md`. Preflight: merged `origin/main` (no changes), `scripts/preflight.mjs` missing, `npm run preflight` still fails (missing script). Local verification: `npm ci` (warnings/vulns noted; no fixes applied); `npm run lint` (pass) and `npm run build` (pass). Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task28-ci-pipeline.
 - **2025-12-19: Sprint04-Task26 hygiene/tracking cleanup:** Removed the dirty standalone clone `C:\Repos\SnapCase_App` and worktree `C:\Repos\SnapCase_App_task25`; current clean worktrees: `C:\Repos\SnapCase_App_main`, `C:\Repos\SnapCase_App_task22`, `C:\Repos\SnapCase_App_task24`. Deletion of `C:\Repos\SnapCase_App_task20` and OneDrive stub `C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App` is blocked by locked files (`.git\objects\pack\pack-d5f3ae0e2298870b98f03af9d6113c6d884fedfc.pack`, `.git\objects\pack\pack-ff9d32288bd57239ee0ac45907d911ca32b4d138.pack`, `worktrees\SnapCase_App_task20\COMMIT_EDITMSG*`); pending manual unlock.
@@ -243,6 +244,7 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 
 ### Latest Updates
 
+  - 2025-12-20: Sprint04-Task32 Task08 recovery: restored save/resume pricing context (design + checkout), deployed preview https://snapcase-m33zfqs65-snapcase.vercel.app, and aliased dev to that target (rollback: https://snapcase-ikedc1s8f-snapcase.vercel.app). Verification: `curl -I https://dev.snapcase.ai/design` (200) + screenshot `Images/diagnostics/2025-12-20T02-12-34-390Z-dev-design-cachebust.png`. Diagnostics: `Images/diagnostics/task32-dev-diagnostics.json`.
   - 2025-12-19: Sprint04-Task31 stabilization clean: archived dirty main worktree to wip/dirty-backup-20251219 and task24 cleanup to wip/dirty-backup-20251219-task24; restored main to origin/main (clean). Worktrees now C:\Repos\SnapCase_App_main (main) and C:\Repos\SnapCase_App_task22 (task/Sprint04-Task22-summary-cta-polish). Worktree metadata cleanup blocked at .git\worktrees\SnapCase_App_task24 (Permission denied). OneDrive stub deletion failed on C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App\.git\objects\pack\pack-d5f3ae0e2298870b98f03af9d6113c6d884fedfc.pack.
   - 2025-12-19: Hygiene follow-up: manual delete of `C:\Repos\SnapCase_App_task20` failed due to a file lock (in use by another process). Logged as a deferred cleanup risk; retry deletion after handles clear. No product or alias changes.
   - 2025-12-18: Sprint04-Task23 dev alias guard added and executed. Script `scripts/alias-dev.mjs` enforces clean git + main/sponsor-approved branch (override via `--allow-branch`), reruns lint/build, and prompts for the Screen 1/2 baseline; runbook: `docs/Deployment/Alias_Runbook.md`. Dev alias set to approved target `https://snapcase-hwbcudj5f-snapcase.vercel.app` via `node scripts/alias-dev.mjs --target https://snapcase-hwbcudj5f-snapcase.vercel.app --allow-branch task/Sprint04-Task23-dev-alias-guard --yes` (lint/build rerun, baseline ack). Verification: `curl -I https://dev.snapcase.ai/design` (200), screenshot `Images/diagnostics/20251218T204958-dev-alias-design.png` (headless Edge). Rollback: `vercel alias set snapcase-pgz7j4zcj-snapcase.vercel.app dev.snapcase.ai --scope snapcase`. OneDrive worktree remains dirty (not touched). Branch: task/Sprint04-Task23-dev-alias-guard (C:\Repos\SnapCase_App_task22). Compare: https://github.com/ethtri/SnapCase_App/compare/main...task/Sprint04-Task23-dev-alias-guard.
