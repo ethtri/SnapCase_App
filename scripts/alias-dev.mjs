@@ -2,6 +2,8 @@
 
 import { spawnSync } from 'node:child_process';
 import readline from 'node:readline';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const DEFAULT_SCOPE = 'snapcase';
 const DEFAULT_ALLOWED_BRANCHES = ['main', 'task/Sprint04-Task21-summary-hotfix'];
@@ -196,6 +198,44 @@ async function confirmBaseline(yesFlag) {
   }
 }
 
+function updateProgressMd(target, rollbackTarget) {
+  const progressPath = join(process.cwd(), 'PROGRESS.md');
+  let content = readFileSync(progressPath, 'utf8');
+
+  // Update "Last Updated" date
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  content = content.replace(
+    /\*\*Last Updated\*\*: .*/,
+    `**Last Updated**: ${today}`
+  );
+
+  // Update dev alias line in Current Blockers section
+  const aliasLineRegex = /(- Dev alias: dev\.snapcase\.ai points to )[^\s]+( \(rollback: )[^\s]+(; verified )[^)]+(\)\.)/;
+  if (aliasLineRegex.test(content)) {
+    const verifiedDate = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    content = content.replace(
+      aliasLineRegex,
+      `$1${target} ($2${rollbackTarget} ($3${verifiedDate})$4`
+    );
+  } else {
+    // If pattern doesn't match, try to find and update the blockers section
+    const blockersRegex = /(### Current Blockers\n\n)(- Dev alias: dev\.snapcase\.ai points to )[^\s]+( \(rollback: )[^\s]+(; verified )[^)]+(\)\.)/;
+    if (blockersRegex.test(content)) {
+      const verifiedDate = new Date().toISOString().split('T')[0].replace(/-/g, '');
+      content = content.replace(
+        blockersRegex,
+        `$1$2${target} ($3${rollbackTarget} ($4${verifiedDate})$5`
+      );
+    } else {
+      console.warn('Warning: Could not find dev alias line in PROGRESS.md to update.');
+      return;
+    }
+  }
+
+  writeFileSync(progressPath, content, 'utf8');
+  console.log('✓ Updated PROGRESS.md with new alias state and date');
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const target = normalizeTarget(args.target);
@@ -234,6 +274,13 @@ async function main() {
     console.log(`vercel ${aliasArgs.join(' ')}`);
   } else {
     runAndRequire('vercel alias set', 'vercel', aliasArgs);
+    // Auto-update PROGRESS.md after successful alias change
+    try {
+      updateProgressMd(target, currentTarget);
+    } catch (error) {
+      console.warn(`\nWarning: Failed to auto-update PROGRESS.md: ${error.message}`);
+      console.warn('Please manually update PROGRESS.md with the new alias state.');
+    }
   }
 
   console.log('\nAlias recap:');

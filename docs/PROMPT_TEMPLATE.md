@@ -8,9 +8,9 @@ Context
 - Branch: task/SprintNN-TaskXX-<slug>
 - Role: Senior <domain> (e.g., Senior UX Engineer, Senior Frontend Engineer)
 
-Preflight
-- Run `git worktree list` (cap at 3) then `git status`; stop if any worktree is dirty or if rebase/merge is in progress. If dirty: restore `Snapcase-Flow-Mockups/*` deletions from `origin/main`, delete or stash stray diagnostics/unrelated files, rerun `git status` before proceeding.
-- Run `npm run preflight` before editing.
+Preflight (MANDATORY - FAIL FAST IF ANY CHECK FAILS)
+- Run `git worktree list` (cap at 3) then `git status`; **STOP IMMEDIATELY** if any worktree is dirty or if rebase/merge is in progress. If dirty: restore `Snapcase-Flow-Mockups/*` deletions from `origin/main`, delete or stash stray diagnostics/unrelated files, rerun `git status` before proceeding.
+- **REQUIRED:** Run `npm run preflight` before editing. **IF PREFLIGHT FAILS, STOP AND FIX ISSUES BEFORE PROCEEDING.** Do not bypass or skip preflight checks.
 - Treat `Snapcase-Flow-Mockups/*` as read-only; restore any deletions before editing.
 - Copy `.vercel` from the main worktree if missing; run `vercel whoami`.
 - Lint-config preflight: pull the config from `origin/main`; if lint prompts to create one or it is missing after pull, stop and report.
