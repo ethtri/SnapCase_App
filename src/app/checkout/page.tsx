@@ -682,6 +682,9 @@ export default function CheckoutPage(): JSX.Element {
                 <p className="text-sm text-gray-500">
                   Updates anytime your device or shipping choices change.
                 </p>
+                <p className="text-xs text-gray-500">
+                  Base price set by Snapcase; shipping and tax shown below.
+                </p>
               </div>
               <dl className="space-y-3 text-sm text-gray-700">
                 <div className="flex items-center justify-between">

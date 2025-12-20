@@ -1,3 +1,15 @@
+export type DesignGuardrailSnapshot = {
+  designValid: boolean | null;
+  blockingIssues: string[];
+  warningMessages: string[];
+  reportedVariantIds: number[];
+  selectedVariantIds: number[];
+  variantMismatch: boolean;
+  guardrailMode: "snapcase" | "printful";
+  updatedAt: string;
+  rawPayload: string | null;
+};
+
 export type DesignContext = {
   variantId: number | null;
   externalProductId: string | null;
@@ -13,6 +25,7 @@ export type DesignContext = {
   unitPriceCurrency: string | null;
   pricingSource: string | null;
   printfulProductId?: number | null;
+  guardrailSnapshot: DesignGuardrailSnapshot | null;
   timestamp: number;
 };
 
@@ -34,7 +47,64 @@ function createEmptyContext(): DesignContext {
     unitPriceCurrency: null,
     pricingSource: null,
     printfulProductId: null,
+    guardrailSnapshot: null,
     timestamp: Date.now(),
+  };
+}
+
+function parseStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((entry): entry is string => typeof entry === "string");
+}
+
+function parseNumberArray(value: unknown): number[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((entry) => {
+      if (typeof entry === "number" && Number.isFinite(entry)) {
+        return entry;
+      }
+      if (typeof entry === "string") {
+        const parsed = Number(entry);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+      return null;
+    })
+    .filter((entry): entry is number => entry != null);
+}
+
+function parseGuardrailSnapshot(
+  value: unknown,
+): DesignGuardrailSnapshot | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const guardrailMode =
+    record.guardrailMode === "printful" || record.guardrailMode === "snapcase"
+      ? record.guardrailMode
+      : "snapcase";
+
+  return {
+    designValid:
+      typeof record.designValid === "boolean" ? record.designValid : null,
+    blockingIssues: parseStringArray(record.blockingIssues),
+    warningMessages: parseStringArray(record.warningMessages),
+    reportedVariantIds: parseNumberArray(record.reportedVariantIds),
+    selectedVariantIds: parseNumberArray(record.selectedVariantIds),
+    variantMismatch: Boolean(record.variantMismatch),
+    guardrailMode,
+    updatedAt:
+      typeof record.updatedAt === "string" && record.updatedAt.trim().length
+        ? record.updatedAt
+        : new Date().toISOString(),
+    rawPayload:
+      typeof record.rawPayload === "string" ? record.rawPayload : null,
   };
 }
 
@@ -113,6 +183,7 @@ export function loadDesignContext(): DesignContext | null {
       unitPriceCurrency: parsed.unitPriceCurrency ?? null,
       pricingSource: parsed.pricingSource ?? null,
       printfulProductId: parsed.printfulProductId ?? null,
+      guardrailSnapshot: parseGuardrailSnapshot(parsed.guardrailSnapshot),
       timestamp: parsed.timestamp ?? Date.now(),
     };
   } catch (error) {
