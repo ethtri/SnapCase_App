@@ -101,6 +101,22 @@ function formatDateTime(timestamp: number | null | undefined): string | null {
   });
 }
 
+function isGuardrailSnapshotForVariant(
+  snapshot: DesignContext["guardrailSnapshot"] | null,
+  variantId: number | null,
+): boolean {
+  if (!snapshot) {
+    return false;
+  }
+  if (variantId == null) {
+    return true;
+  }
+  if (snapshot.selectedVariantIds.length === 0) {
+    return true;
+  }
+  return snapshot.selectedVariantIds.includes(variantId);
+}
+
 export default function DesignPage(): JSX.Element {
   const router = useRouter();
   const catalog = useMemo(() => getDeviceCatalog(), []);
@@ -170,6 +186,13 @@ export default function DesignPage(): JSX.Element {
       lastPersistedVariantRef.current = match.variantId;
       setView("designer");
     }
+    const contextVariantId = match?.variantId ?? context.variantId ?? null;
+    if (
+      context.guardrailSnapshot &&
+      isGuardrailSnapshotForVariant(context.guardrailSnapshot, contextVariantId)
+    ) {
+      setEdmSnapshot(context.guardrailSnapshot);
+    }
   }, [catalog, deviceLookup]);
 
   useEffect(() => {
@@ -193,6 +216,24 @@ export default function DesignPage(): JSX.Element {
     }
   }, [designSummary, pricingDetails]);
 
+  useEffect(() => {
+    if (!edmSnapshot) {
+      return;
+    }
+    const context = saveDesignContext({
+      guardrailSnapshot: {
+        ...edmSnapshot,
+        blockingIssues: [...edmSnapshot.blockingIssues],
+        warningMessages: [...edmSnapshot.warningMessages],
+        reportedVariantIds: [...edmSnapshot.reportedVariantIds],
+        selectedVariantIds: [...edmSnapshot.selectedVariantIds],
+      },
+    });
+    if (context) {
+      setDesignSummary(context);
+    }
+  }, [edmSnapshot]);
+
   const handleDeviceSelected = useCallback((entry: DeviceCatalogEntry) => {
     setSelectedDevice(entry);
     setEdmSnapshot(null);
@@ -215,6 +256,7 @@ export default function DesignPage(): JSX.Element {
       unitPriceCurrency: null,
       pricingSource: null,
       printfulProductId: entry.productId ?? null,
+      guardrailSnapshot: null,
     });
     if (context) {
       setDesignSummary(context);
