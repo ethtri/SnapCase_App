@@ -8,7 +8,7 @@
 
 **Repository**: https://github.com/ethtri/SnapCase_App
 
-**Last Updated**: December 19, 2025
+**Last Updated**: December 20, 2025
 
 ## Current Status: MVP Development Phase
 
@@ -21,6 +21,12 @@ Building a web application at `app.snapcase.ai` that allows customers to design 
 - Dev alias: dev.snapcase.ai points to https://snapcase-ikedc1s8f-snapcase.vercel.app (rollback: https://snapcase-hwbcudj5f-snapcase.vercel.app; verified 2025-12-20).
 - Worktree hygiene: main is clean; active task worktree remains at C:\Repos\SnapCase_App_task22 (dirty). C:\Repos\SnapCase_App_task24 removed, but .git\worktrees\SnapCase_App_task24 cleanup failed with "Permission denied". C:\Repos\SnapCase_App_task20 deletion is still blocked by an external lock.
 - OneDrive stub cleanup pending: C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App delete failed due to locked C:\Users\ethtr\OneDrive\Documents\Work\SnapCase_App\.git\objects\pack\pack-d5f3ae0e2298870b98f03af9d6113c6d884fedfc.pack; retry after handles clear.
+
+### End-of-Day Snapshot (2025-12-20)
+- Sponsor feedback still open: /design summary card feels dated and redundant; remove the helper badge and redesign later. Task08 persistence flow (checkout -> back to design) not yet verified on dev.
+- Dev is stable on Task22 (see Current Blockers line). No new alias changes until Task08 recovery is verified.
+- Task08 recovery work is in progress on a clean branch (Task32/Task30 recovery path); needs Task08 changes re-applied cleanly on top of current main and then revalidated on dev.
+- MVP state: Design -> Checkout -> Thank-you flow exists; Stripe live keys verified (Sprint03-Task40). Remaining gaps for MVP polish: Task08 persistence + pricing helper validation, and optional summary card redesign after persistence is confirmed.
 
 ### Recently Resolved
 
